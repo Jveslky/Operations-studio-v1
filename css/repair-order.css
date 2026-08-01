@@ -1,0 +1,225 @@
+/* =========================
+REPAIR ORDERS PAGE
+========================= */
+
+
+.repair-orders-page {
+display: flex;
+flex-direction: column;
+gap: 24px;
+}
+
+/* =========================
+PAGE HEADER
+========================= */
+
+.page-header {
+display: flex;
+align-items: center;
+justify-content: space-between;
+
+padding-bottom: 14px;
+
+border-bottom: 2px solid #6eb6c8;
+}
+
+.page-header h1 {
+margin: 0;
+
+font-size: 28px;
+font-weight: 700;
+
+color: #262a2e;
+}
+
+.page-header p {
+margin-top: 6px;
+
+font-size: 14px;
+
+color: #5e564d;
+}
+
+/* =========================
+PRIMARY BUTTON
+========================= */
+
+.primary-btn {
+background: #db6128;
+color: white;
+
+border: none;
+border-radius: 8px;
+
+padding: 10px 16px;
+
+font-size: 14px;
+font-weight: 600;
+
+cursor: pointer;
+
+transition:
+background 0.15s ease,
+transform 0.15s ease;
+}
+
+.primary-btn:hover {
+background: #c45422;
+
+transform: translateY(-1px);
+}
+
+/* =========================
+TABLE CARD
+========================= */
+
+.table-card {
+background: #ffffff;
+
+border: 1px solid #cfc6bc;
+border-radius: 12px;
+
+padding: 20px;
+
+box-shadow:
+0 3px 8px rgba(0,0,0,0.10),
+0 14px 28px rgba(0,0,0,0.06);
+}
+
+/* =========================
+REPAIR ORDER TABLE
+========================= */
+
+.ro-table {
+width: 100%;
+
+border-collapse: collapse;
+}
+
+.ro-table th {
+text-align: left;
+
+padding: 14px;
+
+font-size: 13px;
+font-weight: 600;
+
+color: #5e564d;
+
+border-bottom: 1px solid #ddd6cf;
+}
+
+.ro-table td {
+padding: 16px 14px;
+
+border-bottom: 1px solid #ece7e2;
+
+color: #262a2e;
+}
+
+.ro-table tbody tr {
+cursor: pointer;
+
+transition:
+background 0.15s ease;
+}
+
+.ro-table tbody tr:hover {
+background: #f7f5f3;
+}
+
+/* =========================
+STATUS BADGES
+========================= */
+
+.status {
+display: inline-block;
+
+padding: 6px 10px;
+
+border-radius: 999px;
+
+font-size: 12px;
+font-weight: 600;
+}
+
+/* OPEN */
+
+.status-open {
+background: #dceff3;
+color: #255258;
+}
+
+/* WAITING */
+
+.status-waiting {
+background: #f2e6d8;
+color: #9a5b1f;
+}
+
+/* COMPLETE */
+
+.status-complete {
+background: #dceedd;
+color: #2f6b3b;
+}
+
+/* CRITICAL */
+
+.status-critical {
+background: #f3dcdc;
+color: #8b2e2e;
+}
+
+/* FILTER BAR */
+
+.filter-bar{
+  display:flex;
+  gap:12px;
+
+  margin-bottom:20px;
+}
+
+.search-input,
+.filter-select{
+  padding:10px 14px;
+
+  border:1px solid #cfc6bc;
+  border-radius:8px;
+
+  background:white;
+
+  font-size:14px;
+}
+
+.search-input{
+  flex:1;
+}
+
+.search-input:focus,
+.filter-select:focus{
+  outline:none;
+
+  border-color:#6eb6c8;
+
+  box-shadow:
+    0 0 0 3px rgba(110,182,200,.15);
+}
+
+.filter-bar {
+  display: flex;
+  gap: 12px;
+
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+
+  border-bottom: 1px solid #ddd6cf;
+}
+
+.ro-table tbody tr {
+  cursor: pointer;
+}
+
+.ro-table tbody tr:hover {
+  background: #f7f5f3;
+}

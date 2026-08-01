@@ -1,0 +1,352 @@
+/* =========================
+   BASE PAGE
+========================= */
+
+html {
+    overflow-y: scroll;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #e7eaed;
+    color: #252a30;
+}
+
+
+/* =========================
+   APP HEADER
+========================= */
+
+.app-header {
+    width: 100%;
+    background: #252a30;
+    color: #ffffff;
+    border-bottom: 4px solid #db6128;
+}
+
+.app-header-inner {
+    width: min(1400px, 94%);
+    min-height: 64px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.app-brand {
+    color: #db6128;
+    text-decoration: none;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.app-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .app-nav a {
+        padding: 10px 14px;
+        border: none;
+        border-radius: 7px;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+        .app-nav a:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+
+/* =========================
+   DETAIL PAGE LAYOUT
+========================= */
+
+.repair-detail-page {
+    width: min(1400px, 94%);
+    margin: 0 auto;
+    padding: 36px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+
+/* =========================
+   REPAIR ORDER TITLE HEADER
+========================= */
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 22px;
+    background: #ffffff;
+    border: 1px solid #cfc6bc;
+    border-left: 4px solid #db6128;
+    border-radius: 12px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08), 0 12px 24px rgba(0, 0, 0, 0.05);
+}
+
+    .detail-header h1 {
+        margin: 0;
+        font-size: 28px;
+        letter-spacing: 0.3px;
+        color: #262a2e;
+    }
+
+    .detail-header p {
+        margin: 6px 0 0;
+        font-size: 14px;
+        color: #5e564d;
+    }
+
+
+/* =========================
+   BUTTONS
+========================= */
+
+.detail-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.primary-btn,
+.secondary-btn {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 8px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.primary-btn {
+    background: #db6128;
+    color: #ffffff;
+}
+
+    .primary-btn:hover {
+        background: #c95420;
+    }
+
+.secondary-btn {
+    background: #d8d2cc;
+    color: #262a2e;
+}
+
+    .secondary-btn:hover {
+        background: #cfc6bc;
+    }
+
+    .primary-btn:hover,
+    .secondary-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+    }
+
+
+/* =========================
+   TOP INFO GRID
+========================= */
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+
+/* =========================
+   DETAIL CARDS
+========================= */
+
+.detail-card {
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #cfc6bc;
+    border-radius: 12px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.10), 0 14px 28px rgba(0, 0, 0, 0.06);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .detail-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 12px rgba(0, 0, 0, 0.12), 0 18px 32px rgba(0, 0, 0, 0.08);
+    }
+
+    .detail-card h2,
+    .detail-card h3 {
+        margin-top: 0;
+        color: #262a2e;
+    }
+
+    .detail-card h2 {
+        margin-bottom: 14px;
+        padding-bottom: 8px;
+        font-size: 18px;
+        border-bottom: 1px solid #ece7e2;
+    }
+
+    .detail-card p,
+    .detail-card li {
+        color: #3b332d;
+        line-height: 1.5;
+    }
+
+
+/* =========================
+   QUICK INFO CARDS
+========================= */
+
+.detail-grid .detail-card {
+    border-top: 4px solid #6eb6c8;
+}
+
+    .detail-grid .detail-card h3 {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        color: #5e564d;
+    }
+
+    .detail-grid .detail-card p {
+        margin-bottom: 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: #262a2e;
+    }
+
+
+/* =========================
+   FORM FIELDS
+========================= */
+
+label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: #262a2e;
+}
+
+.detail-input {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 8px;
+    padding: 12px;
+    border: 1px solid #cfc6bc;
+    border-radius: 8px;
+    background: #ffffff;
+    font-size: 14px;
+    font-family: Arial, Helvetica, sans-serif;
+    transition: border 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+    .detail-input:hover {
+        background: #fffdfb;
+    }
+
+    .detail-input:focus {
+        outline: none;
+        border-color: #6eb6c8;
+        box-shadow: 0 0 0 3px rgba(110, 182, 200, 0.15);
+    }
+
+textarea.detail-input {
+    min-height: 110px;
+    resize: vertical;
+}
+
+
+/* =========================
+   ADDITIONAL TECHNICIAN
+========================= */
+
+.additional-tech-row {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    gap: 12px;
+    align-items: end;
+}
+
+    .additional-tech-row .detail-input {
+        margin-top: 0;
+    }
+
+
+/* =========================
+   TIMELINE
+========================= */
+
+.timeline-item {
+    position: relative;
+    padding: 12px 0 12px 18px;
+    border-bottom: 1px solid #ece7e2;
+    color: #3b332d;
+}
+
+    .timeline-item:last-child {
+        border-bottom: none;
+    }
+
+    .timeline-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 18px;
+        width: 7px;
+        height: 7px;
+        background: #db6128;
+        border-radius: 50%;
+    }
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
+@media (max-width: 700px) {
+    .additional-tech-row {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .app-header-inner {
+        padding: 12px 0;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .app-nav {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .detail-actions {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+}

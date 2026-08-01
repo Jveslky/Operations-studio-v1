@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Track Right | Fleet</title>
+
+    <link rel="stylesheet" href="./fleet.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="header-inner">
+            <a class="brand" href="./fleet.html">
+                Track Right
+            </a>
+
+            <nav class="main-nav">
+                <a href="../../index.html">Dashboard</a>
+                <a href="./fleet.html">Fleet</a>
+                <a href="./repair-orders.html">Repair Orders</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page">
+        <section class="page-heading">
+            <div>
+                <p class="eyebrow">Personal Fleet</p>
+                <h1>Fleet Database</h1>
+                <p class="page-description">
+                    Add and manage vehicles and equipment.
+                </p>
+            </div>
+
+            <button
+                id="show-form-button"
+                class="primary-btn"
+                type="button"
+            >
+                Add Unit
+            </button>
+        </section>
+
+        <section
+            id="unit-form-panel"
+            class="form-panel hidden"
+        >
+            <div class="panel-heading">
+                <h2 id="form-title">Add Unit</h2>
+            </div>
+
+            <form id="unit-form">
+                <input id="unit-id" type="hidden">
+
+                <div class="form-grid">
+                    <label>
+                        Unit Name
+                        <input
+                            id="unit-name"
+                            type="text"
+                            required
+                            placeholder="F-250 Service Truck"
+                        >
+                    </label>
+
+                    <label>
+                        Unit Number
+                        <input
+                            id="unit-number"
+                            type="text"
+                            placeholder="Truck 12"
+                        >
+                    </label>
+
+                    <label>
+                        Type
+                        <select id="unit-type">
+                            <option value="Truck">Truck</option>
+                            <option value="Car">Car</option>
+                            <option value="Trailer">Trailer</option>
+                            <option value="Equipment">Equipment</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Status
+                        <select id="unit-status">
+                            <option value="Active">Active</option>
+                            <option value="Out of Service">
+                                Out of Service
+                            </option>
+                            <option value="Sold">Sold</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Year
+                        <input
+                            id="unit-year"
+                            type="number"
+                            min="1900"
+                            max="2100"
+                            placeholder="2018"
+                        >
+                    </label>
+
+                    <label>
+                        Make
+                        <input
+                            id="unit-make"
+                            type="text"
+                            placeholder="Ford"
+                        >
+                    </label>
+
+                    <label>
+                        Model
+                        <input
+                            id="unit-model"
+                            type="text"
+                            placeholder="F-250"
+                        >
+                    </label>
+
+                    <label>
+                        VIN / Serial Number
+                        <input
+                            id="unit-vin"
+                            type="text"
+                            placeholder="Optional"
+                        >
+                    </label>
+
+                    <label>
+                        Mileage
+                        <input
+                            id="unit-mileage"
+                            type="number"
+                            min="0"
+                            placeholder="126500"
+                        >
+                    </label>
+
+                    <label>
+                        Hours
+                        <input
+                            id="unit-hours"
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            placeholder="Optional"
+                        >
+                    </label>
+                </div>
+
+                <div class="form-actions">
+                    <button
+                        id="cancel-button"
+                        class="secondary-btn"
+                        type="button"
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        class="primary-btn"
+                        type="submit"
+                    >
+                        Save Unit
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="fleet-summary">
+            <div class="summary-card">
+                <span>Total Units</span>
+                <strong id="total-units">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Active</span>
+                <strong id="active-units">0</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Out of Service</span>
+                <strong id="out-of-service-units">0</strong>
+            </div>
+        </section>
+
+        <section>
+            <div class="section-heading">
+                <h2>Fleet Units</h2>
+            </div>
+
+            <div id="fleet-list" class="fleet-list"></div>
+
+            <p id="empty-message" class="empty-message">
+                No fleet units have been added yet.
+            </p>
+        </section>
+    </main>
+
+    <script src="./fleet.js"></script>
+</body>
+</html>

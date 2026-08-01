@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Operations Platform</title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="./css/base.css" />
+  <link rel="stylesheet" href="./css/layout.css" />
+  <link rel="stylesheet" href="./css/dashboard.css" />
+</head>
+
+<body>
+
+  <!-- SIDEBAR (static or injected later) -->
+  <div class="sidebar">
+
+    <aside class="sidebar-inner">
+      <div class="sidebar-brand">
+        Task Menu
+      </div>
+
+      <nav class="sidebar-nav">
+        <a href="/index.html" class="nav-item">Dashboard</a>
+        <a href="./pages/shop/fleet.html" class="nav-item">Fleet</a>
+        <a href="./pages/shop/repair-orders.html" class="nav-item">Repair Orders</a>
+        <a href="/pages/customers/customers.html" class="nav-item">Customers</a>
+        <a href="/pages/mobile/dispatch.html" class="nav-item">Mobile</a>
+      </nav>
+    </aside>
+
+  </div>
+
+  <!-- APP WRAPPER -->
+  <div class="app">
+
+    <!-- NAVBAR -->
+    <header class="navbar">
+
+  <div class="navbar-inner">
+
+    <div class="navbar-left">
+    </div>
+   
+    <div class="navbar-brand">
+      <h2>Track Right Overview</h2>
+    </div>
+
+    <div class="navbar-right">
+      <!-- status / user / actions -->
+    </div>
+
+  </div>
+
+</header>
+
+    <!-- MAIN CONTENT -->
+    <main class="page-content">
+
+      <!-- DASHBOARD HEADER -->
+      <section class="dashboard-header">
+        <h1>Operations Dashboard</h1>
+        <p>Fleet, service, and operational overview</p>
+      </section>
+
+      <!-- KPI CARDS -->
+      <section class="kpi-grid">
+
+        <div class="kpi-card">
+          <h3>Active Units</h3>
+          <p>48</p>
+        </div>
+
+        <div class="kpi-card">
+          <h3>Open Repair Orders</h3>
+          <p>12</p>
+        </div>
+
+        <div class="kpi-card">
+          <h3>Overdue Services</h3>
+          <p>5</p>
+        </div>
+
+        <div class="kpi-card">
+          <h3>Pending Approvals</h3>
+          <p>3</p>
+        </div>
+
+      </section>
+
+
+      <!-- QUICK MODULES -->
+      <section class="module-grid">
+
+        <a href="./pages/fleet/vehicles.html" class="module-card">
+          <h2>Fleet</h2>
+          <p>Manage vehicles and service schedules</p>
+        </a>
+
+        <a href="./pages/shop/repair-orders.html" class="module-card">
+          <h2>Repair Orders</h2>
+          <p>Track active service workflows</p>
+        </a>
+
+        <a href="./pages/customers/customers.html" class="module-card">
+          <h2>Customers</h2>
+          <p>View customer and unit history</p>
+        </a>
+
+        <a href="./pages/mobile/dispatch.html" class="module-card">
+          <h2>Mobile Service</h2>
+          <p>Dispatch and field operations</p>
+        </a>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- JS -->
+  <script src="./js/main.js"></script>
+
+</body>
+
+</html>

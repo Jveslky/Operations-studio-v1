@@ -1,0 +1,371 @@
+/* =========================
+   BASE PAGE
+========================= */
+
+html {
+    overflow-y: scroll;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #e7eaed;
+    color: #252a30;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+
+/* =========================
+   APP HEADER
+========================= */
+
+.app-header {
+    width: 100%;
+    background: #252a30;
+    color: #ffffff;
+    border-bottom: 4px solid #db6128;
+}
+
+.app-header-inner {
+    width: min(1400px, 94%);
+    min-height: 64px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+}
+
+.app-brand {
+    color: #db6128;
+    text-decoration: none;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.app-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .app-nav a {
+        padding: 10px 14px;
+        border-radius: 7px;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+        .app-nav a:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+
+/* =========================
+   PAGE CONTAINER
+========================= */
+
+.page {
+    width: min(1400px, 94%);
+    margin: 0 auto;
+    padding: 36px 0;
+}
+
+    .page > h1 {
+        margin: 0 0 26px;
+        font-size: 32px;
+        color: #252a30;
+    }
+
+
+/* =========================
+   PAGE TOOLS
+========================= */
+
+.repair-order-tools {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 24px;
+}
+
+    .repair-order-tools button,
+    .import-backup-button {
+        width: auto;
+        min-width: 0;
+        flex: 0 0 auto;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 7px;
+        background: #252a30;
+        color: #ffffff;
+        font: inherit;
+        font-weight: 600;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+        .repair-order-tools button:hover,
+        .import-backup-button:hover {
+            background: #3a4148;
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
+        }
+
+#new-repair-order-button {
+    background: #db6128;
+}
+
+    #new-repair-order-button:hover {
+        background: #c95420;
+    }
+
+
+/* =========================
+   NEW REPAIR ORDER FORM
+========================= */
+
+.new-repair-order-form {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #ffffff;
+    border: 1px solid #c9ced3;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+}
+
+    .new-repair-order-form h2 {
+        margin: 0 0 18px;
+        color: #252a30;
+    }
+
+.new-ro-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.new-repair-order-form label {
+    display: block;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+.new-ro-input {
+    width: 100%;
+    margin-top: 7px;
+    padding: 11px;
+    border: 1px solid #c9ced3;
+    border-radius: 7px;
+    background: #ffffff;
+    font: inherit;
+}
+
+    .new-ro-input:focus {
+        outline: none;
+        border-color: #6eb6c8;
+        box-shadow: 0 0 0 3px rgba(110, 182, 200, 0.15);
+    }
+
+textarea.new-ro-input {
+    min-height: 90px;
+    resize: vertical;
+}
+
+.new-ro-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+    .new-ro-actions button {
+        width: auto;
+        flex: 0 0 auto;
+        padding: 10px 16px;
+        border: none;
+        border-radius: 7px;
+        font: inherit;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+        .new-ro-actions button[type="submit"] {
+            background: #db6128;
+            color: #ffffff;
+        }
+
+            .new-ro-actions button[type="submit"]:hover {
+                background: #c95420;
+            }
+
+#cancel-new-repair-order {
+    background: #d8d2cc;
+    color: #252a30;
+}
+
+    #cancel-new-repair-order:hover {
+        background: #cfc6bc;
+    }
+
+
+/* =========================
+   WORKFLOW BOARD
+========================= */
+
+.repair-order-board {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 22px;
+    align-items: start;
+}
+
+.repair-order-section {
+    min-height: 350px;
+    padding: 18px;
+    background: #d5dade;
+    border: 1px solid #c2c8cd;
+    border-radius: 12px;
+}
+
+    .repair-order-section > h2 {
+        margin: 0 0 16px;
+        font-size: 20px;
+    }
+
+.repair-order-list {
+    display: grid;
+    gap: 14px;
+}
+
+
+/* =========================
+   REPAIR ORDER CARDS
+========================= */
+
+.repair-order-card {
+    display: block;
+    padding: 16px;
+    background: #ffffff;
+    border: 1px solid #c9ced3;
+    border-radius: 9px;
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.08);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+    .repair-order-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 7px 16px rgba(0, 0, 0, 0.13);
+    }
+
+.repair-order-heading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .repair-order-heading h3 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+.repair-order-card p {
+    margin: 8px 0 0;
+}
+
+.repair-order-customer {
+    font-weight: 600;
+}
+
+.repair-order-complaint {
+    line-height: 1.4;
+}
+
+.repair-order-meta,
+.empty-section-message {
+    color: #626b73;
+    font-size: 14px;
+}
+
+.empty-section-message {
+    margin: 8px 0;
+    font-style: italic;
+}
+
+
+/* =========================
+   STATUS DOTS
+========================= */
+
+.status-dot {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 11px;
+    border-radius: 50%;
+}
+
+.status-dot-neutral {
+    background: #8a939b;
+}
+
+.status-dot-blue {
+    background: #2676c5;
+}
+
+.status-dot-yellow {
+    background: #d5a11e;
+}
+
+.status-dot-green {
+    background: #31884b;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+    .repair-order-board {
+        grid-template-columns: 1fr;
+    }
+
+    .repair-order-section {
+        min-height: auto;
+    }
+}
+
+@media (max-width: 700px) {
+    .new-ro-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .app-header-inner {
+        padding: 12px 0;
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .app-nav {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+}
