@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Invoice Details | Track Right</title>
+
+    <link rel="stylesheet"
+          href="/css/base.css">
+
+    <link rel="stylesheet"
+          href="/css/layout.css">
+
+    <link rel="stylesheet"
+          href="invoice-details.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="app-header-inner">
+
+            <a class="app-brand"
+               href="../../index.html">
+                Track Right
+            </a>
+
+            <nav class="app-nav">
+
+                <a href="shop-dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="customers.html">
+                    Customers
+                </a>
+
+                <a href="repair-orders.html">
+                    Repair Orders
+                </a>
+
+                <a href="invoices.html">
+                    Invoices
+                </a>
+
+                <a href="accounts-payable.html">
+                    Accounts Payable
+                </a>
+
+            </nav>
+
+        </div>
+    </header>
+
+    <main class="invoice-details-page">
+        <div class="invoice-details-toolbar">
+            <a href="invoices.html">
+                ← Invoices
+            </a>
+
+            <div>
+                <button id="print-invoice-button"
+                        type="button">
+                    Print
+                </button>
+
+                <button id="send-invoice-button"
+                        type="button">
+                    Send Invoice
+                </button>
+
+                <button id="mark-paid-button"
+                        type="button">
+                    Mark Paid
+                </button>
+            </div>
+        </div>
+
+        <section id="invoice-document"
+                 class="invoice-document">
+
+            <header class="invoice-document-header">
+                <div>
+                    <p class="invoice-label">
+                        Invoice
+                    </p>
+
+                    <h1 id="invoice-number">
+                        Invoice
+                    </h1>
+                </div>
+
+                <div class="invoice-status-area">
+                    <span id="invoice-status">
+                        Draft
+                    </span>
+                </div>
+            </header>
+
+            <section class="invoice-information-grid">
+                <div>
+                    <span>Customer</span>
+                    <strong id="invoice-customer">—</strong>
+                </div>
+
+                <div>
+                    <span>Vehicle</span>
+                    <strong id="invoice-unit">—</strong>
+                </div>
+
+                <div>
+                    <span>Repair Order</span>
+                    <a id="invoice-repair-order"
+                       href="#">
+                        —
+                    </a>
+                </div>
+
+                <div>
+                    <span>Created</span>
+                    <strong id="invoice-created-date">—</strong>
+                </div>
+
+                <div>
+                    <span>Due Date</span>
+                    <strong id="invoice-due-date">—</strong>
+                </div>
+
+                <div>
+                    <span>Payment Date</span>
+                    <strong id="invoice-paid-date">—</strong>
+                </div>
+            </section>
+
+            <section class="invoice-work-section">
+                <h2>Work Description</h2>
+
+                <p id="invoice-complaint">
+                    No work description entered.
+                </p>
+            </section>
+
+            <section class="invoice-notes-section">
+                <h2>Invoice Notes</h2>
+
+                <p id="invoice-notes">
+                    No invoice notes entered.
+                </p>
+            </section>
+
+            <section class="invoice-total-section">
+                <span>Total Due</span>
+
+                <strong id="invoice-total">
+                    $0.00
+                </strong>
+            </section>
+        </section>
+        <div id="send-invoice-modal"
+             class="send-invoice-modal"
+             hidden>
+
+            <div class="send-invoice-modal-card">
+
+                <div class="send-invoice-modal-header">
+                    <div>
+                        <span>Send Invoice</span>
+                        <h2 id="send-invoice-number">
+                            Invoice
+                        </h2>
+                    </div>
+
+                    <button id="close-send-invoice-modal"
+                            type="button"
+                            aria-label="Close send invoice">
+                        ×
+                    </button>
+                </div>
+
+                <div class="send-invoice-preview">
+
+                    <div>
+                        <span>Customer</span>
+                        <strong id="send-invoice-customer">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Email</span>
+                        <strong id="send-invoice-email">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Phone</span>
+                        <strong id="send-invoice-phone">
+                            —
+                        </strong>
+                    </div>
+
+                    <div>
+                        <span>Total Due</span>
+                        <strong id="send-invoice-total">
+                            $0.00
+                        </strong>
+                    </div>
+
+                </div>
+
+                <label>
+                    Message
+
+                    <textarea id="send-invoice-message"></textarea>
+                </label>
+
+                <div class="send-invoice-actions">
+
+                    <button id="email-invoice-button"
+                            type="button">
+                        Email Invoice
+                    </button>
+
+                    <button id="text-invoice-button"
+                            type="button">
+                        Text Invoice
+                    </button>
+
+                    <button id="cancel-send-invoice"
+                            type="button">
+                        Cancel
+                    </button>
+
+                </div>
+            </div>
+        </div>
+
+        <p id="invoice-error"
+           class="invoice-error"
+           hidden>
+            Invoice could not be found.
+        </p>
+    </main>
+
+    <script src="invoice-details.js"></script>
+</body>
+
+</html>

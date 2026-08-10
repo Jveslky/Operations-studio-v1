@@ -1,4 +1,5 @@
 /* GLOBAL RESET */
+
 * {
     box-sizing: border-box;
 }
@@ -16,6 +17,7 @@ body {
 
 
 /* SIDEBAR */
+
 .sidebar {
     position: fixed;
     top: 0;
@@ -43,6 +45,7 @@ body {
 
 
 /* SIDEBAR NAVIGATION */
+
 .sidebar nav {
     display: flex;
     flex-direction: column;
@@ -72,6 +75,7 @@ body {
 
 
 /* APP WRAPPER */
+
 .app {
     min-height: 100vh;
     margin-left: 180px;
@@ -80,6 +84,7 @@ body {
 
 
 /* TOP NAVBAR */
+
 .navbar {
     min-height: 60px;
     background: #262a2e;
@@ -115,6 +120,7 @@ body {
 
 
 /* PAGE CONTENT */
+
 .page-content {
     padding: 24px 28px 50px 32px;
 }
@@ -133,6 +139,7 @@ body {
 
 
 /* DASHBOARD LAYOUT */
+
 .dashboard-page {
     width: 100%;
     display: grid;
@@ -166,6 +173,7 @@ body {
 
 
 /* CARDS AND PANELS */
+
 .dashboard-panel,
 .kpi-card,
 .module-card {
@@ -205,6 +213,7 @@ body {
 
 
 /* TABLET */
+
 @media (max-width: 1000px) {
     .kpi-grid,
     .module-grid {
@@ -222,6 +231,7 @@ body {
 
 
 /* MOBILE */
+
 @media (max-width: 760px) {
     .sidebar {
         position: static;
@@ -297,5 +307,262 @@ body {
         width: 100%;
         margin-top: 0;
         padding: 18px;
+    }
+}
+/* =========================================================
+   TRACK RIGHT LANDING PAGE
+   Main content only
+   ========================================================= */
+
+.page-content {
+    padding: 38px 34px 60px;
+    min-height: calc(100vh - 60px);
+    background: linear-gradient( to bottom, #eef3f3 0%, #e4ecec 50%, #d7e3e4 100% );
+}
+
+/* INTRO */
+
+.landing-intro {
+    margin-bottom: 28px;
+    padding: 28px 30px;
+    background: linear-gradient( to right, #e9c9b3 0%, #f1ddd0 48%, #f8eee7 100% );
+    border: 1px solid #cfb19d;
+    border-radius: 12px;
+    box-shadow: 0 5px 14px rgba(64, 42, 28, 0.10);
+}
+
+.landing-eyebrow {
+    margin: 0 0 8px;
+    color: #db6128;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1.6px;
+}
+
+.landing-intro h1 {
+    margin: 0 0 10px;
+    color: #252a30;
+    font-size: 36px;
+    line-height: 1.15;
+}
+
+.landing-description {
+    max-width: 720px;
+    margin: 0;
+    color: #645d56;
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+
+/* WORKSPACES */
+
+.workspace-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.workspace-card {
+    min-width: 0;
+    min-height: 300px;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: #fffdf9;
+    border: 1px solid #7f7469;
+    border-radius: 10px;
+    box-shadow: 0 5px 12px rgba(45, 35, 27, 0.18), 0 14px 28px rgba(45, 35, 27, 0.08);
+    color: inherit;
+    text-decoration: none;
+    transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+a.workspace-card:hover {
+    transform: translateY(-3px);
+    background: #fffaf3;
+    box-shadow: 0 8px 18px rgba(58, 44, 31, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+a.workspace-card:focus-visible {
+    outline: 3px solid rgba(110, 182, 200, 0.45);
+    outline-offset: 3px;
+}
+
+.workspace-card-top {
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    background: linear-gradient( to bottom, #dff5f6 0%, #b8e1e4 100% );
+    border-bottom: 1px solid #8fc5cb;
+}
+
+.workspace-number {
+    color: #376b71;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.workspace-status {
+    padding: 6px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+}
+
+    .workspace-status.available {
+        background: #e3ddd4;
+        color: #5a5148;
+    }
+
+    .workspace-status.planned {
+        background: #ddd4ca;
+        color: #786f66;
+    }
+
+.workspace-card-content {
+    flex: 1;
+    padding: 30px 22px 24px;
+    background: #fffdf9;
+}
+
+    .workspace-card-content h2 {
+        margin: 0 0 12px;
+        color: #2f2b27;
+        font-size: 25px;
+    }
+
+    .workspace-card-content p {
+        margin: 0;
+        color: #675e55;
+        line-height: 1.55;
+    }
+.workspace-card-action {
+    margin: 0;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #eee4d8;
+    border-top: 1px solid #b8aa9b;
+    color: #b94f1f;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+a.workspace-card:hover .workspace-card-action {
+    background: #db6128;
+    color: #ffffff;
+}
+
+    a.workspace-card:hover .workspace-card-action {
+        background: #db6128;
+        color: #ffffff;
+    }
+
+.workspace-card-disabled {
+    background: #c9c5c0;
+    border-color: #99938d;
+    box-shadow: none;
+    opacity: 0.72;
+}
+
+    .workspace-card-disabled .workspace-card-content {
+        background: #c9c5c0;
+    }
+
+    .workspace-card-disabled .workspace-card-top {
+        background: #73797e;
+    }
+
+    .workspace-card-disabled .workspace-card-action {
+        background: #aaa49e;
+        color: #625d58;
+    }
+
+
+/* LOWER INFORMATION */
+
+.landing-lower {
+    margin-top: 22px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.landing-info-panel {
+    padding: 22px 24px;
+    background: #e8e4e0;
+    border-left: 4px solid #db6128;
+    border-radius: 8px;
+}
+
+.panel-label {
+    margin: 0 0 8px;
+    color: #db6128;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.3px;
+}
+
+.landing-info-panel h2 {
+    margin: 0 0 9px;
+    color: #2c3136;
+    font-size: 19px;
+}
+
+.landing-info-panel p:last-child {
+    margin: 0;
+    color: #625c56;
+    line-height: 1.5;
+}
+
+
+/* TABLET */
+
+@media (max-width: 1050px) {
+    .workspace-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .workspace-card-disabled {
+        grid-column: 1 / -1;
+        min-height: 220px;
+    }
+
+        .workspace-card-disabled .workspace-card-content {
+            padding-top: 28px;
+        }
+}
+
+
+/* MOBILE */
+
+@media (max-width: 760px) {
+    .page-content {
+        padding: 26px 16px 42px;
+    }
+
+    .landing-intro h1 {
+        font-size: 30px;
+    }
+
+    .workspace-grid,
+    .landing-lower {
+        grid-template-columns: 1fr;
+    }
+
+    .workspace-card,
+    .workspace-card-disabled {
+        grid-column: auto;
+        min-height: 260px;
+    }
+
+    .workspace-card-content {
+        padding-top: 32px;
     }
 }

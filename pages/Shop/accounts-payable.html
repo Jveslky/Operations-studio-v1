@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Accounts Payable | Track Right</title>
+
+    <link rel="stylesheet"
+          href="./accounts-payable.css">
+</head>
+
+<body>
+
+    <header class="app-header">
+        <div class="app-header-inner">
+
+            <a class="app-brand"
+               href="../../index.html">
+                Track Right
+            </a>
+
+            <nav class="app-nav">
+
+                <a href="shop-dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="customers.html">
+                    Customers
+                </a>
+
+                <a href="repair-orders.html">
+                    Repair Orders
+                </a>
+
+                <a href="invoices.html">
+                    Invoices
+                </a>
+
+                <a href="accounts-payable.html"
+                    class="active">
+                    Accounts Payable
+                </a>
+
+            </nav>
+
+        </div>
+    </header>
+            
+
+        </div>
+    </header>
+
+    <main class="ap-page">
+
+        <section class="ap-page-header">
+            <div>
+                <span class="ap-page-label">
+                    Shop Finance
+                </span>
+
+                <h1>
+                    Accounts Payable
+                </h1>
+
+                <p>
+                    Track vendor bills, due dates,
+                    outstanding balances, and payments.
+                </p>
+            </div>
+
+            <button id="add-bill-button"
+                    type="button">
+                Add Bill
+            </button>
+        </section>
+
+
+        <section class="ap-summary-grid">
+
+            <article class="ap-summary-card">
+                <span>Open Bills</span>
+                <strong id="open-bill-count">
+                    0
+                </strong>
+            </article>
+
+            <article class="ap-summary-card">
+                <span>Due Soon</span>
+                <strong id="due-soon-count">
+                    0
+                </strong>
+            </article>
+
+            <article class="ap-summary-card">
+                <span>Overdue</span>
+                <strong id="overdue-bill-count">
+                    0
+                </strong>
+            </article>
+
+            <article class="ap-summary-card">
+                <span>Total Payable</span>
+                <strong id="total-payable">
+                    $0.00
+                </strong>
+            </article>
+
+        </section>
+
+        
+
+
+        <section class="ap-directory">
+
+            <div class="ap-directory-header">
+                <div>
+                    <span class="ap-directory-label">
+                        Vendor Bills
+                    </span>
+
+                    <p>
+                        Open and recently paid bills.
+                    </p>
+                </div>
+            </div>
+
+            <div id="bill-list"
+                 class="bill-list">
+
+                <p class="bill-list-empty">
+                    No vendor bills added yet.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <form id="bill-form"
+              class="bill-form"
+              hidden>
+
+            <div class="bill-form-header">
+                <div>
+                    <span>Add Vendor Bill</span>
+                    <h2>Bill Details</h2>
+                </div>
+
+                <button id="close-bill-form"
+                        type="button"
+                        aria-label="Close bill form">
+                    ×
+                </button>
+            </div>
+
+
+            <div class="bill-form-grid">
+
+                <label>
+                    Vendor
+
+                    <input id="bill-vendor"
+                           type="text"
+                           required>
+                </label>
+
+                <label>
+                    Reference Number
+
+                    <input id="bill-reference"
+                           type="text">
+                </label>
+
+                <label>
+                    Amount
+
+                    <input id="bill-amount"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           placeholder="0.00"
+                           required>
+                </label>
+
+                <label>
+                    Due Date
+
+                    <input id="bill-due-date"
+                           type="date">
+                </label>
+
+            </div>
+
+
+            <label>
+                Notes
+
+                <textarea id="bill-notes"
+                          rows="4"
+                          placeholder="Parts, supplies, service details, payment terms, or other notes"></textarea>
+            </label>
+
+
+            <div class="bill-form-actions">
+
+                <button type="submit">
+                    Save Bill
+                </button>
+
+                <button id="cancel-bill-form"
+                        type="button">
+                    Cancel
+                </button>
+
+            </div>
+
+        </form>
+
+    </main>
+
+    <script src="./accounts-payable.js"></script>
+
+</body>
+</html>

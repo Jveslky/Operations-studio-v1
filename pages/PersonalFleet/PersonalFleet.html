@@ -2,50 +2,42 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta
-        name="viewport"
-        content="width=device-width, initial-scale=1.0"
-    >
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
     <title>Track Right | Fleet</title>
 
-    <link rel="stylesheet" href="./fleet.css">
+    <link rel="stylesheet" href="../../css/base.css">
+    <link rel="stylesheet" href="../../css/layout.css">
+    <link rel="stylesheet" href="PersonalFleet.css">
 </head>
 
 <body>
     <header class="app-header">
-        <div class="header-inner">
-            <a class="brand" href="./fleet.html">
-                Track Right
-            </a>
+        <div class="app-header-inner">
+             <a class="app-brand" href="../../index.html">
+                 Track Right
+             </a>
 
-            <nav class="main-nav">
-                <a href="../../index.html">Dashboard</a>
-                <a href="./fleet.html">Fleet</a>
-                <a href="./repair-orders.html">Repair Orders</a>
+            <nav class="app-nav">
+                <a href="./Personaldashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="PersonalFleet.html"
+                    class="active">
+                    Fleet
+                </a>
+
+            
+
+                <a href="Personalrepair-orders.html">
+                    Repair Orders
+               
+                </a>
             </nav>
-           
-
-                    <nav class="app-nav">
-                        <a href="../../index.html">
-                            Dashboard
-                        </a>
-
-                     
-
-                        <a href="customers.html">
-                            Customers
-                        </a>
-
-                        <a href="repair-orders.html"
-                          
-                        </a>
-
-                      
-                    </nav>
-                </div>
-            </header>
-</header>
+        </div>
+    </header>
 
     <main class="page">
         <section class="page-heading">
@@ -80,21 +72,17 @@
                 <div class="form-grid">
                     <label>
                         Unit Name
-                        <input
-                            id="unit-name"
-                            type="text"
-                            required
-                            placeholder="F-250 Service Truck"
-                        >
+                        <input id="unit-name"
+                               type="text"
+                               required
+                               placeholder="F-250 Service Truck">
                     </label>
 
                     <label>
                         Unit Number
-                        <input
-                            id="unit-number"
-                            type="text"
-                            placeholder="Truck 12"
-                        >
+                        <input id="unit-number"
+                               type="text"
+                               placeholder="Truck 12">
                     </label>
 
                     <label>
@@ -121,61 +109,70 @@
 
                     <label>
                         Year
-                        <input
-                            id="unit-year"
-                            type="number"
-                            min="1900"
-                            max="2100"
-                            placeholder="2018"
-                        >
+                        <input id="unit-year"
+                               type="number"
+                               min="1900"
+                               max="2100"
+                               placeholder="2018">
                     </label>
 
                     <label>
-                        Make
-                        <input
-                            id="unit-make"
-                            type="text"
-                            placeholder="Ford"
-                        >
+                        Vehicle Make
+
+                        <input id="unit-make"
+                               class="detail-input"
+                               list="vehicle-make-options"
+                               placeholder="Select or type make">
+
+                        <datalist id="vehicle-make-options">
+                            <option value="Ford">
+                            <option value="Chevrolet">
+                            <option value="Ram">
+                            <option value="Toyota">
+                            <option value="John Deere">
+                            <option value="CAT">
+                            <option value="Volvo">
+                        </datalist>
                     </label>
 
                     <label>
                         Model
-                        <input
-                            id="unit-model"
-                            type="text"
-                            placeholder="F-250"
-                        >
+                        <input id="unit-model"
+                               type="text"
+                               placeholder="F-250">
                     </label>
 
                     <label>
                         VIN / Serial Number
-                        <input
-                            id="unit-vin"
-                            type="text"
-                            placeholder="Optional"
-                        >
+                        <input id="unit-vin"
+                               type="text"
+                               placeholder="Optional">
                     </label>
 
                     <label>
                         Mileage
-                        <input
-                            id="unit-mileage"
-                            type="number"
-                            min="0"
-                            placeholder="126500"
-                        >
+                        <input id="unit-mileage"
+                               type="number"
+                               min="0"
+                               placeholder="126500">
                     </label>
 
                     <label>
                         Hours
-                        <input
-                            id="unit-hours"
-                            type="number"
-                            min="0"
-                            step="0.1"
-                            placeholder="Optional"
-                        >
+                        <input id="unit-hours"
+                               type="number"
+                               min="0"
+                               step="0.1"
+                               placeholder="Optional">
+                    </label>
+
+                    <label>
+                        Purchase Price
+                        <input id="unit-purchase-price"
+                               type="number"
+                               min="0"
+                               step="0.01"
+                               placeholder="12500.00">
                     </label>
                 </div>
 
@@ -228,6 +225,6 @@
         </section>
     </main>
 
-    <script src="./fleet.js"></script>
+    <script src="PersonalFleet.js"></script>
 </body>
 </html>

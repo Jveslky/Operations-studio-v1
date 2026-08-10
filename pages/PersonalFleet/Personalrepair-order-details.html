@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Repair Order Details | Track Right</title>
+
+    <link rel="stylesheet"
+          href="../../css/base.css">
+
+    <link rel="stylesheet"
+          href="../../css/layout.css">
+
+    <link rel="stylesheet"
+          href="Personalrepair-order-details.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="app-header-inner">
+            <a class="app-brand"
+               href="Personaldashboard.html">
+                Track Right
+            </a>
+
+            <nav class="app-nav">
+                <a href="Personaldashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="PersonalFleet.html">
+                    Fleet Units
+                </a>
+
+                <a href="Personalrepair-orders.html"
+                   class="active">
+                    Repair Orders
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="repair-detail-page">
+        <section class="detail-header">
+            <div class="detail-title">
+                <div class="detail-title-row">
+                    <h1 id="ro-number">
+                        Repair Order
+                    </h1>
+
+                    <span id="status-display"
+                          class="status status-open">
+                    </span>
+                </div>
+
+                <p>
+                    <span id="customer-name"></span>
+                    <span class="detail-divider">•</span>
+                    <span id="unit-name"></span>
+                </p>
+            </div>
+
+            <div class="detail-actions">
+                <span id="save-message"></span>
+
+                <button id="close-button"
+                        type="button"
+                        class="secondary-btn">
+                    Close
+                </button>
+
+                <button id="save-button"
+                        type="button"
+                        class="primary-btn">
+                    Save
+                </button>
+
+                <button id="archive-button"
+                        type="button"
+                        class="secondary-btn archive-btn">
+                    Archive
+                </button>
+            </div>
+        </section>
+
+
+        <section class="detail-card control-panel">
+
+            <div class="control-grid">
+
+                <label for="status-select">
+                    Status
+
+                    <select id="status-select"
+                            class="detail-input">
+                        <option value="Open">Open</option>
+                        <option value="Scheduled">Scheduled</option>
+                        <option value="Needs Info">Needs Info</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Waiting Parts">Waiting Parts</option>
+                        <option value="Complete">Complete</option>
+                    </select>
+                </label>
+
+                <label for="priority-select">
+                    Priority
+
+                    <select id="priority-select"
+                            class="detail-input">
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </label>
+
+                <label for="technician-select">
+                    Technician
+
+                    <input id="technician-select"
+                           class="detail-input"
+                           type="text"
+                           list="personal-technician-options"
+                           placeholder="Select or type technician">
+
+                    <datalist id="personal-technician-options">
+                        <option value="Unassigned">
+                        <option value="Mike">
+                        <option value="Sarah">
+                        <option value="Dave">
+                    </datalist>
+                </label>
+
+                <label for="additional-technician-select">
+                    Additional Technician
+
+                    <input id="additional-technician-select"
+                           class="detail-input"
+                           type="text"
+                           list="personal-additional-technician-options"
+                           placeholder="Select or type technician">
+
+                    <datalist id="personal-additional-technician-options">
+                        <option value="Mike">
+                        <option value="Sarah">
+                        <option value="Dave">
+                    </datalist>
+                </label>
+
+            </div>
+
+            <label for="additional-work-performed"
+                   class="additional-work-field">
+                Additional Technician Work
+
+                <input id="additional-work-performed"
+                       class="detail-input"
+                       type="text"
+                       placeholder="Work performed by additional technician">
+            </label>
+
+        </section>
+
+
+
+        <section class="work-grid">
+
+            <section class="detail-card">
+                <h2>Work Request</h2>
+
+                <label for="complaint">
+                    Complaint or Work Needed
+
+                    <textarea id="complaint"
+                              class="detail-input"
+                              rows="4"></textarea>
+                </label>
+
+                <label for="parts-needed">
+                    Parts Needed
+
+                    <textarea id="parts-needed"
+                              class="detail-input"
+                              rows="3"></textarea>
+                </label>
+            </section>
+
+            <section class="detail-card">
+                <h2>Notes</h2>
+
+                <label for="customer-notes">
+                    Owner or Department Notes
+
+                    <textarea id="customer-notes"
+                              class="detail-input"
+                              rows="4"></textarea>
+                </label>
+
+                <label for="technician-notes">
+                    Technician Notes
+
+                    <textarea id="technician-notes"
+                              class="detail-input"
+                              rows="3"></textarea>
+                </label>
+            </section>
+
+        </section>
+
+
+        <section class="detail-card completion-card">
+
+            <div class="card-heading-row">
+                <div>
+                    <h2>Repair Completion</h2>
+
+                    <p>
+                        Record final labor, parts, meter readings,
+                        and completed work.
+                    </p>
+                </div>
+
+                <div class="repair-total">
+                    <span>Repair Total</span>
+
+                    <strong id="repair-total-display">
+                        $0.00
+                    </strong>
+                </div>
+            </div>
+
+            <div class="completion-grid">
+
+                <label for="labor-hours">
+                    Labor Hours
+
+                    <input id="labor-hours"
+                           type="number"
+                           min="0"
+                           step="0.1"
+                           class="detail-input"
+                           placeholder="0.0">
+                </label>
+
+                <label for="labor-rate">
+                    Labor Rate
+
+                    <input id="labor-rate"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           class="detail-input"
+                           placeholder="0.00">
+                </label>
+
+                <label for="parts-cost">
+                    Parts Cost
+
+                    <input id="parts-cost"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           class="detail-input"
+                           placeholder="0.00">
+                </label>
+
+                <label for="completed-date">
+                    Completed Date
+
+                    <input id="completed-date"
+                           type="date"
+                           class="detail-input">
+                </label>
+
+                <label for="completion-mileage">
+                    Completion Mileage
+
+                    <input id="completion-mileage"
+                           type="number"
+                           min="0"
+                           step="1"
+                           class="detail-input"
+                           placeholder="Mileage">
+                </label>
+
+                <label for="completion-hours">
+                    Completion Hours
+
+                    <input id="completion-hours"
+                           type="number"
+                           min="0"
+                           step="0.1"
+                           class="detail-input"
+                           placeholder="Machine hours">
+                </label>
+
+                <label for="work-performed"
+                       class="work-performed-field">
+                    Work Performed
+
+                    <textarea id="work-performed"
+                              rows="4"
+                              class="detail-input"
+                              placeholder="Describe the completed repair"></textarea>
+                </label>
+
+            </div>
+        </section>
+
+
+
+
+
+
+
+
+
+
+    </main>
+
+    <script src="Personalrepair-order-details.js"
+            defer>
+    </script>
+</body>
+
+</html>

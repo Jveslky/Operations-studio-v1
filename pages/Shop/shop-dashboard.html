@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Shop Dashboard</title>
+
+    <link rel="stylesheet" href="../../css/base.css">
+    <link rel="stylesheet" href="../../css/layout.css">
+    <link rel="stylesheet" href="shop-dashboard.css">
+</head>
+
+<body>
+   
+
+            <header class="app-header">
+                <div class="app-header-inner">
+
+                    <a class="app-brand"
+                       href="../../index.html">
+                        Track Right
+                    </a>
+
+                    <nav class="app-nav">
+
+                        <a href="shop-dashboard.html"
+                            class="active">
+                            Dashboard
+                        </a>
+
+                        <a href="customers.html">
+                            Customers
+                        </a>
+
+                        <a href="repair-orders.html">
+                            Repair Orders
+                        </a>
+
+                        <a href="invoices.html">
+                            Invoices
+                        </a>
+
+                        <a href="accounts-payable.html">
+                            Accounts Payable
+                        </a>
+
+                    </nav>
+
+                </div>
+            </header>
+    
+
+
+            <main class="shop-dashboard">
+
+                <section class="shop-dashboard-intro">
+                    <div>
+                        <p class="dashboard-eyebrow">SHOP WORKSPACE</p>
+
+                        <h1>Shop Operations</h1>
+
+                        <p>
+                            Manage customers, repair orders, invoices,
+                            approvals, and active shop work.
+                        </p>
+                    </div>
+                </section>
+
+
+                <section class="shop-kpi-grid">
+
+                    <article class="shop-kpi-card">
+                        <span id="open-repair-order-count"
+                              class="shop-kpi-value">
+                            0
+                        </span>
+
+                        <span class="shop-kpi-label">
+                            Open Repair Orders
+                        </span>
+                    </article>
+
+                    <article class="shop-kpi-card">
+                        <span id="waiting-approval-count"
+                              class="shop-kpi-value">
+                            0
+                        </span>
+
+                        <span class="shop-kpi-label">
+                            Waiting for Approval
+                        </span>
+                    </article>
+
+                    <article class="shop-kpi-card">
+                        <span id="ready-payment-count"
+                              class="shop-kpi-value">
+                            0
+                        </span>
+
+                        <span class="shop-kpi-label">
+                            Ready for Payment
+                        </span>
+                    </article>
+
+                    <article class="shop-kpi-card">
+                        <span id="open-invoice-count"
+                              class="shop-kpi-value">
+                            0
+                        </span>
+
+                        <span class="shop-kpi-label">
+                            Open Invoices
+                        </span>
+                    </article>
+
+                </section>
+
+                <section class="shop-finance-section">
+
+                    <div class="section-heading">
+                        <p class="panel-eyebrow">FINANCE</p>
+                        <h2>Financial Snapshot</h2>
+                    </div>
+
+                    <div class="shop-finance-grid">
+
+                        <article class="shop-kpi-card">
+                            <span id="accounts-receivable"
+                                  class="shop-kpi-value">
+                                $0.00
+                            </span>
+
+                            <span class="shop-kpi-label">
+                                Accounts Receivable
+                            </span>
+                        </article>
+
+                        <article class="shop-kpi-card">
+                            <span id="accounts-payable"
+                                  class="shop-kpi-value">
+                                $0.00
+                            </span>
+
+                            <span class="shop-kpi-label">
+                                Accounts Payable
+                            </span>
+                        </article>
+
+                        <article class="shop-kpi-card">
+                            <span id="net-position"
+                                  class="shop-kpi-value">
+                                $0.00
+                            </span>
+
+                            <span class="shop-kpi-label">
+                                Net Position
+                            </span>
+                        </article>
+
+                    </div>
+
+                </section>
+
+                <section class="shop-dashboard-panels">
+
+                    <article class="shop-dashboard-panel">
+
+                        <div class="panel-heading">
+                            <div>
+                                <p class="panel-eyebrow">
+                                    WORKFLOW
+                                </p>
+
+                                <h2>
+                                    Repair Order Activity
+                                </h2>
+                            </div>
+
+                            <a href="repair-orders.html">
+                                View Repair Orders
+                            </a>
+                        </div>
+
+                        <div id="repair-order-activity"
+                             class="empty-panel-message">
+
+                            <strong>
+                                No active repair-order alerts
+                            </strong>
+
+                            <p>
+                                Repair orders needing attention will appear here.
+                            </p>
+                        </div>
+
+                    </article>
+
+
+                    <article class="shop-dashboard-panel">
+
+                        <div class="panel-heading">
+                            <div>
+                                <p class="panel-eyebrow">
+                                    BILLING
+                                </p>
+
+                                <h2>
+                                    Invoice Activity
+                                </h2>
+                            </div>
+
+                            <a href="invoices.html">
+                                View Invoices
+                            </a>
+                        </div>
+
+                        <div id="invoice-activity"
+                             class="empty-panel-message">
+
+                            <strong>
+                                No outstanding invoice alerts
+                            </strong>
+
+                            <p>
+                                Unpaid and recently completed invoices will appear here.
+                            </p>
+                        </div>
+
+                    </article>
+
+                </section>
+
+
+               
+
+
+                <section class="shop-module-section">
+
+                    <div class="section-heading">
+                        <p class="panel-eyebrow">SHOP TOOLS</p>
+                        <h2>Open a module</h2>
+                    </div>
+
+                    <div class="shop-module-grid">
+
+                        <a href="customers.html"
+                           class="shop-module-card">
+                            <span class="module-number">01</span>
+
+                            <h3>Customers</h3>
+
+                            <p>
+                                View customer records, associated units,
+                                contact information, and repair history.
+                            </p>
+
+                            <span class="module-action">
+                                Open Customers →
+                            </span>
+                        </a>
+
+
+                        <a href="repair-orders.html"
+                           class="shop-module-card">
+                            <span class="module-number">02</span>
+
+                            <h3>Repair Orders</h3>
+
+                            <p>
+                                Create, update, organize, and review
+                                active shop work.
+                            </p>
+
+                            <span class="module-action">
+                                Open Repair Orders →
+                            </span>
+                        </a>
+
+
+                        <a href="invoices.html"
+                           class="shop-module-card">
+                            <span class="module-number">03</span>
+
+                            <h3>Invoices</h3>
+
+                            <p>
+                                Create invoices, track outstanding balances,
+                                and record customer payments.
+                            </p>
+
+                            <span class="module-action">
+                                Open Invoices →
+                            </span>
+                        </a>
+
+                    </div>
+
+                </section>
+
+            </main>
+
+    <script src="./shop-dashboard.js"></script>
+
+</body>
+</html>

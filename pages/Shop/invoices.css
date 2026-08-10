@@ -1,0 +1,439 @@
+/* =========================
+   PAGE
+========================= */
+
+body {
+    margin: 0;
+    background: #edf0f3;
+    color: #202833;
+}
+
+.invoices-page {
+    width: min(1180px, calc(100% - 48px));
+    margin: 34px auto 70px;
+}
+
+
+/* =========================
+   APP HEADER
+========================= */
+
+.app-header {
+    width: 100%;
+    background: #252a30;
+    color: #ffffff;
+    border-bottom: 4px solid #db6128;
+}
+
+.app-header-inner {
+    width: min(1390px, calc(100% - 48px));
+    min-height: 64px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 28px;
+}
+
+.app-brand {
+    color: #db6128;
+    text-decoration: none;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.app-nav {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+    .app-nav a {
+        padding: 10px 14px;
+        border-radius: 7px;
+        color: #ffffff;
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+        .app-nav a:hover {
+            background: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+        }
+
+        .app-nav a.active {
+            background: rgba(255, 255, 255, 0.12);
+            color: #f26a2e;
+        }
+
+
+/* =========================
+   PAGE HEADER
+========================= */
+
+.invoices-header,
+.invoice-page-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 22px;
+}
+
+    .invoices-header h1,
+    .invoice-page-header h1 {
+        margin: 0 0 6px;
+        font-size: clamp(2rem, 4vw, 2.7rem);
+    }
+
+    .invoices-header p,
+    .invoice-page-header p {
+        margin: 0;
+        color: #667085;
+    }
+
+
+/* =========================
+   SUMMARY
+========================= */
+
+.invoice-summary,
+.invoice-summary-grid,
+.invoice-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.invoice-summary-card,
+.invoice-metric-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 100px;
+    padding: 19px 20px;
+    border: 1px solid #d2d8de;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 5px 16px rgba(31, 41, 51, 0.05);
+}
+
+    .invoice-summary-card::before,
+    .invoice-metric-card::before {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 4px;
+        background: #e96525;
+        content: "";
+    }
+
+    .invoice-summary-card span,
+    .invoice-metric-card span {
+        display: block;
+        margin-bottom: 10px;
+        color: #667085;
+        font-size: 0.77rem;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+    }
+
+    .invoice-summary-card strong,
+    .invoice-metric-card strong {
+        color: #202833;
+        font-size: 1.65rem;
+    }
+
+
+/* =========================
+   FILTERS
+========================= */
+
+.invoice-toolbar,
+.invoice-filters {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 16px;
+    border: 1px solid #d2d8de;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: 0 5px 16px rgba(31, 41, 51, 0.05);
+}
+
+    .invoice-toolbar input,
+    .invoice-toolbar select,
+    .invoice-filters input,
+    .invoice-filters select {
+        min-height: 43px;
+        padding: 10px 12px;
+        border: 1px solid #adb6c1;
+        border-radius: 7px;
+        background: #ffffff;
+        color: #27313b;
+        font: inherit;
+    }
+
+    .invoice-toolbar input,
+    .invoice-filters input {
+        flex: 1;
+        min-width: 0;
+    }
+
+        .invoice-toolbar input:focus,
+        .invoice-toolbar select:focus,
+        .invoice-filters input:focus,
+        .invoice-filters select:focus {
+            outline: 3px solid rgba(233, 101, 37, 0.17);
+            border-color: #e96525;
+        }
+
+
+/* =========================
+   COLUMN HEADER
+========================= */
+
+.invoice-list-header {
+    display: grid;
+    grid-template-columns: minmax(130px, 0.9fr) minmax(220px, 1.6fr) minmax(120px, 0.8fr) minmax(120px, 0.8fr) minmax(180px, 1fr);
+    gap: 18px;
+    padding: 0 20px 9px;
+    color: #697586;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+
+/* =========================
+   INVOICE LIST
+========================= */
+
+.invoice-list {
+    display: grid;
+    gap: 11px;
+}
+
+.invoice-card {
+    display: grid;
+    grid-template-columns: minmax(130px, 0.9fr) minmax(220px, 1.6fr) minmax(120px, 0.8fr) minmax(120px, 0.8fr) minmax(180px, 1fr);
+    align-items: center;
+    gap: 18px;
+    padding: 18px 20px;
+    border: 1px solid #d2d8de;
+    border-left: 4px solid #e96525;
+    border-radius: 9px;
+    background: #ffffff;
+    box-shadow: 0 4px 12px rgba(31, 41, 51, 0.04);
+    cursor: pointer;
+    transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+}
+
+    .invoice-card:hover,
+    .invoice-card:focus-visible {
+        border-color: #aeb6bf;
+        border-left-color: #d95c21;
+        box-shadow: 0 10px 24px rgba(31, 41, 51, 0.09);
+        transform: translateY(-2px);
+        outline: none;
+    }
+
+    .invoice-card strong {
+        color: #202833;
+    }
+
+    .invoice-card p {
+        margin: 4px 0 0;
+        color: #697586;
+        font-size: 0.87rem;
+    }
+
+.invoice-card-status {
+    display: grid;
+    gap: 9px;
+    justify-items: end;
+}
+
+
+/* =========================
+   STATUS
+========================= */
+
+.invoice-status {
+    display: inline-flex;
+    align-items: center;
+    min-height: 28px;
+    padding: 4px 10px;
+    border: 1px solid #d1d7dd;
+    border-radius: 999px;
+    background: #f4f6f8;
+    color: #475467;
+    font-size: 0.79rem;
+    font-weight: 800;
+}
+
+    .invoice-status[data-status="Sent"],
+    .invoice-card[data-status="Sent"] .invoice-status {
+        border-color: #b2ccff;
+        background: #eff4ff;
+        color: #175cd3;
+    }
+
+    .invoice-status[data-status="Paid"],
+    .invoice-card[data-status="Paid"] .invoice-status {
+        border-color: #abefc6;
+        background: #ecfdf3;
+        color: #067647;
+    }
+
+    .invoice-status[data-status="Overdue"],
+    .invoice-card[data-status="Overdue"] .invoice-status {
+        border-color: #fecdca;
+        background: #fef3f2;
+        color: #b42318;
+    }
+
+
+/* =========================
+   CARD ACTIONS
+========================= */
+
+.invoice-card-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 7px;
+}
+
+    .invoice-card-actions button {
+        padding: 7px 10px;
+        border: 1px solid #9fa9b5;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #344054;
+        font: inherit;
+        font-size: 0.78rem;
+        font-weight: 800;
+        cursor: pointer;
+    }
+
+        .invoice-card-actions button:hover {
+            background: #f2f4f6;
+        }
+
+        .invoice-card-actions button[data-action="mark-paid"] {
+            border-color: #087a4d;
+            background: #087a4d;
+            color: #ffffff;
+        }
+
+            .invoice-card-actions button[data-action="mark-paid"]:hover {
+                background: #05603a;
+            }
+
+
+/* =========================
+   EMPTY STATE
+========================= */
+
+.invoice-list > p {
+    margin: 0;
+    padding: 38px 24px;
+    border: 1px dashed #b7c0ca;
+    border-radius: 9px;
+    background: #f7f9fa;
+    color: #667085;
+    text-align: center;
+}
+
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media (max-width: 900px) {
+    .invoice-summary,
+    .invoice-summary-grid,
+    .invoice-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .invoice-list-header {
+        display: none;
+    }
+
+    .invoice-card {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .invoice-card-status {
+        justify-items: start;
+    }
+
+    .invoice-card-actions {
+        justify-content: flex-start;
+    }
+}
+
+@media (max-width: 650px) {
+    .app-header-inner {
+        width: min(100% - 28px, 1390px);
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 16px 0;
+    }
+
+    .app-nav {
+        width: 100%;
+        gap: 16px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+    }
+
+    .invoices-page {
+        width: min(100% - 24px, 1180px);
+        margin-top: 22px;
+    }
+
+    .invoice-summary,
+    .invoice-summary-grid,
+    .invoice-metrics,
+    .invoice-card {
+        grid-template-columns: 1fr;
+    }
+
+    .invoice-toolbar,
+    .invoice-filters,
+    .invoices-header,
+    .invoice-page-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+        .invoice-toolbar select,
+        .invoice-filters select {
+            width: 100%;
+        }
+}
+#create-invoice-button {
+    min-height: 38px;
+    padding: 9px 16px;
+    border: 1px solid #c95622;
+    border-radius: 6px;
+    background: #db6128;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease, transform .15s ease;
+}
+
+    #create-invoice-button:hover {
+        background: #c95622;
+        border-color: #b84c1e;
+        transform: translateY(-1px);
+    }

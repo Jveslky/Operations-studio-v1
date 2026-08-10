@@ -7,163 +7,432 @@
     <title>Repair Order Details</title>
 
     <link rel="stylesheet" href="./repair-order-details.css">
-   
+
 </head>
 
 <body>
     <header class="app-header">
         <div class="app-header-inner">
-            <a class="app-brand" href="../../index.html">
+
+            <a class="app-brand"
+               href="../../index.html">
                 Track Right
             </a>
 
             <nav class="app-nav">
-                <a href="../../index.html">Dashboard</a>
-                <a href="./repair-orders.html">Repair Orders</a>
+
+                <a href="shop-dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="customers.html">
+                    Customers
+                </a>
+
+                <a href="repair-orders.html">
+                    Repair Orders
+                </a>
+
+                <a href="invoices.html">
+                    Invoices
+                </a>
+
+                <a href="accounts-payable.html">
+                    Accounts Payable
+                </a>
+
             </nav>
+
         </div>
     </header>
 
     <main class="repair-detail-page">
 
-        <body>
 
-            <main class="repair-detail-page">
 
-                <section class="detail-header">
-                    <div>
-                        <h1 id="ro-number">Repair Order</h1>
+        <section class="detail-header">
+            <div>
+                <div class="detail-title-row">
+                    <h1 id="ro-number">Repair Order</h1>
 
-                        <p>
-                            <span id="customer-name"></span>
-                            •
-                            <span id="unit-name"></span>
-                        </p>
-                    </div>
+                    <span id="status-display"
+                          class="status status-open">
+                    </span>
+                </div>
 
-                    <div class="detail-actions">
-                        <span id="save-message"></span>
+            </div>
 
-                        <button id="close-button" type="button" class="secondary-btn">
-                            Close
-                        </button>
+            <p>
+                <span id="customer-name"></span>
+                <span class="detail-meta-divider"></span>
+                <span id="unit-name"></span>
+            </p>
+            </div>
 
-                        <button id="save-button" type="button" class="primary-btn">
-                            Save
-                        </button>
-                        <button id="archive-button"
-                                class="secondary-btn"
-                                type="button">
-                            Archive
-                        </button>
-                    </div>
+            <div class="detail-actions">
+                <span id="save-message"></span>
 
-                </section>
+                <button id="close-button" type="button" class="secondary-btn">
+                    Close
+                </button>
 
-                <section class="detail-grid">
+                <button id="save-button" type="button" class="primary-btn">
+                    Save
+                </button>
+                <button id="archive-button"
+                        class="secondary-btn"
+                        type="button">
+                    Archive
+                </button>
+                <button id="create-invoice-button"
+                        type="button">
+                    Create Invoice
+                </button>
+            </div>
 
-                    <div class="detail-card">
-                        <h3>Status</h3>
-                        <span id="status-display" class="status status-open"></span>
-                    </div>
-                    <div class="detail-card">
-                        <h3>Priority</h3>
+        </section>
 
-                        <select id="priority-select">
-                            <option value="Low">Low</option>
-                            <option value="Medium">Medium</option>
-                            <option value="High">High</option>
-                            <option value="Critical">Critical</option>
-                        </select>
-                    </div>
+        <!-- REPAIR ORDER CONTROLS -->
 
-                    <div class="detail-card">
-                        <h3>Technician</h3>
+        <section class="ro-controls-panel">
 
-                        <select id="technician-select">
-                            <option value="Unassigned">Unassigned</option>
-                            <option value="Mike">Mike</option>
-                            <option value="Sarah">Sarah</option>
-                        </select>
-                    </div>
-                    <div class="additional-tech-row">
-                        <select id="additional-technician-select"
-                                class="detail-input">
-                            <option value="">Additional Technician</option>
-                            <option value="Mike">Mike</option>
-                            <option value="Sarah">Sarah</option>
-                            <option value="Dave">Dave</option>
-                        </select>
+            <div class="ro-controls-grid">
 
-                        <input id="additional-work-performed"
-                               class="detail-input"
-                               type="text"
-                               placeholder="Work performed">
-                    </div>
+                <label>
+                    Status
 
-                </section>
-
-                <section class="detail-card">
-                    <label for="complaint">Complaint</label>
-                    <textarea id="complaint"
-                              class="detail-input"
-                              rows="4"></textarea>
-                </section>
-
-                <section class="detail-card">
-                    <label for="parts-needed">Parts Needed</label>
-                    <textarea id="parts-needed"
-                              class="detail-input"
-                              rows="4"></textarea>
-                </section>
-
-                <section class="detail-card">
-                    <label for="customer-notes">Customer Notes</label>
-                    <textarea id="customer-notes"
-                              class="detail-input"
-                              rows="4"></textarea>
-                </section>
-
-                <section class="detail-card">
-                    <label for="technician-notes">Technician Notes</label>
-                    <textarea id="technician-notes"
-                              class="detail-input"
-                              rows="4"></textarea>
-                </section>
-
-                <section class="detail-card">
-                    <label for="labor-hours">Labor Hours</label>
-
-                    <input id="labor-hours"
-                           type="number"
-                           step="0.1"
-                           class="detail-input">
-                </section>
-
-                <section class="detail-card">
-                    <label for="status-select">Status</label>
-
-                    <select id="status-select" class="detail-input">
+                    <select id="status-select"
+                            class="detail-input">
                         <option value="Open">Open</option>
                         <option value="Scheduled">Scheduled</option>
                         <option value="Needs Info">Needs Info</option>
                         <option value="In Progress">In Progress</option>
                         <option value="Waiting Parts">Waiting Parts</option>
+                        <option value="Waiting Approval">Waiting Approval</option>
+                        <option value="Waiting Customer">Waiting Customer</option>
                         <option value="Complete">Complete</option>
+                        <option value="Ready for Pickup">Ready for Pickup</option>
+                        <option value="Ready for Payment">Ready for Payment</option>
+                        <option value="Awaiting Payment">Awaiting Payment</option>
                     </select>
-                </section>
+                </label>
 
-                <section class="detail-card">
-                    <h2>Timeline</h2>
 
-                    <div class="timeline-item">
-                        Repair order opened
-                    </div>
-                </section>
+                <label>
+                    Priority
 
-            </main>
-            <script src="./repair-order-details.js" defer></script>
-        </body>
+                    <select id="priority-select"
+                            class="detail-input">
+                        <option value="Low">Low</option>
+                        <option value="Medium">Medium</option>
+                        <option value="High">High</option>
+                        <option value="Critical">Critical</option>
+                    </select>
+                </label>
 
-      
+
+                <label>
+                    Technician
+
+                    <label>
+                        Technician
+
+                        <input id="technician-select"
+                               class="detail-input"
+                               list="technician-options"
+                               placeholder="Select or type technician">
+
+                        <datalist id="technician-options">
+                            <option value="Mike">
+                            <option value="John">
+                            <option value="Sarah">
+                        </datalist>
+                    </label>
+
+
+                    <label>
+                        Additional Technician
+
+                        <input id="additional-technician-select"
+                               class="detail-input"
+                               type="text"
+                               list="additional-technician-options"
+                               placeholder="Select or type technician">
+
+                        <datalist id="additional-technician-options">
+                            <option value="Mike">
+                            <option value="Sarah">
+                            <option value="Dave">
+                        </datalist>
+                    </label>
+
+            </div>
+
+
+            <label class="additional-work-field">
+                Additional Technician Work
+
+                <input id="additional-work-performed"
+                       class="detail-input"
+                       type="text"
+                       placeholder="Work performed by additional technician">
+            </label>
+
+        </section>
+
+
+
+        <!-- WORK REQUEST / NOTES -->
+
+        <section class="ro-work-grid">
+
+            <article class="ro-work-panel">
+
+                <h2>Work Request</h2>
+
+                <label>
+                    Complaint or Work Needed
+
+                    <textarea id="complaint"
+                              class="detail-input"
+                              rows="4"></textarea>
+                </label>
+
+
+                <label>
+                    Parts Needed
+
+                    <textarea id="parts-needed"
+                              class="detail-input"
+                              rows="4"></textarea>
+                </label>
+
+            </article>
+
+
+            <article class="ro-work-panel">
+
+                <h2>Notes</h2>
+
+                <label>
+                    Customer Notes
+
+                    <textarea id="customer-notes"
+                              class="detail-input"
+                              rows="4"></textarea>
+                </label>
+
+
+                <label>
+                    Technician Notes
+
+                    <textarea id="technician-notes"
+                              class="detail-input"
+                              rows="4"></textarea>
+                </label>
+
+            </article>
+
+        </section>
+
+
+
+
+        <!-- ESTIMATE -->
+
+        <section class="detail-card estimate-card">
+
+            <div class="estimate-header">
+
+                <div>
+                    <h2>Estimate</h2>
+                    <p>
+                        Prepare pricing and track customer approval.
+                    </p>
+                </div>
+
+
+                <div class="estimate-header-actions">
+
+                    <button id="send-estimate-button"
+                            type="button"
+                            class="secondary-button">
+                        Send
+                    </button>
+
+                    <button id="print-estimate-button"
+                            type="button"
+                            class="secondary-button">
+                        Print
+                    </button>
+
+                    <span id="estimate-status-display"
+                          class="estimate-status estimate-draft">
+                        Draft
+                    </span>
+
+                </div>
+
+            </div>
+
+            <div class="estimate-grid">
+                <label>
+                    Estimated Labor Hours
+
+                    <input id="estimate-labor-hours"
+                           class="detail-input"
+                           type="number"
+                           min="0"
+                           step="0.1"
+                           placeholder="0.0">
+                </label>
+
+                <label>
+                    Labor Rate
+
+                    <input id="estimate-labor-rate"
+                           class="detail-input"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           placeholder="0.00">
+                </label>
+
+                <label>
+                    Parts Total
+
+                    <input id="estimate-parts-total"
+                           class="detail-input"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           placeholder="0.00">
+                </label>
+
+                <label>
+                    Other Charges
+
+                    <input id="estimate-other-charges"
+                           class="detail-input"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           placeholder="0.00">
+                </label>
+
+                </div>
+
+
+                <div class="estimate-total-row">
+
+                    <span>Estimated Total</span>
+
+                    <strong id="estimate-total">
+                        $0.00
+                    </strong>
+
+                </div>
+
+
+                <div class="estimate-bottom-grid">
+
+                    <label>
+                        Approval Status
+
+                        <select id="estimate-approval-status"
+                                class="detail-input">
+                            <option value="Draft">Draft</option>
+                            <option value="Sent">Sent</option>
+                            <option value="Approved">Approved</option>
+                            <option value="Declined">Declined</option>
+                        </select>
+                    </label>
+
+
+                    <label>
+                        Estimate Notes
+
+                        <textarea id="estimate-notes"
+                                  class="detail-input"
+                                  rows="3"
+                                  placeholder="Pricing details, exclusions, approval notes, or customer response"></textarea>
+                    </label>
+
+                </div>
+           
+
+        </section>
+
+    </main>
+
+    <div id="send-estimate-modal"
+         class="send-estimate-modal"
+         hidden>
+
+        <div class="send-estimate-dialog">
+
+            <h3>Send Estimate</h3>
+
+            <p>
+                Review the customer contact information
+                before sending.
+            </p>
+
+            <div class="send-estimate-wrapper">
+
+                <p>
+                    <strong>Customer:</strong>
+                    <span id="send-preview-customer"></span>
+                </p>
+
+                <p>
+                    <strong>Email:</strong>
+                    <span id="send-preview-email"></span>
+                </p>
+
+                <p>
+                    <strong>Phone:</strong>
+                    <span id="send-preview-phone"></span>
+                </p>
+
+                <p>
+                    <strong>Estimate Total:</strong>
+                    <span id="send-preview-total"></span>
+                </p>
+
+                <label for="send-preview-message">
+                    Message
+                </label>
+
+                <textarea id="send-preview-message"
+                          rows="8"></textarea>
+            </div>
+
+            <div class="send-estimate-options">
+
+                <button id="email-estimate-button"
+                        type="button"
+                        class="secondary-button">
+                    Email
+                </button>
+
+                <button id="text-estimate-button"
+                        type="button"
+                        class="secondary-button">
+                    Text
+                </button>
+
+            </div>
+
+            <button id="close-send-estimate-modal"
+                    type="button"
+                    class="send-estimate-cancel">
+                Cancel
+            </button>
+
+        </div>
+    </div>
+
+    <script src="./repair-order-details.js"></script>
+</body>
 </html>

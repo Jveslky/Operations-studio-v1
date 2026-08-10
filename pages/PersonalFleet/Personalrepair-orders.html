@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Repair Orders | Track Right</title>
+
+    <link rel="stylesheet"
+          href="../../css/base.css">
+
+    <link rel="stylesheet"
+          href="../../css/layout.css">
+
+    <link rel="stylesheet"
+          href="Personalrepair-orders.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="app-header-inner">
+            <a class="app-brand"
+               href="../../index.html">
+                Track Right
+            </a>
+
+            <nav class="app-nav">
+                <a href="./Personaldashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="./PersonalFleet.html">
+                    Fleet
+                </a>
+
+                <a href="./Personalrepair-orders.html"
+                   class="active">
+                    Repair Orders
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="page">
+        <h1>Repair Orders</h1>
+
+        <div class="repair-order-tools">
+            <button id="new-repair-order-button"
+                    class="new-ro-button"
+                    type="button">
+                New Repair Order
+            </button>
+
+            <button id="export-backup-button"
+                    type="button">
+                Export Backup
+            </button>
+
+            <label class="import-backup-button">
+                Import Backup
+
+                <input id="import-backup-input"
+                       type="file"
+                       accept=".json,application/json"
+                       hidden>
+            </label>
+        </div>
+
+        <form id="new-repair-order-form"
+              class="new-repair-order-form"
+              hidden>
+            <h2>Create Repair Order</h2>
+
+            <div class="new-ro-grid">
+                <label>
+                    Owner or Department
+
+                    <input id="new-customer"
+                           class="new-ro-input"
+                           type="text"
+                           required>
+                </label>
+
+                <label>
+                    Unit
+
+                    <select id="new-unit"
+                            class="new-ro-input"
+                            required>
+                        <option value="">
+                            Select a fleet unit
+                        </option>
+                    </select>
+                </label>
+
+                <label>
+                    Priority
+
+                    <select id="new-priority"
+                            class="new-ro-input">
+                        <option value="Low">
+                            Low
+                        </option>
+
+                        <option value="Medium"
+                                selected>
+                            Medium
+                        </option>
+
+                        <option value="High">
+                            High
+                        </option>
+                    </select>
+                </label>
+                <label>
+                    Assigned To
+
+                    <input id="new-technician"
+                           class="new-ro-input"
+                           type="text"
+                           list="new-technician-options"
+                           placeholder="Select or type technician">
+
+                    <datalist id="new-technician-options">
+                        <option value="Unassigned">
+                        <option value="Mike">
+                        <option value="Sarah">
+                        <option value="Dave">
+                    </datalist>
+                </label>
+            </div>
+
+            <label>
+                Complaint or Work Needed
+
+                <textarea id="new-complaint"
+                          class="new-ro-input"
+                          required></textarea>
+            </label>
+
+            <div class="new-ro-actions">
+                <button type="submit">
+                    Create Repair Order
+                </button>
+
+                <button id="cancel-new-repair-order"
+                        type="button">
+                    Cancel
+                </button>
+            </div>
+        </form>
+
+        <div class="repair-order-board">
+            <section class="repair-order-section">
+                <h2>Needs Attention</h2>
+
+                <div id="attention-orders"
+                     class="repair-order-list">
+                </div>
+            </section>
+
+            <section class="repair-order-section">
+                <h2>In Progress</h2>
+
+                <div id="in-progress-orders"
+                     class="repair-order-list">
+                </div>
+            </section>
+
+            <section class="repair-order-section">
+                <div class="section-title-row">
+                    <div>
+                        <h2>Recently Completed</h2>
+
+                        <p>
+                            The 10 newest completed repair orders.
+                        </p>
+                    </div>
+
+                    <button id="view-completed-history-button"
+                            type="button"
+                            class="secondary-button">
+                        View Completed History
+                    </button>
+                </div>
+
+                <div id="complete-orders"
+                     class="repair-order-list">
+                </div>
+            </section>
+
+            <section id="completed-history-panel"
+                     class="repair-order-section"
+                     hidden>
+                <div class="section-title-row">
+                    <div>
+                        <h2>Completed History</h2>
+
+                        <p>
+                            Older completed repair orders.
+                        </p>
+                    </div>
+
+                    <button id="hide-completed-history-button"
+                            type="button"
+                            class="secondary-button">
+                        Hide History
+                    </button>
+                </div>
+
+                <div id="completed-history-orders"
+                     class="repair-order-list">
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="Personalrepair-orders.js"
+            defer>
+    </script>
+</body>
+</html>

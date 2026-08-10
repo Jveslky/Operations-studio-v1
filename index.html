@@ -2,127 +2,209 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Operations Platform</title>
+    <title>Operations Platform</title>
 
-  <!-- CSS -->
-  <link rel="stylesheet" href="./css/base.css" />
-  <link rel="stylesheet" href="./css/layout.css" />
-  <link rel="stylesheet" href="./css/dashboard.css" />
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    
 </head>
 
 <body>
 
-  <!-- SIDEBAR (static or injected later) -->
-  <div class="sidebar">
+    <!-- SIDEBAR (static or injected later) -->
+    <div class="sidebar">
 
-    <aside class="sidebar-inner">
-      <div class="sidebar-brand">
-        Task Menu
-      </div>
+        <aside class="sidebar">
+            <div class="sidebar-inner">
+                <div class="sidebar-brand">
+                    Task Menu
+                </div>
 
-      <nav class="sidebar-nav">
-        <a href="/index.html" class="nav-item">Dashboard</a>
-        <a href="./pages/Shop/fleet.html" class="nav-item">Fleet</a>
-        <a href="./pages/Shop/repair-orders.html" class="nav-item">Repair Orders</a>
-        <a href="/pages/customers/customers.html" class="nav-item">Customers</a>
-        <a href="/pages/mobile/dispatch.html" class="nav-item">Mobile</a>
-      </nav>
-    </aside>
+                <nav class="sidebar-nav">
+                    <a href="index.html"
+                       class="nav-item">
+                        Dashboard
+                    </a>
 
-  </div>
+                    <a href="pages/PersonalFleet/Personaldashboard.html"
+                       class="nav-item">
+                        Personal Fleet
+                    </a>
 
-  <!-- APP WRAPPER -->
-  <div class="app">
+                    <a href="pages/Shop/shop-dashboard.html"
+                       class="nav-item">
+                        Shop
+                    </a>
 
-    <!-- NAVBAR -->
-    <header class="navbar">
+                    <a href="pages/Shop/repair-orders.html"
+                       class="nav-item">
+                        Repair Orders
+                    </a>
 
-  <div class="navbar-inner">
+                    <a href="pages/customers/customers.html"
+                       class="nav-item">
+                        Customers
+                    </a>
 
-    <div class="navbar-left">
+                    <a href="pages/mobile/dispatch.html"
+                       class="nav-item">
+                        Mobile
+                    </a>
+                </nav>
+            </div>
+        </aside>
     </div>
    
-    <div class="navbar-brand">
-      <h2>Track Right Overview</h2>
+    <!-- APP WRAPPER -->
+    <div class="app">
+
+        <!-- NAVBAR -->
+        <header class="navbar">
+
+            <div class="navbar-inner">
+
+                <div class="navbar-left">
+                </div>
+
+                <div class="navbar-brand">
+                    <h2>Track Right Overview</h2>
+                </div>
+
+                <div class="navbar-right">
+                    <!-- status / user / actions -->
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- MAIN CONTENT -->
+        <main class="page-content">
+
+            <section class="landing-intro">
+                <div>
+                    <p class="landing-eyebrow">OPERATIONS PLATFORM</p>
+
+                    <h1>Choose a workspace</h1>
+
+                    <p class="landing-description">
+                        Open the part of Track Right you want to work in.
+                        Each workspace has its own dashboard, tools, and records.
+                    </p>
+                </div>
+            </section>
+
+
+            <section class="workspace-grid">
+
+                <a href="pages/PersonalFleet/Personaldashboard.html"
+                   class="workspace-card">
+
+                    <div class="workspace-card-top">
+                        <span class="workspace-number">01</span>
+                        <span class="workspace-status available">Available</span>
+                    </div>
+
+                    <div class="workspace-card-content">
+                        <h2>Personal Fleet</h2>
+
+                        <p>
+                            Manage personal vehicles, service records,
+                            repair orders, costs, and maintenance history.
+                        </p>
+                    </div>
+
+                    <div class="workspace-card-action">
+                        Open Personal Fleet
+                        <span aria-hidden="true">→</span>
+                    </div>
+                </a>
+
+
+                <a href="pages/Shop/shop-dashboard.html"
+                   class="workspace-card">
+
+                    <div class="workspace-card-top">
+                        <span class="workspace-number">02</span>
+                        <span class="workspace-status available">Available</span>
+                    </div>
+
+                    <div class="workspace-card-content">
+                        <h2>Shop Operations</h2>
+
+                        <p>
+                            Manage customers, repair orders, estimates,
+                            approvals, work, invoices, and payments.
+                        </p>
+                    </div>
+
+                    <div class="workspace-card-action">
+                        Open Shop Operations
+                        <span aria-hidden="true">→</span>
+                    </div>
+                </a>
+
+
+                <article class="workspace-card workspace-card-disabled">
+
+                    <div class="workspace-card-top">
+                        <span class="workspace-number">03</span>
+                        <span class="workspace-status planned">In Development</span>
+                    </div>
+
+                    <div class="workspace-card-content">
+                        <h2>Mobile Service</h2>
+
+                        <p>
+                            Field-service tools for dispatching,
+                            technician assignments, job tracking, and mobile work.
+                        </p>
+                    </div>
+
+                    <div class="workspace-card-action">
+                        Coming Soon
+                    </div>
+                </article>
+
+            </section>
+
+
+            <section class="landing-lower">
+
+                <div class="landing-info-panel">
+                    <p class="panel-label">PLATFORM</p>
+                    <h2>Built as separate working environments</h2>
+
+                    <p>
+                        Each Track Right workspace can grow independently while
+                        sharing the same overall platform and design system.
+                    </p>
+                </div>
+
+
+                <div class="landing-info-panel">
+                    <p class="panel-label">NEXT UP</p>
+                    <h2>More modules are on the way</h2>
+
+                    <p>
+                        Parts, inventory, tracking, customer access, and additional
+                        service tools can be added without crowding the main workspaces.
+                    </p>
+                </div>
+
+            </section>
+
+        </main>
+
     </div>
 
-    <div class="navbar-right">
-      <!-- status / user / actions -->
-    </div>
-
-  </div>
-
-</header>
-
-    <!-- MAIN CONTENT -->
-    <main class="page-content">
-
-      <!-- DASHBOARD HEADER -->
-      <section class="dashboard-header">
-        <h1>Operations Dashboard</h1>
-        <p>Fleet, service, and operational overview</p>
-      </section>
-
-      <!-- KPI CARDS -->
-      <section class="kpi-grid">
-
-        <div class="kpi-card">
-          <h3>Active Units</h3>
-          <p>48</p>
-        </div>
-
-        <div class="kpi-card">
-          <h3>Open Repair Orders</h3>
-          <p>12</p>
-        </div>
-
-        <div class="kpi-card">
-          <h3>Overdue Services</h3>
-          <p>5</p>
-        </div>
-
-        <div class="kpi-card">
-          <h3>Pending Approvals</h3>
-          <p>3</p>
-        </div>
-
-      </section>
-
-
-      <!-- QUICK MODULES -->
-      <section class="module-grid">
-
-        <a href="./pages/fleet/vehicles.html" class="module-card">
-          <h2>Fleet</h2>
-          <p>Manage vehicles and service schedules</p>
-        </a>
-
-        <a href="./pages/shop/repair-orders.html" class="module-card">
-          <h2>Repair Orders</h2>
-          <p>Track active service workflows</p>
-        </a>
-
-        <a href="./pages/customers/customers.html" class="module-card">
-          <h2>Customers</h2>
-          <p>View customer and unit history</p>
-        </a>
-
-        <a href="./pages/mobile/dispatch.html" class="module-card">
-          <h2>Mobile Service</h2>
-          <p>Dispatch and field operations</p>
-        </a>
-
-      </section>
-
-    </main>
-
-  </div>
-
-  <!-- JS -->
-  <script src="./js/main.js"></script>
+    <!-- JS -->
+    <script src="js/main.js"></script>
 
 </body>
 

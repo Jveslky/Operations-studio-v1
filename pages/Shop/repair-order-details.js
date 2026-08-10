@@ -1,3 +1,5 @@
+
+
 const repairOrders = [
     {
         id: "1042",
@@ -131,6 +133,219 @@ if (!repairOrder) {
             "#additional-work-performed"
         );
 
+    const estimateLaborHoursInput =
+        document.getElementById("estimate-labor-hours");
+
+    const estimateLaborRateInput =
+        document.getElementById("estimate-labor-rate");
+
+    const estimatePartsTotalInput =
+        document.getElementById("estimate-parts-total");
+
+    const estimateOtherChargesInput =
+        document.getElementById("estimate-other-charges");
+
+    const estimateTotalDisplay =
+        document.getElementById("estimate-total");
+
+    const estimateApprovalStatusInput =
+        document.getElementById("estimate-approval-status");
+
+    const estimateStatusDisplay =
+        document.getElementById("estimate-status-display");
+
+    const estimateNotesInput =
+        document.getElementById("estimate-notes");
+
+
+    const printEstimateButton =
+        document.querySelector("#print-estimate-button");
+
+    const sendEstimateButton =
+        document.querySelector("#send-estimate-button");
+
+    const sendEstimateModal =
+        document.querySelector("#send-estimate-modal");
+
+    const closeSendEstimateModalButton =
+        document.querySelector("#close-send-estimate-modal");
+
+    const emailEstimateButton =
+        document.querySelector("#email-estimate-button");
+
+    const textEstimateButton =
+        document.querySelector("#text-estimate-button");
+
+    const sendPreviewCustomer =
+        document.querySelector("#send-preview-customer");
+
+    const sendPreviewEmail =
+        document.querySelector("#send-preview-email");
+
+    const sendPreviewPhone =
+        document.querySelector("#send-preview-phone");
+
+    const sendPreviewTotal =
+        document.querySelector("#send-preview-total");
+
+    const sendPreviewMessage =
+        document.querySelector("#send-preview-message");
+
+    const createInvoiceButton =
+        document.getElementById(
+            "create-invoice-button"
+        );
+    console.log(
+        "Create invoice button loaded:",
+        createInvoiceButton
+    );
+
+
+    function getNumberValue(input) {
+        const value = Number(input.value);
+
+        return Number.isFinite(value)
+            ? value
+            : 0;
+    }
+
+    function calculateEstimateTotal() {
+        const laborHours =
+            getNumberValue(estimateLaborHoursInput);
+
+        const laborRate =
+            getNumberValue(estimateLaborRateInput);
+
+        const partsTotal =
+            getNumberValue(estimatePartsTotalInput);
+
+        const otherCharges =
+            getNumberValue(estimateOtherChargesInput);
+
+        const laborTotal =
+            laborHours * laborRate;
+
+        return (
+            laborTotal +
+            partsTotal +
+            otherCharges
+        );
+    }
+
+    function renderEstimateTotal() {
+        const total =
+            calculateEstimateTotal();
+
+        estimateTotalDisplay.textContent =
+            total.toLocaleString("en-US", {
+                style: "currency",
+                currency: "USD"
+            });
+    }
+
+    function renderEstimateStatus() {
+        const status =
+            estimateApprovalStatusInput.value;
+
+        estimateStatusDisplay.textContent =
+            status;
+
+        estimateStatusDisplay.className =
+            `estimate-status estimate-${status.toLowerCase()}`;
+    }
+
+    [
+        estimateLaborHoursInput,
+        estimateLaborRateInput,
+        estimatePartsTotalInput,
+        estimateOtherChargesInput
+    ].forEach(function (input) {
+        input.addEventListener(
+            "input",
+            renderEstimateTotal
+        );
+    });
+
+    estimateApprovalStatusInput.addEventListener(
+        "change",
+        renderEstimateStatus
+    );
+
+    const INVOICE_STORAGE_KEY =
+        "track-right-invoices";
+
+    function getInvoices() {
+        const storedInvoices =
+            localStorage.getItem(
+                INVOICE_STORAGE_KEY
+            );
+
+        if (!storedInvoices) {
+            return [];
+        }
+
+        try {
+            const invoices =
+                JSON.parse(storedInvoices);
+
+            return Array.isArray(invoices)
+                ? invoices
+                : [];
+        } catch (error) {
+            console.error(
+                "Could not read invoices:",
+                error
+            );
+
+            return [];
+        }
+    }
+
+    function saveInvoices(invoices) {
+        localStorage.setItem(
+            INVOICE_STORAGE_KEY,
+            JSON.stringify(invoices)
+        );
+    }
+
+    function getNextInvoiceId(invoices) {
+        const invoiceIds =
+            invoices
+                .map(function (invoice) {
+                    return Number(invoice.id);
+                })
+                .filter(Number.isFinite);
+
+        return String(
+            Math.max(
+                ...invoiceIds,
+                1000
+            ) + 1
+        );
+    }
+
+    function getInvoiceTotal(order) {
+        const estimateTotal =
+            Number(order.estimateTotal);
+
+        if (Number.isFinite(estimateTotal)) {
+            return estimateTotal;
+        }
+
+        const laborHours =
+            Number(order.laborHours) || 0;
+
+        const laborRate =
+            Number(order.laborRate) || 0;
+
+        const partsTotal =
+            Number(order.partsTotal) || 0;
+
+        return (
+            laborHours * laborRate +
+            partsTotal
+        );
+    }
 
     /* =========================
        DISPLAY ORDER DATA
@@ -169,8 +384,10 @@ if (!repairOrder) {
     technicianNotesInput.value =
         repairOrder.technicianNotes || "";
 
-    laborHoursInput.value =
-        repairOrder.laborHours || 0;
+    if (laborHoursInput) {
+        laborHoursInput.value =
+            repairOrder.laborHours || 0;
+    }
 
     if (additionalTechnicianSelect) {
         additionalTechnicianSelect.value =
@@ -181,6 +398,27 @@ if (!repairOrder) {
         additionalWorkInput.value =
             repairOrder.additionalWorkPerformed || "";
     }
+
+    estimateLaborHoursInput.value =
+        repairOrder.estimateLaborHours ?? 0;
+
+    estimateLaborRateInput.value =
+        repairOrder.estimateLaborRate ?? 0;
+
+    estimatePartsTotalInput.value =
+        repairOrder.estimatePartsTotal ?? 0;
+
+    estimateOtherChargesInput.value =
+        repairOrder.estimateOtherCharges ?? 0;
+
+    estimateApprovalStatusInput.value =
+        repairOrder.estimateApprovalStatus || "Draft";
+
+    estimateNotesInput.value =
+        repairOrder.estimateNotes || "";
+
+    renderEstimateTotal();
+    renderEstimateStatus();
 
 
     /* =========================
@@ -199,7 +437,13 @@ if (!repairOrder) {
         technicianSelect,
         prioritySelect,
         additionalTechnicianSelect,
-        additionalWorkInput
+        additionalWorkInput,
+        estimateLaborHoursInput,
+        estimateLaborRateInput,
+        estimatePartsTotalInput,
+        estimateOtherChargesInput,
+        estimateApprovalStatusInput,
+        estimateNotesInput
     ];
 
     editableFields.forEach(field => {
@@ -246,7 +490,9 @@ if (!repairOrder) {
             technicianNotesInput.value.trim();
 
         repairOrder.laborHours =
-            Number(laborHoursInput.value) || 0;
+            laborHoursInput
+                ? Number(laborHoursInput.value) || 0
+                : repairOrder.laborHours || 0;
 
         repairOrder.status =
             statusSelect.value;
@@ -266,6 +512,27 @@ if (!repairOrder) {
             additionalWorkInput
                 ? additionalWorkInput.value.trim()
                 : "";
+
+        repairOrder.estimateLaborHours =
+            getNumberValue(estimateLaborHoursInput);
+
+        repairOrder.estimateLaborRate =
+            getNumberValue(estimateLaborRateInput);
+
+        repairOrder.estimatePartsTotal =
+            getNumberValue(estimatePartsTotalInput);
+
+        repairOrder.estimateOtherCharges =
+            getNumberValue(estimateOtherChargesInput);
+
+        repairOrder.estimateTotal =
+            calculateEstimateTotal();
+
+        repairOrder.estimateApprovalStatus =
+            estimateApprovalStatusInput.value;
+
+        repairOrder.estimateNotes =
+            estimateNotesInput.value.trim();
 
 
         /* Required complaint */
@@ -294,13 +561,10 @@ if (!repairOrder) {
             JSON.stringify(repairOrder)
         );
 
-        hasUnsavedChanges = false;
-
-        saveMessage.textContent = "Saved";
-
         setTimeout(() => {
-            saveMessage.textContent = "";
-        }, 2000);
+            window.location.href =
+                "./repair-orders.html";
+        }, 500);
     });
 
 
@@ -324,29 +588,343 @@ if (!repairOrder) {
 
     });
 
-        /* =========================
-   ARCHIVE REPAIR ORDER
+    createInvoiceButton?.addEventListener(
+        "click",
+        function () {
+            const invoices = getInvoices();
+           
 
-======================== */
+            console.log("Existing invoices:", invoices);
+            console.log("Repair order:", repairOrder);
 
-        archiveButton.addEventListener("click", function () {
-            const shouldArchive = confirm(
-                "Archive this repair order?"
-            );
+            const existingInvoice =
+                invoices.find(
+                    function (invoice) {
+                        return (
+                            String(
+                                invoice.repairOrderId
+                            ) ===
+                            String(
+                                repairOrder.id
+                            )
+                        );
+                    }
+                );
+            if (existingInvoice) {
+                console.log(
+                    "Invoice object:",
+                    existingInvoice
+                );
 
-            if (!shouldArchive) {
+                window.location.href =
+                    `invoice-details.html?id=${existingInvoice.id}`;
+
                 return;
             }
 
-            repairOrder.archived = true;
-
-            localStorage.setItem(
-                storageKey,
-                JSON.stringify(repairOrder)
+            console.log(
+                "CREATE INVOICE BUTTON:",
+                createInvoiceButton
             );
 
-            window.location.href =
-                "./repair-orders.html";
-    
+        
+
+            const createdDate =
+                new Date();
+
+            const dueDate =
+                new Date(createdDate);
+
+            dueDate.setDate(
+                dueDate.getDate() + 30
+            );
+
+            const invoice = {
+                id:
+                    getNextInvoiceId(invoices),
+
+                repairOrderId:
+                    repairOrder.id,
+
+                customerId:
+                    repairOrder.customerId || "",
+
+                customer:
+                    repairOrder.customer || "",
+
+                unitId:
+                    repairOrder.unitId || "",
+
+                unit:
+                    repairOrder.unit || "",
+
+                complaint:
+                    repairOrder.complaint || "",
+
+                total:
+                    getInvoiceTotal(
+                        repairOrder
+                    ),
+
+                status: "Draft",
+                sentAt: null,
+
+                createdAt:
+                    createdDate.toISOString(),
+
+                dueDate:
+                    dueDate
+                        .toISOString()
+                        .slice(0, 10),
+
+                paidAt:
+                    null,
+
+                notes:
+                    ""
+            };
+
+        
+
+            invoices.push(invoice);
+            saveInvoices(invoices);
+
+            console.log(
+                "Saved invoices:",
+                localStorage.getItem("track-right-invoices")
+            );
+
+          
+
+    window.location.href =
+        `invoice-details.html?id=${invoice.id}`;
+        }
+    );
+
+  
+    // window.location.href =
+    //     `invoices.html?invoice=${invoice.id}`;
+         
+
+    /* =========================
+ARCHIVE REPAIR ORDER
+
+======================== */
+
+    archiveButton.addEventListener("click", function () {
+        const shouldArchive = confirm(
+            "Archive this repair order?"
+        );
+
+        if (!shouldArchive) {
+            return;
+        }
+
+        repairOrder.archived = true;
+
+        localStorage.setItem(
+            storageKey,
+            JSON.stringify(repairOrder)
+        );
+
+        window.location.href =
+            "./repair-orders.html";
+
     });
+    printEstimateButton.addEventListener(
+        "click",
+        function () {
+            window.print();
+        }
+    );
+
+    function getEstimateCustomer() {
+        let customers = [];
+
+        try {
+            customers = JSON.parse(
+                localStorage.getItem("track-right-customers")
+            ) || [];
+        } catch (error) {
+            console.error(
+                "Could not read customer records:",
+                error
+            );
+        }
+
+        return customers.find(function (customer) {
+            return customer.id === repairOrder.customerId;
+        }) || null;
+    }
+
+    function getEstimateMessage() {
+        const estimateTotal =
+            calculateEstimateTotal().toLocaleString(
+                "en-US",
+                {
+                    style: "currency",
+                    currency: "USD"
+                }
+            );
+
+        return [
+            `Hello,`,
+            ``,
+            `An estimate has been prepared for ${repairOrder.unit || "your unit"}.`,
+            `Repair Order: #${repairOrder.id}`,
+            `Estimated Total: ${estimateTotal}`,
+            ``,
+            `Please contact us with approval or any questions.`
+        ].join("\n");
+    }
+    function openSendEstimateModal() {
+        const customer = getEstimateCustomer();
+
+        const estimateTotal =
+            calculateEstimateTotal().toLocaleString(
+                "en-US",
+                {
+                    style: "currency",
+                    currency: "USD"
+                }
+            );
+
+        sendPreviewCustomer.textContent =
+            customer?.name ||
+            repairOrder.customer ||
+            "Not available";
+
+        sendPreviewEmail.textContent =
+            customer?.email ||
+            "No email saved";
+
+        sendPreviewPhone.textContent =
+            customer?.phone ||
+            "No phone saved";
+
+        sendPreviewTotal.textContent =
+            estimateTotal;
+
+        sendPreviewMessage.value =
+            getEstimateMessage();
+
+        sendEstimateModal.hidden = false;
+        sendPreviewMessage.focus();
+    }
+
+    function closeSendEstimateModal() {
+        sendEstimateModal.hidden = true;
+        sendEstimateButton.focus();
+    }
+
+    console.log("sendEstimateButton:", sendEstimateButton);
+    console.log("closeSendEstimateModalButton:", closeSendEstimateModalButton);
+    console.log("sendEstimateModal:", sendEstimateModal);
+
+    sendEstimateButton.addEventListener(
+        "click",
+        openSendEstimateModal
+    );
+
+    closeSendEstimateModalButton.addEventListener(
+        "click",
+        closeSendEstimateModal
+    );
+
+    sendEstimateModal.addEventListener(
+        "click",
+        function (event) {
+            if (event.target === sendEstimateModal) {
+                closeSendEstimateModal();
+            }
+        }
+    );
+
+    document.addEventListener(
+        "keydown",
+        function (event) {
+            if (
+                event.key === "Escape" &&
+                !sendEstimateModal.hidden
+            ) {
+                closeSendEstimateModal();
+            }
+        }
+    );
+
+    function markEstimateAsSent() {
+        estimateApprovalStatusInput.value = "Sent";
+
+        estimateStatusDisplay.textContent = "Sent";
+        estimateStatusDisplay.className =
+            "estimate-status estimate-sent";
+
+        const savedRepairOrder =
+            JSON.parse(
+                localStorage.getItem(
+                    `repair-order-${repairOrder.id}`
+                )
+            ) || {};
+
+        savedRepairOrder.estimateApprovalStatus = "Sent";
+
+        localStorage.setItem(
+            `repair-order-${repairOrder.id}`,
+            JSON.stringify(savedRepairOrder)
+        );
+    }
+
+    emailEstimateButton.addEventListener(
+        "click",
+        function () {
+            const customer = getEstimateCustomer();
+
+            if (!customer || !customer.email) {
+                alert(
+                    "This customer does not have an email address saved."
+                );
+
+                return;
+            }
+
+            const subject =
+                `Estimate for Repair Order #${repairOrder.id}`;
+
+            const message =
+                sendPreviewMessage.value;
+
+            markEstimateAsSent();
+            closeSendEstimateModal();
+
+            window.location.href =
+                `mailto:${encodeURIComponent(customer.email)}` +
+                `?subject=${encodeURIComponent(subject)}` +
+                `&body=${encodeURIComponent(message)}`;
+        }
+    );
+
+    textEstimateButton.addEventListener(
+        "click",
+        function () {
+            const customer = getEstimateCustomer();
+
+            if (!customer || !customer.phone) {
+                alert(
+                    "This customer does not have a phone number saved."
+                );
+
+                return;
+            }
+
+            const message =
+                sendPreviewMessage.value;
+
+            markEstimateAsSent();
+            closeSendEstimateModal();
+
+            window.location.href =
+                `sms:${customer.phone}` +
+                `?body=${encodeURIComponent(message)}`;
+        }
+    );
 }

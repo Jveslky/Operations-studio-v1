@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Customers | Track Right</title>
+
+    <link rel="stylesheet"
+          href="../../css/base.css">
+
+    <link rel="stylesheet"
+          href="../../css/layout.css">
+
+    <link rel="stylesheet"
+          href="customers.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="app-header-inner">
+
+            <a class="app-brand"
+               href="../../index.html">
+                Track Right
+            </a>
+
+            <nav class="app-nav">
+
+                <a href="shop-dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="customers.html"
+                    class="active">
+                    Customers
+                </a>
+
+                <a href="repair-orders.html">
+                    Repair Orders
+                </a>
+
+                <a href="invoices.html">
+                    Invoices
+                </a>
+
+                <a href="accounts-payable.html">
+                    Accounts Payable
+                </a>
+
+            </nav>
+
+        </div>
+    </header>
+
+    <main class="customers-page">
+
+        <header class="customers-header">
+            <div>
+                <h1>Customers</h1>
+
+                Manage customer information, vehicles,
+                repair history, and new repair orders.
+            </div>
+        </header>
+
+        <section class="customer-toolbar">
+            <input id="customer-search-input"
+                   type="search"
+                   placeholder="Search customers"
+                   aria-label="Search customers">
+
+            <button id="add-customer-button"
+                    class="add-customer-button"
+                    type="button">
+                Add Customer
+            </button>
+        </section>
+
+        <section class="customer-summary-grid">
+    <article class="customer-summary-card">
+        <span>Total Customers</span>
+        <strong id="customer-count">0</strong>
+    </article>
+
+    <article class="customer-summary-card">
+        <span>Total Vehicles</span>
+        <strong id="customer-vehicle-count">0</strong>
+    </article>
+
+    <article class="customer-summary-card">
+        <span>Open Repair Orders</span>
+        <strong id="customer-open-ro-count">0</strong>
+    </article>
+
+    <article class="customer-summary-card">
+        <span>Outstanding Balance</span>
+        <strong id="customer-ar-total">$0.00</strong>
+    </article>
+</section>
+
+<section class="customer-directory">
+    <div class="customer-directory-header">
+        <div>
+            <span class="customer-directory-label">
+                Recent Customers
+            </span>
+
+          
+
+           
+        </div>
+    </div>
+
+    <div id="customer-directory-list"
+         class="customer-directory-list">
+    </div>
+</section>
+
+
+        <div id="customer-search-results"
+             class="customer-search-results"
+             hidden>
+            <div class="customer-search-results-header">
+                <h2>Customers</h2>
+
+                <button id="close-customer-search"
+                        type="button"
+                        aria-label="Close customer search">
+                    ×
+                </button>
+            </div>
+
+            <div id="customer-results-list"></div>
+        </div>
+
+        <section id="customer-record-panel"
+                 class="customer-record-panel"
+                 hidden>
+            <div class="customer-record-header">
+                <div>
+                    <p class="customer-record-label">Customer Record</p>
+                    <h2 id="customer-record-name"></h2>
+                </div>
+
+                <button id="close-customer-record"
+                        type="button"
+                        aria-label="Close customer record">
+                    ×
+                </button>
+            </div>
+
+            <div class="customer-record-grid">
+                <div>
+                    <span>Contact</span>
+                    <strong id="customer-record-contact">—</strong>
+                </div>
+
+                <div>
+                    <span>Phone</span>
+                    <strong id="customer-record-phone">—</strong>
+                </div>
+
+                <div>
+                    <span>Email</span>
+                    <strong id="customer-record-email">—</strong>
+                </div>
+            </div>
+
+            <div class="customer-record-notes">
+                <span>Notes</span>
+                <p id="customer-record-notes">No notes added.</p>
+            </div>
+
+            <div class="customer-units-section">
+                <div class="customer-units-header">
+                    <div>
+                        <span>Customer Units</span>
+                        <p>Equipment assigned to this customer.</p>
+                    </div>
+
+                    <button id="add-customer-unit-button"
+                            type="button">
+                        Add Vehicle
+                    </button>
+                </div>
+
+                <div id="customer-unit-list"></div>
+            </div>
+
+            <form id="add-customer-unit-form"
+                  class="add-customer-unit-form"
+                  hidden>
+                <h3 id="customer-unit-form-title">Add Customer Unit</h3>
+
+                <div class="customer-unit-form-grid">
+
+
+                    <label>
+                        Year
+
+                        <input id="customer-unit-year"
+                               type="number"
+                               min="1900"
+                               max="2100">
+                    </label>
+
+
+                    <label>
+                        Vehicle Make
+
+                        <input id="customer-unit-make"
+                               type="text"
+                               list="vehicle-make-options"
+                               placeholder="Select or type make">
+
+                        <datalist id="vehicle-make-options">
+                            <option value="Ford">
+                            <option value="Chevrolet">
+                            <option value="Ram">
+                            <option value="Toyota">
+                            <option value="John Deere">
+                            <option value="CAT">
+                            <option value="Volvo">
+                        </datalist>
+                    </label>
+
+
+                    <label>
+                        Vehicle Model
+
+                        <input id="customer-unit-model"
+                               class="detail-input"
+                               list="vehicle-model-options"
+                               placeholder="Select or type model">
+
+                        <datalist id="vehicle-model-options">
+                        </datalist>
+                    </label>
+
+
+                    <label>
+                        Engine Manufacturer
+
+                        <input id="customer-unit-engine-make"
+                               class="detail-input"
+                               list="engine-manufacturer-options"
+                               placeholder="Select or type manufacturer">
+
+                        <datalist id="engine-manufacturer-options">
+                            <option value="Cummins">
+                            <option value="CAT">
+                            <option value="Detroit Diesel">
+                            <option value="International">
+                            <option value="Ford">
+                            <option value="GM">
+                            <option value="Isuzu">
+                            <option value="John Deere">
+                            <option value="Kubota">
+                            <option value="Yanmar">
+                            <option value="Volvo">
+                        </datalist>
+                    </label>
+
+
+                    <label>
+                        Engine Model
+
+                        <input id="customer-unit-engine-model"
+                               class="detail-input"
+                               list="engine-model-options"
+                               placeholder="Select or type engine model">
+
+                        <datalist id="engine-model-options">
+                        </datalist>
+                    </label>
+
+                    <label>
+                        Fuel Type
+
+                        <select id="customer-unit-fuel-type">
+                            <option value="">Select fuel type</option>
+                            <option value="Diesel">Diesel</option>
+                            <option value="Gasoline">Gasoline</option>
+                            <option value="Propane">Propane</option>
+                            <option value="Natural Gas">Natural Gas</option>
+                            <option value="Electric">Electric</option>
+                            <option value="Hybrid">Hybrid</option>
+                        </select>
+                    </label>
+
+                    <label>
+                        Engine Displacement
+
+                        <input id="customer-unit-displacement"
+                               type="text"
+                               placeholder="Example: 4.5L">
+                    </label>
+
+
+
+                    <label>
+                        VIN or Serial Number
+
+                        <input id="customer-unit-serial"
+                               type="text">
+                    </label>
+                </div>
+
+                <div class="customer-unit-form-actions">
+                    <button id="save-customer-unit-button"
+                            type="submit"
+                            class="save-customer-unit-button">
+                        Save Vehicle
+                    </button>
+
+                    <button id="cancel-customer-unit-button"
+                            type="button">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+
+            <div class="customer-history-section">
+                <div class="customer-history-header">
+                    <div>
+                        <span>Repair History</span>
+                        <p>Open and previous repair orders for this customer.</p>
+                    </div>
+                </div>
+
+                <div id="customer-repair-history"></div>
+            </div>
+
+            <div class="customer-record-actions">
+                <button id="start-customer-repair-order"
+                        class="customer-primary-action"
+                        type="button">
+                    Start Repair Order
+                </button>
+
+                <button id="edit-customer-button"
+                        type="button">
+                    Edit Customer
+                </button>
+            </div>
+        </section>
+
+        <form id="add-customer-form"
+              class="add-customer-form"
+              hidden>
+
+            <div class="customer-form-header">
+                <h2 id="customer-form-title">Add Customer</h2>
+
+                <button id="close-customer-form"
+                        type="button"
+                        aria-label="Close customer form">
+                    ×
+                </button>
+            </div>
+
+            <div class="customer-form-grid">
+                <label>
+                    Customer or Company Name
+
+                    <input id="customer-name"
+                           type="text"
+                           required>
+                </label>
+
+                <label>
+                    Contact Name
+
+                    <input id="customer-contact"
+                           type="text">
+                </label>
+
+                <label>
+                    Phone Number
+
+                    <input id="customer-phone"
+                           type="tel">
+                </label>
+
+                <label>
+                    Email Address
+
+                    <input id="customer-email"
+                           type="email">
+                </label>
+            </div>
+
+            <label>
+                Customer Notes
+
+                <textarea id="customer-notes"></textarea>
+            </label>
+
+            <div class="customer-form-actions">
+                <button id="save-customer-button"
+                        type="submit"
+                        class="save-customer-button">
+                    Save Customer
+                </button>
+
+                <button id="cancel-customer-form"
+                        type="button">
+                    Cancel
+                </button>
+            </div>
+
+            <p id="customer-save-message"
+               class="customer-save-message"></p>
+        </form>
+
+        <form id="new-repair-order-form"
+              class="new-repair-order-form"
+              hidden>
+            <h2>Create Repair Order</h2>
+
+            <div class="new-ro-grid">
+                <label>
+                   Customer
+
+                    <input id="new-customer"
+                           class="new-ro-input"
+                           type="text"
+                           required>
+                </label>
+
+                <label>
+                   Vehicle
+
+                    <select id="new-unit"
+                            class="new-ro-input"
+                            required>
+                        <option value="">
+                            Select a Vehicle
+                        </option>
+                    </select>
+                </label>
+
+                <label>
+                    Priority
+
+                    <select id="new-priority"
+                            class="new-ro-input">
+                        <option value="Low">
+                            Low
+                        </option>
+
+                        <option value="Medium"
+                                selected>
+                            Medium
+                        </option>
+
+                        <option value="High">
+                            High
+                        </option>
+                    </select>
+                </label>
+
+                <label>
+                    Assigned To
+
+                    <select id="new-technician"
+                            class="new-ro-input">
+                        <option value="Unassigned">
+                            Unassigned
+                        </option>
+
+                        <option value="Mike">
+                            Mike
+                        </option>
+
+                        <option value="Sarah">
+                            Sarah
+                        </option>
+
+                        <option value="Dave">
+                            Dave
+                        </option>
+                    </select>
+                </label>
+            </div>
+
+            <label>
+                Complaint or Work Needed
+
+                <textarea id="new-complaint"
+                          class="new-ro-input"
+                          required></textarea>
+            </label>
+
+            <div class="new-ro-actions">
+                <button type="submit">
+                    Create Repair Order
+                </button>
+
+                <button id="cancel-new-repair-order"
+                        type="button">
+                    Cancel
+                </button>
+            </div>
+        </form>
+
+
+    </main>
+
+    <script src="customers.js"></script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Personal Fleet Dashboard</title>
+
+    <link rel="stylesheet" href="../../css/base.css">
+    <link rel="stylesheet" href="../../css/layout.css">
+    <link rel="stylesheet" href="Personaldashboard.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="app-header-inner">
+            <a class="app-brand"
+               href="../../index.html">
+                Track Right
+            </a>
+            <nav class="app-nav">
+                <a href="./Personaldashboard.html"
+                   class="active">
+                    Dashboard
+                </a>
+
+                <a href="PersonalFleet.html">
+                    Fleet
+
+                </a>
+
+
+
+                <a href="Personalrepair-orders.html">
+                    Repair Orders
+                </a>
+
+            </nav>
+        </div>
+    </header>
+    <main class="personal-dashboard">
+
+        <header class="dashboard-header">
+
+
+            <h1>Personal Fleet</h1>
+
+            <p>
+                Manage vehicles, equipment, service,
+                costs, and repair history.
+            </p>
+        </header>
+
+        <section class="dashboard-sections">
+
+            <section class="dashboard-section">
+                <h2 class="section-title">Units</h2>
+
+                <div class="metric-grid">
+                    <article class="metric-card">
+                        <span class="metric-label">
+                            Total Units
+                        </span>
+
+                        <strong id="dashboard-total-units"
+                                class="metric-value">
+                            0
+                        </strong>
+                    </article>
+
+                    <article class="metric-card">
+                        <span class="metric-label">
+                            Active Units
+                        </span>
+
+                        <strong id="dashboard-active-units"
+                                class="metric-value">
+                            0
+                        </strong>
+                    </article>
+
+                    <article class="metric-card">
+                        <span class="metric-label">
+                            Archived Units
+                        </span>
+
+                        <strong id="dashboard-archived-units"
+                                class="metric-value">
+                            0
+                        </strong>
+                    </article>
+                </div>
+            </section>
+
+
+            <section class="dashboard-section">
+                <h2 class="section-title">Flow</h2>
+
+                <div class="metric-grid">
+                    <article class="metric-card">
+                        <span class="metric-label">
+                            Open Repair Orders
+                        </span>
+
+                        <strong id="dashboard-open-orders"
+                                class="metric-value">
+                            0
+                        </strong>
+                    </article>
+
+                    <article class="metric-card">
+                        <span class="metric-label">
+                            Waiting on Parts
+                        </span>
+
+                        <strong id="dashboard-waiting-parts"
+                                class="metric-value">
+                            0
+                        </strong>
+                    </article>
+
+                    <article class="metric-card">
+                        <span class="metric-label">
+                            Repair Orders This Year
+                        </span>
+
+                        <strong id="dashboard-orders-this-year"
+                                class="metric-value">
+                            0
+                        </strong>
+                    </article>
+                </div>
+            </section>
+
+
+            <section class="dashboard-section">
+                <h2 class="section-title">Costs</h2>
+
+                <div class="metric-grid">
+                    <article class="metric-card">
+                        <span class="metric-label">
+                            Maintenance This Year
+                        </span>
+
+                        <strong id="dashboard-yearly-maintenance"
+                                class="metric-value">
+                            $0.00
+                        </strong>
+                    </article>
+
+                    <article class="metric-card">
+                        <span class="metric-label">
+                            Initial Fleet Purchase
+                        </span>
+
+                        <strong id="dashboard-purchase-cost"
+                                class="metric-value">
+                            $0.00
+                        </strong>
+                    </article>
+
+                    <article class="metric-card">
+                        <span class="metric-label">
+                            Lifetime Repair Cost
+                        </span>
+
+                        <strong id="dashboard-lifetime-cost"
+                                class="metric-value">
+                            $0.00
+                        </strong>
+                    </article>
+                </div>
+            </section>
+
+        </section>
+
+    </main>
+    <script src="Personaldashboard.js"
+            defer>
+    </script>
+</body>
+</html>

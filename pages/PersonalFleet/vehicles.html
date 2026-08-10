@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Vehicles | Track Right</title>
+
+    <link rel="stylesheet"
+          href="../../css/base.css">
+
+    <link rel="stylesheet"
+          href="../../css/layout.css">
+
+    <link rel="stylesheet"
+          href="vehicles.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="app-header-inner">
+            <a class="app-brand"
+               href="./Personaldashboard.html">
+                Track Right
+            </a>
+
+            <nav class="app-nav">
+                <a href="./Personaldashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="PersonalFleet.html">
+                    Fleet
+                </a>
+
+                <a href="vehicles.html"
+                   class="active">
+                    Vehicles
+                </a>
+
+                <a href="Personalrepair-orders.html">
+                    Repair Orders
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="vehicles-page">
+        <header class="page-header">
+            <div>
+                <p class="eyebrow">
+                    Personal Fleet
+                </p>
+
+                <h1>Vehicles</h1>
+
+                <p class="page-description">
+                    Add vehicles, review current mileage,
+                    and track repair costs.
+                </p>
+            </div>
+
+            <button type="button"
+                    id="show-vehicle-form"
+                    class="primary-button">
+                Add Vehicle
+            </button>
+        </header>
+
+        <section class="vehicle-summary">
+            <article class="summary-card">
+                <span>Total Vehicles</span>
+
+                <strong id="total-vehicles">
+                    0
+                </strong>
+            </article>
+
+            <article class="summary-card">
+                <span>Total Mileage</span>
+
+                <strong id="total-mileage">
+                    0
+                </strong>
+            </article>
+
+            <article class="summary-card">
+                <span>Total Repair Cost</span>
+
+                <strong id="total-repair-cost">
+                    $0.00
+                </strong>
+            </article>
+        </section>
+
+        <section id="vehicle-form-panel"
+                 class="vehicle-form-panel"
+                 hidden>
+
+            <div class="section-heading">
+                <div>
+                    <h2 id="vehicle-form-title">
+                        Add Vehicle
+                    </h2>
+
+                    <p>
+                        Enter the vehicle information below.
+                    </p>
+                </div>
+
+                <button type="button"
+                        id="cancel-vehicle-form"
+                        class="secondary-button">
+                    Cancel
+                </button>
+            </div>
+
+            <form id="vehicle-form"
+                  class="vehicle-form">
+
+                <input type="hidden"
+                       id="vehicle-id">
+
+                <label>
+                    Vehicle Name
+
+                    <input type="text"
+                           id="vehicle-name"
+                           required
+                           placeholder="Example: 2018 Ford F-150">
+                </label>
+
+                <label>
+                    Mileage
+
+                    <input type="number"
+                           id="vehicle-mileage"
+                           min="0"
+                           step="1"
+                           required
+                           placeholder="0">
+                </label>
+
+                <label>
+                    Repair Cost
+
+                    <input type="number"
+                           id="vehicle-repair-cost"
+                           min="0"
+                           step="0.01"
+                           required
+                           placeholder="0.00">
+                </label>
+
+                <div class="form-actions">
+                    <button type="submit"
+                            class="primary-button">
+                        Save Vehicle
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section class="vehicles-section">
+            <div class="section-heading">
+                <div>
+                    <h2>Fleet Vehicles</h2>
+
+                    <p>
+                        Select Edit to update a saved vehicle.
+                    </p>
+                </div>
+
+                <label class="vehicle-search">
+                    <span>Search</span>
+
+                    <input type="search"
+                           id="vehicle-search"
+                           placeholder="Search vehicles">
+                </label>
+            </div>
+
+            <div id="vehicle-list"
+                 class="vehicle-list">
+            </div>
+
+            <p id="vehicle-empty-state"
+               class="empty-state">
+                No vehicles have been added yet.
+            </p>
+        </section>
+    </main>
+
+    <script src="vehicles.js"></script>
+</body>
+
+</html>

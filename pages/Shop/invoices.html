@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Invoices | Track Right</title>
+
+    <link rel="stylesheet"
+          href="../../css/base.css">
+
+    <link rel="stylesheet"
+          href="../../css/layout.css">
+
+    <link rel="stylesheet"
+          href="invoices.css">
+</head>
+
+<body>
+    <header class="app-header">
+        <div class="app-header-inner">
+
+            <a class="app-brand"
+               href="../../index.html">
+                Track Right
+            </a>
+
+            <nav class="app-nav">
+
+                <a href="shop-dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="customers.html">
+                    Customers
+                </a>
+
+                <a href="repair-orders.html">
+                    Repair Orders
+                </a>
+
+                <a href="invoices.html"
+                    class="active">
+                    Invoices
+                </a>
+
+                <a href="accounts-payable.html">
+                    Accounts Payable
+                </a>
+
+            </nav>
+
+        </div>
+    </header>
+
+    <main class="invoices-page">
+        <header class="invoices-header">
+            <div>
+                <h1>Invoices</h1>
+
+                <p>
+                    Create, review, and track customer invoices.
+                </p>
+            </div>
+
+            <button id="create-invoice-button"
+                    type="button">
+                Create Invoice
+            </button>
+        </header>
+
+        <section class="invoice-summary">
+            <article>
+                <span>Draft</span>
+                <strong id="draft-count">0</strong>
+            </article>
+
+            <article>
+                <span>Sent</span>
+                <strong id="sent-count">0</strong>
+            </article>
+
+            <article>
+                <span>Paid</span>
+                <strong id="paid-count">0</strong>
+            </article>
+
+            <article>
+                <span>Outstanding</span>
+                <strong id="outstanding-total">$0.00</strong>
+            </article>
+        </section>
+
+        <section class="invoice-toolbar">
+            <input id="invoice-search-input"
+                   type="search"
+                   placeholder="Search invoices"
+                   aria-label="Search invoices">
+
+            <select id="invoice-status-filter">
+                <option value="All">
+                    All Statuses
+                </option>
+
+                <option value="Draft">
+                    Draft
+                </option>
+
+                <option value="Sent">
+                    Sent
+                </option>
+
+                <option value="Paid">
+                    Paid
+                </option>
+
+                <option value="Overdue">
+                    Overdue
+                </option>
+            </select>
+        </section>
+
+        <section id="invoice-list"
+                 class="invoice-list">
+        </section>
+
+        <form id="create-invoice-form"
+              class="create-invoice-form"
+              hidden>
+            <div class="invoice-form-header">
+                <h2>Create Invoice</h2>
+
+                <button id="close-invoice-form"
+                        type="button"
+                        aria-label="Close invoice form">
+                    ×
+                </button>
+            </div>
+
+            <label>
+                Repair Order
+
+                <select id="invoice-repair-order"
+                        required>
+                    <option value="">
+                        Select a repair order
+                    </option>
+                </select>
+            </label>
+
+            <label>
+                Due Date
+
+                <input id="invoice-due-date"
+                       type="date"
+                       required>
+            </label>
+
+            <label>
+                Notes
+
+                <textarea id="invoice-notes"></textarea>
+            </label>
+
+            <div class="invoice-form-actions">
+                <button type="submit">
+                    Create Invoice
+                </button>
+
+                <button id="cancel-invoice-form"
+                        type="button">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </main>
+
+    <script src="invoices.js"></script>
+</body>
+
+</html>
