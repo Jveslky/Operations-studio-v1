@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Track Right - Appointment Book</title>
+
+    <link rel="stylesheet" href="MobileShared.css">
+    <link rel="stylesheet" href="Appointments.css">
+</head>
+
+<header class="top-bar">
+
+    <div>
+        <h1>Track Right</h1>
+        <p>Appointments</p>
+    </div>
+
+    <button class="menu-button"
+            type="button"
+            id="menuButton">
+        Menu
+    </button>
+
+</header>
+
+<nav class="mobile-menu"
+     id="mobileMenu">
+
+    <a href="MobileDashboard.html">Dashboard</a>
+    <a href="Appointments.html">Appointments</a>
+    <a href="MobileCustomers.html">Customers</a>
+    <a href="MobileJobs.html">Jobs</a>
+    <a href="MobileInvoices.html">Invoices</a>
+    <a href="MobileExpenses.html">Expenses</a>
+
+</nav>
+
+
+<main class="appointments-container">
+
+    <!-- PAGE HEADER -->
+
+    <section class="page-heading">
+
+        <div>
+            <h2>Appointment Book</h2>
+
+            <p id="selectedDateLabel">
+                Thursday, August 13, 2026
+            </p>
+        </div>
+
+        <button id="openAppointmentFormButton"
+                class="primary-button"
+                type="button">
+            + New Appointment
+        </button>
+
+    </section>
+
+
+    <!-- DATE NAVIGATION -->
+
+    <section class="date-controls">
+
+        <button id="previousDayButton"
+                type="button">
+            ← Previous
+        </button>
+
+        <button id="todayButton"
+                type="button">
+            Today
+        </button>
+
+        <label class="date-picker">
+
+            <span>Date</span>
+
+            <input id="appointmentDatePicker"
+                   type="date"
+                   value="2026-08-13">
+
+        </label>
+
+        <button id="nextDayButton"
+                type="button">
+            Next →
+        </button>
+
+    </section>
+
+
+    <!-- DAILY SUMMARY -->
+
+    <section class="summary-grid">
+
+        <div class="summary-card">
+
+            <span>
+                Appointments
+            </span>
+
+            <strong id="appointmentCount">
+                4
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                Completed
+            </span>
+
+            <strong id="completedCount">
+                1
+            </strong>
+
+        </div>
+
+
+        <div class="summary-card">
+
+            <span>
+                Remaining
+            </span>
+
+            <strong id="remainingCount">
+                3
+            </strong>
+
+        </div>
+
+    </section>
+
+
+    <!-- NEW APPOINTMENT FORM -->
+
+    <section id="appointmentFormPanel"
+             class="appointment-form-panel hidden">
+
+        <div class="form-header">
+
+            <div>
+                <h3>New Appointment</h3>
+
+                <p>
+                    Add what you know now. Fill in the rest later.
+                </p>
+            </div>
+
+            <button id="closeAppointmentFormButton"
+                    class="close-button"
+                    type="button">
+                Close
+            </button>
+
+        </div>
+
+
+        <div class="appointment-form-grid">
+
+            <!-- REQUIRED -->
+
+            <label>
+                Date *
+
+                <input id="newAppointmentDate"
+                       type="date">
+            </label>
+
+
+            <label>
+                Time
+
+                <input id="newAppointmentTime"
+                       type="time">
+            </label>
+
+
+            <label>
+                Customer *
+
+                <input id="newAppointmentCustomer"
+                       type="text"
+                       placeholder="Customer name">
+            </label>
+
+
+            <!-- OPTIONAL -->
+
+            <label>
+                Asset / Unit
+
+                <input id="newAppointmentAsset"
+                       type="text"
+                       placeholder="Truck, equipment, vehicle, etc.">
+            </label>
+
+
+            <label>
+                Location
+
+                <input id="newAppointmentLocation"
+                       type="text"
+                       placeholder="Address, yard, shop, jobsite...">
+            </label>
+
+
+            <label>
+                Assigned Technician
+
+                <input id="newAppointmentTechnician"
+                       type="text"
+                       placeholder="Optional">
+            </label>
+
+
+            <label class="full-width-field">
+                Reason / Complaint
+
+                <input id="newAppointmentReason"
+                       type="text"
+                       placeholder="What are we going out for?">
+            </label>
+
+
+            <label class="full-width-field">
+                Notes
+
+                <textarea id="newAppointmentNotes"
+                          rows="4"
+                          placeholder="Additional notes..."></textarea>
+            </label>
+
+        </div>
+
+
+        <div class="form-actions">
+
+            <button id="saveAppointmentButton"
+                    class="primary-button"
+                    type="button">
+                Save Appointment
+            </button>
+
+        </div>
+
+        <p id="appointmentFormMessage"
+           class="form-message"></p>
+
+    </section>
+
+
+    <!-- ANYTIME / UNSCHEDULED -->
+
+    <section class="schedule-section">
+
+        <div class="section-heading">
+
+            <div>
+                <h3>Anytime</h3>
+
+                <p>
+                    Appointments without a set time
+                </p>
+            </div>
+
+        </div>
+
+
+        <div id="anytimeAppointmentList"
+             class="appointment-list">
+
+            <article class="appointment-card">
+
+                <div class="appointment-time anytime">
+                    Anytime
+                </div>
+
+
+                <div class="appointment-details">
+
+                    <div class="appointment-title">
+
+                        <div>
+                            <strong>
+                                Miller Landscaping
+                            </strong>
+
+                            <span>
+                                Takeuchi TL12
+                            </span>
+                        </div>
+
+                        <span class="status-badge scheduled">
+                            Scheduled
+                        </span>
+
+                    </div>
+
+
+                    <p>
+                        Customer reports hydraulic hose leaking.
+                    </p>
+
+
+                    <div class="appointment-meta">
+
+                        <span>
+                            📍 Customer Yard
+                        </span>
+
+                        <span>
+                            Tech: Unassigned
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </div>
+
+    </section>
+
+
+    <!-- TIMED APPOINTMENTS -->
+
+    <section class="schedule-section">
+
+        <div class="section-heading">
+
+            <div>
+                <h3>Schedule</h3>
+
+                <p>
+                    Timed appointments for the day
+                </p>
+            </div>
+
+        </div>
+
+
+        <div id="timedAppointmentList"
+             class="appointment-list">
+
+            <article class="appointment-card">
+
+                <div class="appointment-time">
+                    8:00 AM
+                </div>
+
+
+                <div class="appointment-details">
+
+                    <div class="appointment-title">
+
+                        <div>
+                            <strong>
+                                Smith Residence
+                            </strong>
+
+                            <span>
+                                2020 Chevy Equinox
+                            </span>
+                        </div>
+
+                        <span class="status-badge completed">
+                            Completed
+                        </span>
+
+                    </div>
+
+
+                    <p>
+                        No-start diagnosis
+                    </p>
+
+
+                    <div class="appointment-meta">
+
+                        <span>
+                            📍 123 Main Street
+                        </span>
+
+                        <span>
+                            Tech: Jon
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <article class="appointment-card">
+
+                <div class="appointment-time">
+                    10:30 AM
+                </div>
+
+
+                <div class="appointment-details">
+
+                    <div class="appointment-title">
+
+                        <div>
+                            <strong>
+                                ABC Transport
+                            </strong>
+
+                            <span>
+                                Freightliner Cascadia
+                            </span>
+                        </div>
+
+                        <span class="status-badge confirmed">
+                            Confirmed
+                        </span>
+
+                    </div>
+
+
+                    <p>
+                        Air leak / brake inspection
+                    </p>
+
+
+                    <div class="appointment-meta">
+
+                        <span>
+                            📍 Customer Yard
+                        </span>
+
+                        <span>
+                            Tech: Jon
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+
+            <article class="appointment-card">
+
+                <div class="appointment-time">
+                    1:00 PM
+                </div>
+
+
+                <div class="appointment-details">
+
+                    <div class="appointment-title">
+
+                        <div>
+                            <strong>
+                                Jones Excavating
+                            </strong>
+
+                            <span>
+                                CAT 320 Excavator
+                            </span>
+                        </div>
+
+                        <span class="status-badge scheduled">
+                            Scheduled
+                        </span>
+
+                    </div>
+
+
+                    <p>
+                        Hydraulic leak
+                    </p>
+
+
+                    <div class="appointment-meta">
+
+                        <span>
+                            📍 North Jobsite
+                        </span>
+
+                        <span>
+                            Tech: Jon
+                        </span>
+
+                    </div>
+
+                </div>
+
+            </article>
+
+        </div>
+
+    </section>
+
+</main>
+
+
+<script src="Appointments.js"></script>
+<script>
+    const menuButton =
+        document.getElementById("menuButton");
+
+    const mobileMenu =
+        document.getElementById("mobileMenu");
+
+    menuButton.addEventListener(
+        "click",
+        function () {
+            mobileMenu.classList.toggle("open");
+        }
+    );
+</script>
+
+</body>
+</html>

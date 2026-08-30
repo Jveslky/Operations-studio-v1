@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Track Right - Customers</title>
+
+    <link rel="stylesheet" href="MobileShared.css">
+    <link rel="stylesheet" href="MobileCustomers.css">
+</head>
+
+<body>
+
+    <header class="top-bar">
+
+        <div>
+            <h1>Track Right</h1>
+            <p>Customers</p>
+        </div>
+
+        <button class="menu-button"
+                type="button"
+                id="menuButton">
+            Menu
+        </button>
+
+    </header>
+
+    <nav class="mobile-menu"
+         id="mobileMenu">
+
+        <a href="MobileDashboard.html">Dashboard</a>
+        <a href="Appointments.html">Appointments</a>
+        <a href="MobileCustomers.html">Customers</a>
+        <a href="MobileJobs.html">Jobs</a>
+        <a href="MobileInvoices.html">Invoices</a>
+        <a href="MobileExpenses.html">Expenses</a>
+
+    </nav>
+
+    <main class="page-container">
+
+
+        <!-- PAGE HEADER -->
+
+        <section class="page-heading">
+
+            <div>
+                <h2>Customers</h2>
+
+                <p>
+                    Customers, equipment, vehicles and service history
+                </p>
+            </div>
+
+            <button id="newCustomerButton"
+                    class="primary-button"
+                    type="button">
+                + New Customer
+            </button>
+
+        </section>
+
+
+        <!-- SEARCH -->
+
+        <section class="search-panel">
+
+            <label for="customerSearch">
+                Search Customers
+            </label>
+
+            <input id="customerSearch"
+                   type="search"
+                   placeholder="Name, company, phone, unit...">
+
+        </section>
+
+
+        <!-- NEW CUSTOMER -->
+
+        <section id="customerFormPanel"
+                 class="form-panel hidden">
+
+            <div class="form-header">
+
+                <div>
+                    <h3>New Customer</h3>
+
+                    <p>
+                        Start simple. Add more information later.
+                    </p>
+                </div>
+
+                <button id="closeCustomerFormButton"
+                        type="button"
+                        class="secondary-button">
+                    Close
+                </button>
+
+            </div>
+
+
+            <div class="form-grid">
+
+                <label>
+                    Customer / Company Name *
+
+                    <input id="customerNameInput"
+                           type="text"
+                           placeholder="Customer name">
+                </label>
+
+
+                <label>
+                    Contact Name
+
+                    <input id="customerContactInput"
+                           type="text"
+                           placeholder="Optional">
+                </label>
+
+
+                <label>
+                    Phone
+
+                    <input id="customerPhoneInput"
+                           type="tel"
+                           placeholder="Optional">
+                </label>
+
+
+                <label>
+                    Email
+
+                    <input id="customerEmailInput"
+                           type="email"
+                           placeholder="Optional">
+                </label>
+
+
+                <label class="full-width">
+                    Default Address / Location
+
+                    <input id="customerAddressInput"
+                           type="text"
+                           placeholder="Home, shop, yard, etc.">
+                </label>
+
+
+                <label class="full-width">
+                    Notes
+
+                    <textarea id="customerNotesInput"
+                              rows="4"
+                              placeholder="Customer notes..."></textarea>
+                </label>
+
+            </div>
+
+
+            <div class="form-actions">
+
+                <button id="saveCustomerButton"
+                        type="button"
+                        class="primary-button">
+                    Save Customer
+                </button>
+
+                <span id="customerFormMessage"
+                      class="form-message"></span>
+
+            </div>
+
+        </section>
+
+
+        <!-- CUSTOMER DIRECTORY -->
+
+        <section id="customerDirectory"
+                 class="customer-directory">
+
+            <!-- Placeholder customers rendered by JS -->
+
+        </section>
+
+
+        <!-- CUSTOMER DETAIL -->
+
+        <section id="customerDetailPanel"
+                 class="customer-detail hidden">
+
+            <div class="detail-header">
+
+                <div>
+                    <span class="section-label">
+                        Customer
+                    </span>
+
+                    <h2 id="detailCustomerName"></h2>
+
+                    <p id="detailCustomerContact"></p>
+                </div>
+
+                <button id="closeCustomerDetailButton"
+                        class="secondary-button"
+                        type="button">
+                    Back to Customers
+                </button>
+
+            </div>
+
+
+            <div class="customer-info-grid">
+
+                <div>
+                    <span>Phone</span>
+                    <strong id="detailCustomerPhone">—</strong>
+                </div>
+
+                <div>
+                    <span>Email</span>
+                    <strong id="detailCustomerEmail">—</strong>
+                </div>
+
+                <div>
+                    <span>Default Location</span>
+                    <strong id="detailCustomerAddress">—</strong>
+                </div>
+
+            </div>
+
+
+            <!-- ASSETS -->
+
+            <section class="asset-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h3>Assets</h3>
+
+                        <p>
+                            Vehicles, trucks, equipment, trailers or anything else you service
+                        </p>
+                    </div>
+
+                    <button id="newAssetButton"
+                            class="primary-button"
+                            type="button">
+                        + Add Asset
+                    </button>
+
+                </div>
+
+
+                <section id="assetFormPanel"
+                         class="form-panel hidden">
+
+                    <div class="form-header">
+
+                        <div>
+                            <h3>Add Asset</h3>
+
+                            <p>
+                                Enter whatever information is available.
+                            </p>
+                        </div>
+
+                        <button id="closeAssetFormButton"
+                                class="secondary-button"
+                                type="button">
+                            Close
+                        </button>
+
+                    </div>
+
+
+                    <div class="form-grid">
+
+                        <label>
+                            Unit / Asset Name *
+
+                            <input id="assetNameInput"
+                                   type="text"
+                                   placeholder="Unit 17, Bobcat, Service Truck...">
+                        </label>
+
+
+                        <label>
+                            Year
+
+                            <input id="assetYearInput"
+                                   type="text"
+                                   placeholder="Optional">
+                        </label>
+
+
+                        <label>
+                            Make
+
+                            <input id="assetMakeInput"
+                                   type="text"
+                                   placeholder="Freightliner, CAT, Chevy...">
+                        </label>
+
+
+                        <label>
+                            Model
+
+                            <input id="assetModelInput"
+                                   type="text"
+                                   placeholder="Cascadia, 320, Equinox...">
+                        </label>
+
+
+                        <label>
+                            VIN
+
+                            <input id="assetVinInput"
+                                   type="text"
+                                   placeholder="Optional">
+                        </label>
+
+
+                        <label>
+                            Serial Number
+
+                            <input id="assetSerialInput"
+                                   type="text"
+                                   placeholder="Optional">
+                        </label>
+
+
+                        <label>
+                            Mileage
+
+                            <input id="assetMileageInput"
+                                   type="number"
+                                   min="0"
+                                   placeholder="Optional">
+                        </label>
+
+
+                        <label>
+                            Hours
+
+                            <input id="assetHoursInput"
+                                   type="number"
+                                   min="0"
+                                   step="0.1"
+                                   placeholder="Optional">
+                        </label>
+
+
+                        <label class="full-width">
+                            Engine
+
+                            <input id="assetEngineInput"
+                                   type="text"
+                                   placeholder="Engine make, model, serial, displacement...">
+                        </label>
+
+
+                        <label class="full-width">
+                            Notes
+
+                            <textarea id="assetNotesInput"
+                                      rows="4"
+                                      placeholder="Anything useful about this asset..."></textarea>
+                        </label>
+
+                    </div>
+
+
+                    <div class="form-actions">
+
+                        <button id="saveAssetButton"
+                                class="primary-button"
+                                type="button">
+                            Save Asset
+                        </button>
+
+                        <span id="assetFormMessage"
+                              class="form-message"></span>
+
+                    </div>
+
+                </section>
+
+
+                <div id="assetList"
+                     class="asset-list"></div>
+
+            </section>
+
+
+            <!-- FUTURE ACTIVITY -->
+
+            <section class="activity-placeholder">
+
+                <div>
+                    <h3>Recent Activity</h3>
+
+                    <p>
+                        Repair orders, invoices and service history will appear here.
+                    </p>
+                </div>
+
+                <span>
+                    Coming next
+                </span>
+
+            </section>
+
+        </section>
+
+    </main>
+
+
+    <script src="MobileCustomers.js"></script>
+
+    <script>
+        const menuButton =
+            document.getElementById("menuButton");
+
+        const mobileMenu =
+            document.getElementById("mobileMenu");
+
+        menuButton.addEventListener(
+            "click",
+            function () {
+                mobileMenu.classList.toggle("open");
+            }
+        );
+    </script>
+
+</body>
+
+</html>

@@ -1,11 +1,18 @@
+const SUPABASE_URL = "https://amikoqrqutnpojtcyjlx.supabase.co";
+const SUPABASE_KEY = "sb_publishable_BpyMspzQY6sfM5N1eeX_dg_qWQgzC8p";
+
+const supabaseClient = supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
 /* =========================
    APP CONFIGURATION
 ========================= */
 
 const appMode = "shop";
 
-const CUSTOMER_STORAGE_KEY =
-    "track-right-customers";
+
 
 const INVOICE_STORAGE_KEY = "track-right-invoices";
 
@@ -331,23 +338,9 @@ function escapeHtml(value) {
    CUSTOMER STORAGE
 ========================= */
 
-function getCustomers() {
-    const customers =
-        safelyParseStoredValue(
-            CUSTOMER_STORAGE_KEY
-        );
 
-    return Array.isArray(customers)
-        ? customers
-        : [];
-}
 
-function saveCustomers(customers) {
-    localStorage.setItem(
-        CUSTOMER_STORAGE_KEY,
-        JSON.stringify(customers)
-    );
-}
+
 
 function getInvoices() {
     const invoices =
@@ -370,16 +363,7 @@ function formatCurrency(value) {
     );
 }
 
-function getSelectedCustomer() {
-    return getCustomers().find(
-        function (customer) {
-            return (
-                customer.id ===
-                selectedCustomerId
-            );
-        }
-    ) || null;
-}
+
 
 /* =========================
    CUSTOMER DIRECTORY
@@ -397,10 +381,41 @@ function getCustomerOpenRepairOrders(customerId) {
     });
 }
 
-function renderCustomerDirectory() {
+async function renderCustomerDirectory() {
+    const {
+        data: customersData,
+        error
+    } = await supabaseClient
+        .from("Customers")
+        .select("*")
+        .eq("archived", false)
+        .order("name");
+
+    if (error) {
+        console.error(
+            "Could not load customers:",
+            error
+        );
+        return;
+    }
+
     const customers =
-        getCustomers().filter(function (customer) {
-            return customer.archived !== true;
+        customersData.map(function (customer) {
+            return {
+                id: customer.id,
+                name: customer.name,
+                contactName: customer.contact_name,
+                phone: customer.phone,
+                email: customer.email,
+                notes: customer.notes,
+                archived: customer.archived,
+                createdAt: customer.created_at,
+                updatedAt: customer.updated_at,
+
+                // Temporary compatibility
+                // until units move to Supabase too
+                units: []
+            };
         });
 
     const repairOrders =
@@ -781,8 +796,9 @@ cancelCustomerFormButton.addEventListener(
 
 addCustomerForm.addEventListener(
     "submit",
-    function (event) {
+    async function (event) {
         event.preventDefault();
+        console.log("SUPABASE CUSTOMER SUBMIT FIRED");
 
         const customerName =
             customerNameInput.value.trim();
@@ -799,40 +815,79 @@ addCustomerForm.addEventListener(
         const notes =
             customerNotesInput.value.trim();
 
-        const customers = getCustomers();
+        const {
+            data: { user },
+            error: userError
+        } = await supabaseClient.auth.getUser();
+
+        if (userError || !user) {
+            console.error(
+                "Could not get logged-in user:",
+                userError
+            );
+
+            customerSaveMessage.textContent =
+                "You must be logged in to save a customer.";
+
+            return;
+        }
+
+        const {
+            data: membership,
+            error: membershipError
+        } = await supabaseClient
+            .from("shop_members")
+            .select("shop_id")
+            .eq("user_id", user.id)
+            .single();
+
+        if (membershipError || !membership) {
+            console.error(
+                "Could not find shop membership:",
+                membershipError
+            );
+
+            customerSaveMessage.textContent =
+                "Could not determine your shop.";
+
+            return;
+        }
+
+        const shopId = membership.shop_id;
 
         if (editingCustomerId) {
-            const customerIndex =
-                customers.findIndex(
-                    function (customer) {
-                        return (
-                            customer.id ===
-                            editingCustomerId
-                        );
-                    }
+            const {
+                data,
+                error
+            } = await supabaseClient
+                .from("Customers")
+                .update({
+                    name: customerName,
+                    contact_name: contactName,
+                    phone: phone,
+                    email: email,
+                    notes: notes,
+                    updated_at:
+                        new Date().toISOString()
+                })
+                .eq("id", editingCustomerId)
+                .eq("shop_id", shopId)
+                .select()
+                .single();
+
+            if (error) {
+                console.error(
+                    "Customer update failed:",
+                    error
                 );
 
-            if (customerIndex === -1) {
+                customerSaveMessage.textContent =
+                    "Customer update failed.";
+
                 return;
             }
 
-            customers[customerIndex] = {
-                ...customers[customerIndex],
-
-                name: customerName,
-                contactName: contactName,
-                phone: phone,
-                email: email,
-                notes: notes,
-
-                updatedAt:
-                    new Date().toISOString()
-            };
-
-            saveCustomers(customers);
-
-            selectedCustomerId =
-                editingCustomerId;
+            selectedCustomerId = data.id;
 
             customerSaveMessage.textContent =
                 `${customerName} was updated successfully.`;
@@ -851,28 +906,39 @@ addCustomerForm.addEventListener(
             return;
         }
 
+        const {
+            data,
+            error
+        } = await supabaseClient
+            .from("Customers")
+            .insert({
+                shop_id: shopId,
+                name: customerName,
+                contact_name: contactName,
+                phone: phone,
+                email: email,
+                notes: notes,
+                archived: false
+            })
+            .select()
+            .single();
 
-        const newCustomer = {
-            id: crypto.randomUUID(),
+        if (error) {
+            console.error(
+                "Customer save failed:",
+                error
+            );
 
-            name: customerName,
-            contactName: contactName,
-            phone: phone,
-            email: email,
-            notes: notes,
+            customerSaveMessage.textContent =
+                "Customer save failed.";
 
-            units: [],
-            archived: false,
+            return;
+        }
 
-            createdAt:
-                new Date().toISOString()
-        };
-
-        customers.push(newCustomer);
-
-        saveCustomers(customers);
-
-        renderCustomerDirectory();
+        console.log(
+            "Customer saved to Supabase:",
+            data
+        );
 
         customerSaveMessage.textContent =
             `${customerName} was saved successfully.`;
@@ -886,13 +952,18 @@ addCustomerForm.addEventListener(
     }
 );
 
+
+     
+
+renderCustomerDirectory();
+ 
 renderCustomerDirectory();
 
 /* =========================
    CUSTOMER SEARCH
 ========================= */
 
-function renderCustomerSearchResults(
+async function renderCustomerSearchResults(
     searchText
 ) {
     const normalizedSearch =
@@ -900,8 +971,25 @@ function renderCustomerSearchResults(
             .trim()
             .toLowerCase();
 
+    const {
+        data: customers,
+        error
+    } = await supabaseClient
+        .from("Customers")
+        .select("*")
+        .eq("archived", false);
+
+    if (error) {
+        console.error(
+            "Could not search customers:",
+            error
+        );
+
+        return;
+    }
+
     const matchingCustomers =
-        getCustomers().filter(
+        customers.filter(
             function (customer) {
                 if (
                     customer.archived === true
@@ -911,7 +999,7 @@ function renderCustomerSearchResults(
 
                 const searchableText = [
                     customer.name,
-                    customer.contactName,
+                    customer.contact_name,
                     customer.phone,
                     customer.email
                 ]
@@ -1072,22 +1160,23 @@ closeCustomerSearchButton.addEventListener(
    CUSTOMER RECORD
 ========================= */
 
-function openCustomerRecord(
+async function openCustomerRecord(
     customerId
 ) {
-    const customer =
-        getCustomers().find(
-            function (item) {
-                return (
-                    item.id === customerId
-                );
-            }
-        );
+    const {
+        data: customer,
+        error
+    } = await supabaseClient
+        .from("Customers")
+        .select("*")
+        .eq("id", customerId)
+        .single();
 
-    if (!customer) {
+    if (error || !customer) {
         console.error(
             "Customer could not be found:",
-            customerId
+            customerId,
+            error
         );
 
         return;
@@ -1099,7 +1188,7 @@ function openCustomerRecord(
         customer.name;
 
     customerRecordContact.textContent =
-        customer.contactName || "—";
+        customer.contact_name || "—";
 
     customerRecordPhone.textContent =
         customer.phone || "—";
@@ -1118,7 +1207,6 @@ function openCustomerRecord(
 
     customerRecordPanel.hidden = false;
 }
-
 function closeCustomerRecord() {
     customerRecordPanel.hidden = true;
     selectedCustomerId = null;
@@ -1131,11 +1219,28 @@ closeCustomerRecordButton.addEventListener(
 
 editCustomerButton.addEventListener(
     "click",
-    function () {
-        const customer =
-            getSelectedCustomer();
+    async function () {
 
-        if (!customer) {
+        console.log(
+            "Editing customer ID:",
+            selectedCustomerId
+        );
+        const {
+            data: customer,
+            error
+        } = await supabaseClient
+            .from("Customers")
+            .select("*")
+            .eq("id", selectedCustomerId)
+            .single();
+
+        if (error || !customer) {
+            console.error(
+                "Could not load customer for editing:",
+                selectedCustomerId,
+                error
+            );
+
             return;
         }
 
@@ -1146,7 +1251,7 @@ editCustomerButton.addEventListener(
             customer.name || "";
 
         customerContactInput.value =
-            customer.contactName || "";
+            customer.contact_name || "";
 
         customerPhoneInput.value =
             customer.phone || "";
@@ -1171,7 +1276,9 @@ editCustomerButton.addEventListener(
 
         customerNameInput.focus();
     }
-);/* =========================
+);
+
+/* =========================
    CUSTOMER UNITS
 ========================= */
 
@@ -1209,26 +1316,47 @@ function populateCustomerUnitDropdown(customer) {
     });
 }
 
-function renderCustomerUnits() {
-    const customer =
-        getSelectedCustomer();
-
+async function renderCustomerUnits() {
     customerUnitList.innerHTML = "";
 
-    if (!customer) {
+    if (!selectedCustomerId) {
+        return;
+    }
+
+    const {
+        data: unitsData,
+        error
+    } = await supabaseClient
+        .from("customer_units")
+        .select("*")
+        .eq("customer_id", selectedCustomerId)
+        .eq("archived", false)
+        .order("created_at");
+
+    if (error) {
+        console.error(
+            "Could not load customer units:",
+            error
+        );
+
         return;
     }
 
     const units =
-        Array.isArray(customer.units)
-            ? customer.units.filter(
-                function (unit) {
-                    return (
-                        unit.archived !== true
-                    );
-                }
-            )
-            : [];
+        unitsData.map(function (unit) {
+            return {
+                id: unit.id,
+                year: unit.year,
+                make: unit.make,
+                model: unit.model,
+                serial: unit.serial,
+                engineMake: unit.engine_make,
+                engineModel: unit.engine_model,
+                fuelType: unit.fuel_type,
+                displacement: unit.displacement,
+                archived: unit.archived
+            };
+        });
 
     if (units.length === 0) {
         customerUnitList.innerHTML = `
@@ -1286,33 +1414,33 @@ function renderCustomerUnits() {
 
                 ${unitDescription
                     ? `
-                            <p>
-                                ${escapeHtml(
+                        <p>
+                            ${escapeHtml(
                         unitDescription
                     )}
-                            </p>
-                        `
+                        </p>
+                    `
                     : ""
                 }
 
                 ${unit.serial
                     ? `
-                            <p>
-                                VIN/Serial:
-                                ${escapeHtml(
+                        <p>
+                            VIN/Serial:
+                            ${escapeHtml(
                         unit.serial
                     )}
-                            </p>
-                        `
+                        </p>
+                    `
                     : ""
                 }
 
                 ${unit.engineMake ||
                     unit.engineModel
                     ? `
-                            <p>
-                                Engine:
-                                ${escapeHtml(
+                        <p>
+                            Engine:
+                            ${escapeHtml(
                         [
                             unit.engineMake,
                             unit.engineModel
@@ -1320,16 +1448,16 @@ function renderCustomerUnits() {
                             .filter(Boolean)
                             .join(" ")
                     )}
-                            </p>
-                        `
+                        </p>
+                    `
                     : ""
                 }
 
                 ${unit.fuelType ||
                     unit.displacement
                     ? `
-                            <p>
-                                ${escapeHtml(
+                        <p>
+                            ${escapeHtml(
                         [
                             unit.fuelType,
                             unit.displacement
@@ -1337,8 +1465,8 @@ function renderCustomerUnits() {
                             .filter(Boolean)
                             .join(" • ")
                     )}
-                            </p>
-                        `
+                        </p>
+                    `
                     : ""
                 }
             `;
@@ -1374,7 +1502,6 @@ function renderCustomerUnits() {
         }
     );
 }
-
 
 /* =========================
    CUSTOMER REPAIR HISTORY
@@ -1497,33 +1624,30 @@ function openCustomerUnitForm() {
     customerUnitYearInput.focus();
 }
 
-function openEditCustomerUnitForm(
+async function openEditCustomerUnitForm(
     unitId
 ) {
-    const customer =
-        getSelectedCustomer();
+    const {
+        data: unit,
+        error
+    } = await supabaseClient
+        .from("customer_units")
+        .select("*")
+        .eq("id", unitId)
+        .eq("customer_id", selectedCustomerId)
+        .single();
 
-    if (
-        !customer ||
-        !Array.isArray(customer.units)
-    ) {
-        return;
-    }
-
-    const unit =
-        customer.units.find(
-            function (item) {
-                return item.id === unitId;
-            }
+    if (error || !unit) {
+        console.error(
+            "Could not load unit for editing:",
+            unitId,
+            error
         );
 
-    if (!unit) {
         return;
     }
 
     editingCustomerUnitId = unit.id;
-
-  
 
     customerUnitYearInput.value =
         unit.year || "";
@@ -1538,13 +1662,13 @@ function openEditCustomerUnitForm(
         unit.serial || "";
 
     customerUnitEngineMakeInput.value =
-        unit.engineMake || "";
+        unit.engine_make || "";
 
     customerUnitEngineModelInput.value =
-        unit.engineModel || "";
+        unit.engine_model || "";
 
     customerUnitFuelTypeInput.value =
-        unit.fuelType || "";
+        unit.fuel_type || "";
 
     customerUnitDisplacementInput.value =
         unit.displacement || "";
@@ -1591,41 +1715,26 @@ cancelCustomerUnitButton.addEventListener(
 
 addCustomerUnitForm.addEventListener(
     "submit",
-    function (event) {
+    async function (event) {
         event.preventDefault();
 
-        const customers =
-            getCustomers();
+        const {
+            data: membership,
+            error: membershipError
+        } = await supabaseClient
+            .from("shop_members")
+            .select("shop_id")
+            .single();
 
-        const customerIndex =
-            customers.findIndex(
-                function (customer) {
-                    return (
-                        customer.id ===
-                        selectedCustomerId
-                    );
-                }
+        if (membershipError || !membership) {
+            console.error(
+                "Could not determine shop:",
+                membershipError
             );
-
-        if (customerIndex === -1) {
             return;
         }
 
-        if (
-            !Array.isArray(
-                customers[
-                    customerIndex
-                ].units
-            )
-        ) {
-            customers[
-                customerIndex
-            ].units = [];
-        }
-
         const unitValues = {
-           
-
             year:
                 customerUnitYearInput
                     .value
@@ -1646,16 +1755,16 @@ addCustomerUnitForm.addEventListener(
                     .value
                     .trim(),
 
-            engineMake:
+            engine_make:
                 customerUnitEngineMakeInput
                     .value,
 
-            engineModel:
+            engine_model:
                 customerUnitEngineModelInput
                     .value
                     .trim(),
 
-            fuelType:
+            fuel_type:
                 customerUnitFuelTypeInput
                     .value,
 
@@ -1666,59 +1775,65 @@ addCustomerUnitForm.addEventListener(
         };
 
         if (editingCustomerUnitId) {
-            const unitIndex =
-                customers[
-                    customerIndex
-                ].units.findIndex(
-                    function (unit) {
-                        return (
-                            unit.id ===
-                            editingCustomerUnitId
-                        );
-                    }
+            const {
+                error
+            } = await supabaseClient
+                .from("customer_units")
+                .update({
+                    ...unitValues,
+                    updated_at:
+                        new Date().toISOString()
+                })
+                .eq(
+                    "id",
+                    editingCustomerUnitId
+                )
+                .eq(
+                    "customer_id",
+                    selectedCustomerId
                 );
 
-            if (unitIndex === -1) {
+            if (error) {
+                console.error(
+                    "Unit update failed:",
+                    error
+                );
                 return;
             }
-
-            customers[
-                customerIndex
-            ].units[unitIndex] = {
-                ...customers[
-                    customerIndex
-                ].units[unitIndex],
-
-                ...unitValues,
-
-                updatedAt:
-                    new Date().toISOString()
-            };
         } else {
-            customers[
-                customerIndex
-            ].units.push({
-                id: crypto.randomUUID(),
+            const {
+                error
+            } = await supabaseClient
+                .from("customer_units")
+                .insert({
+                    shop_id:
+                        membership.shop_id,
 
-                customerId:
-                    selectedCustomerId,
+                    customer_id:
+                        selectedCustomerId,
 
-                ...unitValues,
+                    ...unitValues,
 
-                archived: false,
+                    archived: false
+                });
 
-                createdAt:
-                    new Date().toISOString()
-            });
+            if (error) {
+                console.error(
+                    "Unit save failed:",
+                    error
+                );
+                return;
+            }
         }
-
-        saveCustomers(customers);
 
         closeCustomerUnitForm();
 
         renderCustomerUnits();
     }
-);/* =========================
+);
+
+
+/* =========================
    START REPAIR ORDER
 ========================= */
 
@@ -1746,16 +1861,24 @@ function closeNewRepairOrderForm() {
 
 startCustomerRepairOrderButton.addEventListener(
     "click",
-    function () {
-        const selectedCustomer =
-            getCustomers().find(
-                function (customer) {
-                    return (
-                        customer.id ===
-                        selectedCustomerId
-                    );
-                }
+    async function () {
+        const {
+            data: selectedCustomer,
+            error
+        } = await supabaseClient
+            .from("Customers")
+            .select("*")
+            .eq("id", selectedCustomerId)
+            .single();
+
+        if (error) {
+            console.error(
+                "Could not load selected customer:",
+                error
             );
+
+            return;
+        }
 
         if (!selectedCustomer) {
             console.error(
@@ -1872,3 +1995,20 @@ newRepairOrderForm.addEventListener(
 );
 
 renderCustomerDirectory();
+
+console.log("Supabase client loaded:", supabaseClient);
+
+async function testLogin() {
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+        email: "jveselsky@yahoo.com",
+        password: "JveseSB123!!!"
+    });
+
+    if (error) {
+        console.error("Login failed:", error);
+        return;
+    }
+
+    console.log("Logged in user:", data.user);
+}
+

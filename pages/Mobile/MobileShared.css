@@ -1,0 +1,755 @@
+/* =========================================
+   TRACK RIGHT MOBILE
+   SHARED DESIGN SYSTEM
+   ========================================= */
+
+
+/* ---------- ROOT COLORS ---------- */
+
+:root {
+    --bg-main: #dbe6ee;
+    --bg-panel: #eef5f9;
+    --bg-panel-light: #e3edf3;
+    --bg-input: #ffffff;
+    --header: #163447;
+    --header-light: #245b76;
+    --border: #b8cbd6;
+    --border-light: #9eb4c1;
+    --text-main: #182229;
+    --text-secondary: #4f626e;
+    --text-muted: #70828d;
+    --accent: #2374a6;
+    --accent-hover: #185b86;
+    --accent-soft: #cfe7f5;
+    --success: #4f8b62;
+    --success-soft: #dceee1;
+    --warning: #B77912;
+    --warning-soft: #F3DFC0;
+    --danger: #b85a52;
+    --danger-soft: #f0d8d5;
+    --radius: 10px;
+}
+
+
+/* ---------- RESET ---------- */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--bg-main);
+    color: var(--text-main);
+}
+
+button,
+input,
+textarea,
+select {
+    font: inherit;
+}
+
+button,
+a {
+    -webkit-tap-highlight-color: transparent;
+}
+
+.hidden {
+    display: none !important;
+}
+
+
+/* =========================================
+   TOP BAR
+   ========================================= */
+
+.top-bar {
+    min-height: 72px;
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: linear-gradient( 135deg, var(--header), var(--header-light) );
+    border-bottom: 1px solid #343d46;
+    color: white;
+}
+
+    .top-bar h1 {
+        margin: 0;
+        font-size: 22px;
+        letter-spacing: 0.4px;
+    }
+
+    .top-bar p {
+        margin: 3px 0 0;
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+
+.dashboard-link,
+.menu-button {
+    padding: 9px 15px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-main);
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+    .dashboard-link:hover,
+    .menu-button:hover {
+        background: var(--bg-panel-light);
+        border-color: #65717c;
+    }
+
+
+/* =========================================
+   PAGE CONTAINER
+   ========================================= */
+
+.page-container,
+.dashboard-container,
+.appointments-container {
+    width: min( 1400px, calc(100% - 40px) );
+    margin: 0 auto;
+    padding: 30px 0 60px;
+}
+
+
+/* =========================================
+   PAGE HEADINGS
+   ========================================= */
+
+.page-heading,
+.dashboard-heading {
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+    .page-heading h2,
+    .dashboard-heading h2 {
+        margin: 0 0 5px;
+        font-size: 28px;
+    }
+
+    .page-heading p,
+    .dashboard-heading p {
+        margin: 0;
+        color: var(--text-secondary);
+    }
+
+
+/* =========================================
+   BUTTONS
+   ========================================= */
+
+.primary-button {
+    padding: 11px 18px;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--accent);
+    color: white;
+    font-weight: bold;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+    .primary-button:hover {
+        background: var(--accent-hover);
+    }
+
+    .primary-button:hover {
+        background: var(--accent-hover);
+        transform: translateY(-1px);
+    }
+
+.secondary-button,
+.close-button {
+    padding: 9px 14px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius);
+    background: var(--bg-panel-light);
+    color: var(--text-main);
+    cursor: pointer;
+}
+
+    .secondary-button:hover,
+    .close-button:hover {
+        background: #303840;
+    }
+
+
+/* =========================================
+   PANELS / CARDS
+   ========================================= */
+
+.dashboard-panel,
+.form-panel,
+.appointment-form-panel,
+.schedule-section,
+.job-detail,
+.invoice-detail,
+.customer-detail,
+.summary-card,
+.job-column {
+    background: linear-gradient( 180deg, #f4f8fb, var(--bg-panel) );
+    border: 1px solid var(--border);
+    box-shadow: 0 3px 10px rgba(24, 52, 71, 0.08);
+}
+
+.dashboard-panel,
+.form-panel,
+.appointment-form-panel,
+.schedule-section {
+    margin-bottom: 20px;
+    padding: 22px;
+}
+
+
+/* =========================================
+   SUMMARY CARDS
+   ========================================= */
+
+.summary-grid {
+    margin-bottom: 20px;
+    display: grid;
+    grid-template-columns: repeat( 4, minmax(0, 1fr) );
+    gap: 14px;
+}
+
+.summary-card {
+    min-width: 0;
+    padding: 18px;
+    color: inherit;
+    text-decoration: none;
+    background: linear-gradient( 135deg, #d9edf8, #edf6fb );
+    border-color: #a9c8d8;
+}
+
+    .summary-card span,
+    .card-label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .summary-card strong,
+    .card-number {
+        color: var(--text-main);
+        font-size: 28px;
+    }
+
+a.summary-card {
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+    a.summary-card:hover {
+        background: var(--bg-panel-light);
+        border-color: #59636e;
+        transform: translateY(-2px);
+    }
+
+
+/* =========================================
+   SECTION HEADERS
+   ========================================= */
+
+.section-heading,
+.panel-header {
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+    .section-heading h3,
+    .panel-header h3 {
+        margin: 0 0 4px;
+        color: var(--text-main);
+    }
+
+    .section-heading p,
+    .panel-header p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+
+.section-label {
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+
+/* =========================================
+   FORMS
+   ========================================= */
+
+.form-header {
+    margin-bottom: 18px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+    .form-header h3 {
+        margin: 0 0 4px;
+    }
+
+    .form-header p {
+        margin: 0;
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+
+.form-grid,
+.appointment-form-grid {
+    display: grid;
+    grid-template-columns: repeat( 2, minmax(0, 1fr) );
+    gap: 16px;
+}
+
+    .form-grid label,
+    .appointment-form-grid label,
+    .payment-grid label,
+    .charge-grid label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: bold;
+    }
+
+    .form-grid input,
+    .form-grid textarea,
+    .form-grid select,
+    .appointment-form-grid input,
+    .appointment-form-grid textarea,
+    .payment-grid input,
+    .payment-grid select,
+    .charge-grid input,
+    .detail-section textarea {
+        width: 100%;
+        padding: 10px 11px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--bg-input);
+        color: var(--text-main);
+        outline: none;
+        transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+input:focus,
+textarea:focus,
+select:focus {
+    border-color: var(--accent);
+    background: #171c20;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: #616b74;
+}
+
+select {
+    color-scheme: dark;
+}
+
+textarea {
+    font-family: inherit;
+    resize: vertical;
+}
+
+.full-width,
+.full-width-field {
+    grid-column: 1 / -1;
+}
+
+.form-actions {
+    margin-top: 18px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.form-message {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+
+/* =========================================
+   DETAIL HEADERS
+   ========================================= */
+
+.detail-header {
+    margin-bottom: 22px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+    .detail-header h2 {
+        margin: 3px 0 5px;
+    }
+
+    .detail-header p {
+        margin: 0;
+        color: var(--text-secondary);
+    }
+
+
+/* =========================================
+   DETAIL SECTIONS
+   ========================================= */
+
+.detail-section {
+    padding: 22px 0;
+    border-top: 1px solid var(--border);
+}
+
+    .detail-section h3 {
+        margin-top: 0;
+    }
+
+
+/* =========================================
+   COMMON INFO BLOCKS
+   ========================================= */
+
+.customer-info-grid,
+.detail-summary-grid,
+.invoice-info-grid {
+    margin-bottom: 26px;
+    display: grid;
+    gap: 12px;
+}
+
+.customer-info-grid {
+    grid-template-columns: repeat( 3, minmax(0, 1fr) );
+}
+
+.detail-summary-grid {
+    grid-template-columns: repeat( 4, minmax(0, 1fr) );
+}
+
+.invoice-info-grid {
+    grid-template-columns: repeat( 3, minmax(0, 1fr) );
+}
+
+    .customer-info-grid div,
+    .detail-summary-grid div,
+    .invoice-info-grid div {
+        min-width: 0;
+        padding: 14px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--bg-panel-light);
+    }
+
+    .customer-info-grid span,
+    .detail-summary-grid span,
+    .invoice-info-grid span {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--text-secondary);
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+
+
+/* =========================================
+   COMMON CLICKABLE CARDS
+   ========================================= */
+
+.customer-card,
+.job-card,
+.invoice-card,
+.appointment-card,
+.asset-card {
+    border: 1px solid var(--border);
+    background: var(--bg-panel-light);
+    color: var(--text-main);
+    transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+}
+
+    .customer-card:hover,
+    .job-card:hover,
+    .invoice-card:hover,
+    .appointment-card:hover,
+    .asset-card:hover {
+        background: #2b333a;
+        border-color: #58636d;
+        transform: translateY(-1px);
+    }
+
+
+/* =========================================
+   LINKS
+   ========================================= */
+
+.panel-link {
+    color: var(--accent);
+    font-size: 14px;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+    .panel-link:hover {
+        color: var(--accent-hover);
+    }
+
+
+/* =========================================
+   STATUS COLORS
+   ========================================= */
+
+.status-badge,
+.job-status,
+.invoice-status {
+    border: 1px solid var(--border-light);
+    background: #293139;
+    color: var(--text-main);
+}
+
+    .status-badge.completed,
+    .invoice-status.paid {
+        border-color: #416f50;
+        background: #22372a;
+        color: #9fd5ae;
+    }
+
+    .status-badge.confirmed {
+        border-color: #395d75;
+        background: #1d303c;
+        color: #9cc9e3;
+    }
+
+    .invoice-status.past-due {
+        border-color: #8a5631;
+        background: #3a281c;
+        color: #e6b27c;
+    }
+
+.warning-card strong {
+    color: var(--warning);
+}
+
+
+/* =========================================
+   SCROLLBAR
+   ========================================= */
+
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: #101417;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #384149;
+    border-radius: 10px;
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: #4c5660;
+    }
+
+
+/* =========================================
+   MOBILE
+   ========================================= */
+
+@media ( max-width: 900px ) {
+
+    .summary-grid {
+        grid-template-columns: repeat( 2, minmax(0, 1fr) );
+    }
+
+    .detail-summary-grid,
+    .invoice-info-grid {
+        grid-template-columns: repeat( 2, minmax(0, 1fr) );
+    }
+}
+
+
+@media ( max-width: 700px ) {
+
+    .top-bar {
+        padding: 12px 18px;
+    }
+
+    .page-container,
+    .dashboard-container,
+    .appointments-container {
+        width: calc(100% - 24px);
+        padding-top: 20px;
+    }
+
+    .page-heading,
+    .dashboard-heading,
+    .detail-header,
+    .section-heading,
+    .panel-header,
+    .form-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .summary-grid,
+    .form-grid,
+    .appointment-form-grid,
+    .customer-info-grid,
+    .detail-summary-grid,
+    .invoice-info-grid,
+    .payment-grid,
+    .charge-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .full-width,
+    .full-width-field {
+        grid-column: auto;
+    }
+}
+.dashboard-panel,
+.form-panel,
+.appointment-form-panel,
+.schedule-section,
+.job-detail,
+.invoice-detail,
+.customer-detail,
+.summary-card,
+.job-column {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+}
+
+.customer-card,
+.job-card,
+.invoice-card,
+.appointment-card,
+.asset-card,
+.financial-item {
+    background: var(--bg-panel-light);
+    border: 1px solid var(--border);
+}
+
+    .customer-card:hover,
+    .job-card:hover,
+    .invoice-card:hover,
+    .appointment-card:hover,
+    .asset-card:hover {
+        background: #eef2f5;
+        border-color: #8e99a4;
+        transform: translateY(-1px);
+    }
+
+.mobile-menu {
+    display: none;
+}
+
+    .mobile-menu.open {
+        display: flex;
+        flex-direction: column;
+    }
+
+.menu-button {
+    background: #2f6fed;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+    .menu-button:hover {
+        background: #2558bd;
+    }
+
+.summary-card {
+    position: relative;
+    overflow: hidden;
+}
+
+    .summary-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 5px;
+        height: 100%;
+        background: var(--accent);
+    }
+
+.job-column:nth-child(1) {
+    background: linear-gradient( 180deg, #dceef8, #edf5f9 );
+    border-color: #2F6F9F;
+}
+
+    .job-column:nth-child(1) .job-card:hover {
+        background: #D7E8F4;
+        border-color: #245B84;
+    }
+
+.job-column:nth-child(2) {
+    background: linear-gradient( 180deg, #E8C27A, #F5E8CF );
+   
+    border-color: #B77912;
+}
+
+    .job-column:nth-child(2) .job-card:hover {
+        background: #DDB35F;
+        border-color: #9D670F;
+    }
+
+.job-column:nth-child(3) {
+    background: linear-gradient( 180deg, #dcefe2, #eef6f0 );
+    border-color: #4F8B62;
+}
+
+    .job-column:nth-child(3) .job-card:hover {
+        background: #D9EBDD;
+        border-color: #3E704E;
+    }
+
+.summary-card:nth-child(1) {
+    background: #dcecf7;
+}
+
+.summary-card:nth-child(2) {
+    background: #e3edf8;
+}
+
+.summary-card:nth-child(3) {
+    background: #f5e8cf;
+}
+
+.summary-card:nth-child(4) {
+    background: #e4e8ec;
+}

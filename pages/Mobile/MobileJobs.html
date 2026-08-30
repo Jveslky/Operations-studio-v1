@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Track Right - Mobile Jobs</title>
+
+    <link rel="stylesheet" href="MobileShared.css">
+    <link rel="stylesheet" href="MobileJobs.css">
+</head>
+
+<header class="top-bar">
+
+    <div>
+        <h1>Track Right</h1>
+        <p>Jobs</p>
+    </div>
+
+    <button class="menu-button"
+            type="button"
+            id="menuButton">
+        Menu
+    </button>
+
+</header>
+
+<nav class="mobile-menu"
+     id="mobileMenu">
+
+    <a href="MobileDashboard.html">Dashboard</a>
+    <a href="Appointments.html">Appointments</a>
+    <a href="MobileCustomers.html">Customers</a>
+    <a href="MobileJobs.html">Jobs</a>
+    <a href="MobileInvoices.html">Invoices</a>
+    <a href="MobileExpenses.html">Expenses</a>
+
+</nav>
+
+
+<main class="page-container">
+
+    <!-- PAGE HEADER -->
+
+    <section class="page-heading">
+
+        <div>
+            <h2>Jobs</h2>
+
+            <p>
+                Active field work, waiting jobs and completed service
+            </p>
+        </div>
+
+        <button id="newJobButton"
+                class="primary-button"
+                type="button">
+            + New Job
+        </button>
+
+    </section>
+
+
+    <!-- SUMMARY -->
+
+    <section class="summary-grid">
+
+        <div class="summary-card">
+            <span>Active</span>
+            <strong id="activeJobCount">3</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Waiting</span>
+            <strong id="waitingJobCount">2</strong>
+        </div>
+
+        <div class="summary-card">
+            <span>Ready to Invoice</span>
+            <strong id="invoiceJobCount">2</strong>
+        </div>
+
+    </section>
+
+
+    <!-- NEW JOB FORM -->
+
+    <section id="jobFormPanel"
+             class="form-panel hidden">
+
+        <div class="form-header">
+
+            <div>
+                <h3>New Job</h3>
+
+                <p>
+                    Start with what you know. Add details as the job develops.
+                </p>
+            </div>
+
+            <button id="closeJobFormButton"
+                    class="secondary-button"
+                    type="button">
+                Close
+            </button>
+
+        </div>
+
+        <section id="quickCustomerForm"
+                 class="form-panel hidden">
+
+            <div class="form-header">
+
+                <div>
+                    <h3>Add Customer</h3>
+                    <p>
+                        Add the basics and continue creating the job.
+                    </p>
+                </div>
+
+                <button id="closeQuickCustomerButton"
+                        class="secondary-button"
+                        type="button">
+                    Close
+                </button>
+
+            </div>
+
+            <div class="form-grid">
+
+                <label>
+                    Customer / Company Name *
+
+                    <input id="quickCustomerName"
+                           type="text"
+                           placeholder="Customer name">
+                </label>
+
+                <label>
+                    Phone
+
+                    <input id="quickCustomerPhone"
+                           type="tel"
+                           placeholder="Optional">
+                </label>
+
+            </div>
+
+            <div class="form-actions">
+
+                <button id="saveQuickCustomerButton"
+                        class="primary-button"
+                        type="button">
+                    Add Customer
+                </button>
+
+                <span id="quickCustomerMessage"
+                      class="form-message"></span>
+
+            </div>
+
+        </section>
+
+        <div class="form-grid">
+
+            
+
+            <div class="customer-job-row">
+
+                <div class="customer-job-field">
+
+                    <label>
+                        Customer *
+
+                        <select id="jobCustomerInput">
+                            <option value="">
+                                Select Customer
+                            </option>
+                        </select>
+                    </label>
+
+                    <button id="addCustomerFromJobButton"
+                            class="secondary-button"
+                            type="button">
+                        + Add Customer
+                    </button>
+
+                </div>
+
+
+            </div>
+
+
+            <label>
+                Asset / Unit
+
+                <select id="jobAssetInput">
+                    <option value="">
+                        Select Asset / Unit
+                    </option>
+                </select>
+            </label>
+
+
+            <label>
+                Status
+
+                <select id="jobStatusInput">
+                    <option value="Scheduled">
+                        Scheduled
+                    </option>
+
+                    <option value="En Route">
+                        En Route
+                    </option>
+
+                    <option value="Working">
+                        Working
+                    </option>
+
+                    <option value="Waiting on Parts">
+                        Waiting on Parts
+                    </option>
+
+                    <option value="Waiting on Customer">
+                        Waiting on Customer
+                    </option>
+
+                    <option value="Return Visit Needed">
+                        Return Visit Needed
+                    </option>
+
+                    <option value="Ready to Invoice">
+                        Ready to Invoice
+                    </option>
+
+                    <option value="Invoiced">
+                        Invoiced
+                    </option>
+                </select>
+            </label>
+
+
+            <label>
+                Technician
+
+                <select id="jobTechnicianInput">
+                    <option value="">
+                        Select Technician
+                    </option>
+                </select>
+            </label>
+
+
+            <label class="full-width">
+                Service Location
+
+                <input id="jobLocationInput"
+                       type="text"
+                       placeholder="Customer site, yard, roadside, shop...">
+            </label>
+
+
+            <label class="full-width">
+                Complaint / Job Description *
+
+                <textarea id="jobComplaintInput"
+                          rows="4"
+                          placeholder="What are we here to fix?"></textarea>
+            </label>
+
+
+            <label class="full-width">
+                Customer Notes
+
+                <textarea id="jobCustomerNotesInput"
+                          rows="3"
+                          placeholder="Customer requests, access notes, contact details..."></textarea>
+            </label>
+
+
+            <label class="full-width">
+                Technician Notes
+
+                <textarea id="jobTechnicianNotesInput"
+                          rows="4"
+                          placeholder="Diagnosis, findings, repair notes..."></textarea>
+            </label>
+
+        </div>
+
+
+        <div class="form-actions">
+
+            <button id="saveJobButton"
+                    class="primary-button"
+                    type="button">
+                Create Job
+            </button>
+
+            <span id="jobFormMessage"
+                  class="form-message"></span>
+
+        </div>
+
+    </section>
+
+
+    <!-- JOB BOARD -->
+
+    <section class="job-board">
+
+        <!-- ACTIVE -->
+
+        <section class="job-column">
+
+            <div class="column-heading">
+                <h3>Active</h3>
+                <p>Scheduled, traveling or being worked on</p>
+            </div>
+
+            <div id="activeJobList"
+                 class="job-list"></div>
+
+        </section>
+
+
+        <!-- WAITING -->
+
+        <section class="job-column">
+
+            <div class="column-heading">
+                <h3>Waiting</h3>
+                <p>Parts, customer response or return visit</p>
+            </div>
+
+            <div id="waitingJobList"
+                 class="job-list"></div>
+
+        </section>
+
+
+        <!-- DONE -->
+
+        <section class="job-column">
+
+            <div class="column-heading">
+                <h3>Done</h3>
+                <p>Ready to invoice or already billed</p>
+            </div>
+
+            <div id="doneJobList"
+                 class="job-list"></div>
+
+        </section>
+
+    </section>
+
+
+    <!-- JOB DETAIL -->
+
+    <section id="jobDetailPanel"
+             class="job-detail hidden">
+
+        <div class="detail-header">
+
+            <div>
+                <span class="section-label">
+                    Job
+                </span>
+
+                <h2 id="detailJobTitle"></h2>
+
+                <p id="detailJobCustomer"></p>
+            </div>
+
+            <button id="closeJobDetailButton"
+                    class="secondary-button"
+                    type="button">
+                Back to Jobs
+            </button>
+
+        </div>
+
+
+        <section class="detail-summary-grid">
+
+            <div>
+                <span>Status</span>
+                <strong id="detailJobStatus"></strong>
+            </div>
+
+            <div>
+                <span>Asset</span>
+                <strong id="detailJobAsset"></strong>
+            </div>
+
+            <div>
+                <span>Technician</span>
+                <strong id="detailJobTechnician"></strong>
+            </div>
+
+            <div>
+                <span>Location</span>
+                <strong id="detailJobLocation"></strong>
+            </div>
+
+        </section>
+
+
+        <!-- NOTES -->
+
+        <section class="detail-section">
+
+            <h3>Complaint / Job Description</h3>
+
+            <p id="detailJobComplaint"></p>
+
+        </section>
+
+
+        <section class="detail-section">
+
+            <h3>Technician Notes</h3>
+
+            <textarea id="detailTechnicianNotes"
+                      rows="5"
+                      placeholder="Add diagnosis and repair notes..."></textarea>
+
+        </section>
+
+
+        <!-- TRAVEL -->
+
+        <section class="detail-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <h3>Travel</h3>
+                    <p>Service call, mileage and travel time</p>
+                </div>
+
+            </div>
+
+
+            <div class="charge-grid">
+
+                <label>
+                    Service Call
+
+                    <input id="serviceCallCharge"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           placeholder="0.00">
+                </label>
+
+
+                <label>
+                    Miles
+
+                    <input id="travelMiles"
+                           type="number"
+                           min="0"
+                           step="0.1"
+                           placeholder="0">
+                </label>
+
+
+                <label>
+                    Travel Hours
+
+                    <input id="travelHours"
+                           type="number"
+                           min="0"
+                           step="0.1"
+                           placeholder="0">
+                </label>
+
+            </div>
+
+        </section>
+
+
+        <!-- LABOR -->
+
+        <section class="detail-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <h3>Labor</h3>
+                    <p>Add labor as the work develops</p>
+                </div>
+
+                <button id="addLaborButton"
+                        class="secondary-button"
+                        type="button">
+                    + Add Labor
+                </button>
+
+            </div>
+
+            <div id="laborList"
+                 class="line-item-list"></div>
+
+        </section>
+
+
+        <!-- PARTS -->
+
+        <section class="detail-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <h3>Parts</h3>
+                    <p>Inventory part or free-entry field part</p>
+                </div>
+
+                <button id="addPartButton"
+                        class="secondary-button"
+                        type="button">
+                    + Add Part
+                </button>
+
+            </div>
+
+            <div id="partsList"
+                 class="line-item-list"></div>
+
+        </section>
+
+
+        <!-- MISC -->
+
+        <section class="detail-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <h3>Miscellaneous Charges</h3>
+                    <p>Freight, subcontracting, supplies or anything else</p>
+                </div>
+
+                <button id="addMiscButton"
+                        class="secondary-button"
+                        type="button">
+                    + Add Charge
+                </button>
+
+            </div>
+
+            <div id="miscList"
+                 class="line-item-list"></div>
+
+        </section>
+
+
+        <!-- PHOTOS -->
+
+        <section class="detail-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <h3>Photos</h3>
+                    <p>Placeholder for job photos and attachments</p>
+                </div>
+
+            </div>
+
+            <div class="photo-placeholder">
+                Photo upload will live here later.
+            </div>
+
+        </section>
+
+
+        <!-- JOB TOTAL -->
+
+        <section class="job-total-panel">
+
+            <span>
+                Current Job Total
+            </span>
+
+            <strong id="jobTotal">
+                $0.00
+            </strong>
+
+        </section>
+
+
+        <!-- ACTIONS -->
+
+        <section class="job-actions">
+
+            <button id="saveJobChangesButton"
+                    class="secondary-button"
+                    type="button">
+                Save Changes
+            </button>
+
+            <button id="readyToInvoiceButton"
+                    class="primary-button"
+                    type="button">
+                Mark Ready to Invoice
+            </button>
+
+        </section>
+
+    </section>
+
+</main>
+
+
+<script src="MobileJobs.js"></script>
+
+<script>
+    const menuButton =
+        document.getElementById("menuButton");
+
+    const mobileMenu =
+        document.getElementById("mobileMenu");
+
+    menuButton.addEventListener(
+        "click",
+        function () {
+            mobileMenu.classList.toggle("open");
+        }
+    );
+</script>
+
+</body>
+
+</html>

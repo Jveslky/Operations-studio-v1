@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Track Right - Expenses</title>
+
+    <link rel="stylesheet" href="MobileShared.css">
+    <link rel="stylesheet" href="MobileExpenses.css">
+</head>
+
+<body>
+
+    <header class="top-bar">
+
+        <div>
+            <h1>Track Right</h1>
+            <p>Expenses</p>
+        </div>
+
+        <button class="menu-button"
+                type="button"
+                id="menuButton">
+            Menu
+        </button>
+
+    </header>
+
+    <nav class="mobile-menu"
+         id="mobileMenu">
+
+        <a href="MobileDashboard.html">Dashboard</a>
+        <a href="Appointments.html">Appointments</a>
+        <a href="MobileCustomers.html">Customers</a>
+        <a href="MobileJobs.html">Jobs</a>
+        <a href="MobileInvoices.html">Invoices</a>
+        <a href="MobileExpenses.html">Expenses</a>
+
+    </nav>
+
+    <main class="page-container">
+
+        <section class="page-heading">
+
+            <div>
+                <h2>Expenses</h2>
+                <p>
+                    Track purchases, receipts and job costs
+                </p>
+            </div>
+
+        </section>
+
+
+        <section class="summary-grid">
+
+            <div class="summary-card">
+                <span>This Month</span>
+                <strong id="monthlyExpenseTotal">$0.00</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Parts</span>
+                <strong id="partsExpenseTotal">$0.00</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Fuel / Travel</span>
+                <strong id="fuelExpenseTotal">$0.00</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Other</span>
+                <strong id="otherExpenseTotal">$0.00</strong>
+            </div>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+            <div class="section-heading">
+
+                <div>
+                    <h3>Add Expense</h3>
+                    <p>
+                        Scan a receipt or enter the expense manually
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="expense-entry-actions">
+
+                <button id="scanReceiptButton"
+                        class="primary-button"
+                        type="button">
+                    Scan Receipt
+                </button>
+
+                <button id="manualExpenseButton"
+                        class="secondary-button"
+                        type="button">
+                    Enter Manually
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <section id="expenseFormPanel"
+                 class="form-panel hidden">
+
+            <div class="form-header">
+
+                <div>
+                    <h3>Review Expense</h3>
+                    <p>
+                        Confirm the receipt details before saving.
+                    </p>
+                </div>
+
+                <button id="closeExpenseFormButton"
+                        class="secondary-button"
+                        type="button">
+                    Close
+                </button>
+
+            </div>
+
+
+            <div class="form-grid">
+
+                <label>
+                    Date
+
+                    <input id="expenseDateInput"
+                           type="date">
+                </label>
+
+
+                <label>
+                    Vendor
+
+                    <input id="expenseVendorInput"
+                           type="text"
+                           placeholder="Vendor">
+                </label>
+
+
+                <label>
+                    Amount
+
+                    <input id="expenseAmountInput"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           placeholder="0.00">
+                </label>
+
+
+                <label>
+                    Category
+
+                    <select id="expenseCategoryInput">
+
+                        <option value="">
+                            Select Category
+                        </option>
+
+                        <option value="Parts">
+                            Parts
+                        </option>
+
+                        <option value="Fuel / Travel">
+                            Fuel / Travel
+                        </option>
+
+                        <option value="Tools">
+                            Tools
+                        </option>
+
+                        <option value="Supplies">
+                            Supplies
+                        </option>
+
+                        <option value="Subcontractor">
+                            Subcontractor
+                        </option>
+
+                        <option value="Other">
+                            Other
+                        </option>
+
+                    </select>
+                </label>
+
+
+                <label>
+                    Customer
+
+                    <select id="expenseCustomerInput">
+                        <option value="">
+                            Not Linked
+                        </option>
+                    </select>
+                </label>
+
+
+                <label>
+                    Job
+
+                    <select id="expenseJobInput">
+                        <option value="">
+                            Not Linked
+                        </option>
+                    </select>
+                </label>
+
+
+                <label class="full-width">
+                    Notes
+
+                    <textarea id="expenseNotesInput"
+                              rows="3"
+                              placeholder="Optional notes"></textarea>
+                </label>
+
+            </div>
+
+
+            <div class="receipt-preview">
+
+                <span>Receipt</span>
+
+                <p id="receiptStatus">
+                    No receipt attached
+                </p>
+
+            </div>
+
+
+            <div class="form-actions">
+
+                <button id="saveExpenseButton"
+                        class="primary-button"
+                        type="button">
+                    Save Expense
+                </button>
+
+                <span id="expenseFormMessage"
+                      class="form-message"></span>
+
+            </div>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+            <div class="section-heading">
+
+                <div>
+                    <h3>Expense History</h3>
+                    <p>
+                        Recent purchases and job costs
+                    </p>
+                </div>
+
+            </div>
+
+            <div id="expenseList"></div>
+
+        </section>
+
+        <section id="expenseDetailPanel"
+                 class="job-detail hidden">
+
+            <div class="detail-header">
+
+                <div>
+                    <span class="section-label">
+                        Expense
+                    </span>
+
+                    <h2 id="detailExpenseVendor"></h2>
+
+                    <p id="detailExpenseDate"></p>
+                </div>
+
+                <button id="closeExpenseDetailButton"
+                        class="secondary-button"
+                        type="button">
+                    Back to Expenses
+                </button>
+
+            </div>
+
+            <section class="detail-summary-grid">
+
+                <div>
+                    <span>Amount</span>
+                    <strong id="detailExpenseAmount"></strong>
+                </div>
+
+                <div>
+                    <span>Category</span>
+                    <strong id="detailExpenseCategory"></strong>
+                </div>
+
+                <div>
+                    <span>Customer</span>
+                    <strong id="detailExpenseCustomer"></strong>
+                </div>
+
+                <div>
+                    <span>Job</span>
+                    <strong id="detailExpenseJob"></strong>
+                </div>
+
+            </section>
+
+            <section class="detail-section">
+
+                <h3>Notes</h3>
+
+                <p id="detailExpenseNotes"></p>
+
+            </section>
+
+            <section class="detail-section">
+
+                <h3>Receipt</h3>
+
+                <p id="detailExpenseReceipt"></p>
+
+            </section>
+
+        </section>
+
+
+        <section class="dashboard-panel">
+
+            <div class="section-heading">
+
+                <div>
+                    <h3>Accounting</h3>
+                    <p>
+                        Sync expenses with accounting software
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="accounting-status">
+
+                <strong>QuickBooks</strong>
+                <span>Not Connected</span>
+
+                <button class="secondary-button"
+                        type="button">
+                    Connect Accounting
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="MobileExpenses.js"></script>
+
+    <script>
+
+        const menuButton =
+            document.getElementById(
+                "menuButton"
+            );
+
+        const mobileMenu =
+            document.getElementById(
+                "mobileMenu"
+            );
+
+        menuButton.addEventListener(
+            "click",
+            function () {
+                mobileMenu.classList.toggle(
+                    "open"
+                );
+            }
+        );
+
+    </script>
+
+</body>
+
+</html>

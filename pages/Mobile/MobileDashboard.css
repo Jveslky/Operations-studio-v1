@@ -1,0 +1,188 @@
+/* =========================================
+   MOBILE DASHBOARD
+   PAGE-SPECIFIC STYLES
+   ========================================= */
+
+
+/* ---------- DASHBOARD SUMMARY ---------- */
+
+.summary-card {
+    min-height: 135px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.card-number {
+    margin: 10px 0;
+    font-size: 31px;
+}
+
+.card-detail {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+
+/* ---------- QUICK ACTIONS ---------- */
+
+.quick-actions {
+    display: grid;
+    grid-template-columns: repeat( 4, minmax(0, 1fr) );
+    gap: 12px;
+}
+
+    .quick-actions button {
+        padding: 14px;
+        border: 1px solid var(--border-light);
+        border-radius: var(--radius);
+        background: var(--bg-panel-light);
+        color: var(--text-main);
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
+    }
+
+        .quick-actions button:hover {
+            background: #303840;
+            border-color: #59636e;
+            transform: translateY(-1px);
+        }
+
+
+/* ---------- TODAY'S SCHEDULE ---------- */
+
+.appointment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.appointment-card {
+    padding: 14px 16px;
+    display: grid;
+    grid-template-columns: 100px 1fr;
+    align-items: center;
+    gap: 18px;
+    border-radius: var(--radius);
+}
+
+.appointment-time {
+    color: var(--text-main);
+    font-weight: bold;
+}
+
+.appointment-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+    .appointment-info strong {
+        color: var(--text-main);
+    }
+
+    .appointment-info span {
+        color: var(--text-secondary);
+    }
+
+    .appointment-info small {
+        color: var(--text-muted);
+    }
+
+.open-slot {
+    opacity: 0.65;
+}
+
+
+/* ---------- ACTIVITY PANELS ---------- */
+
+.two-column-grid {
+    display: grid;
+    grid-template-columns: repeat( 2, minmax(0, 1fr) );
+    gap: 20px;
+}
+
+.activity-row {
+    padding: 13px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+}
+
+    .activity-row:last-child {
+        border-bottom: 0;
+    }
+
+    .activity-row span {
+        color: var(--text-secondary);
+    }
+
+    .activity-row strong {
+        color: var(--text-main);
+        font-size: 18px;
+    }
+
+    .activity-row.warning strong {
+        color: var(--warning);
+    }
+
+
+/* ---------- FINANCIAL SNAPSHOT ---------- */
+
+.financial-grid {
+    display: grid;
+    grid-template-columns: repeat( 4, minmax(0, 1fr) );
+    gap: 16px;
+}
+
+.financial-item {
+    padding: 15px;
+    border-left: 3px solid var(--accent);
+    border-radius: 4px;
+    background: var(--bg-panel-light);
+}
+
+    .financial-item span {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--text-secondary);
+        font-size: 13px;
+    }
+
+    .financial-item strong {
+        color: var(--text-main);
+        font-size: 22px;
+    }
+
+
+/* ---------- RESPONSIVE ---------- */
+
+@media ( max-width: 900px ) {
+
+    .financial-grid {
+        grid-template-columns: repeat( 2, minmax(0, 1fr) );
+    }
+
+    .quick-actions {
+        grid-template-columns: repeat( 2, minmax(0, 1fr) );
+    }
+}
+
+
+@media ( max-width: 700px ) {
+
+    .two-column-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .financial-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .appointment-card {
+        grid-template-columns: 78px 1fr;
+        gap: 10px;
+    }
+}

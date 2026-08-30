@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Track Right - Mobile Invoices</title>
+
+    <link rel="stylesheet" href="MobileShared.css">
+    <link rel="stylesheet" href="MobileInvoices.css">
+</head>
+
+<body>
+
+    <header class="top-bar">
+
+        <div>
+            <h1>Track Right</h1>
+            <p>Invoices</p>
+        </div>
+
+        <button class="menu-button"
+                type="button"
+                id="menuButton">
+            Menu
+        </button>
+
+    </header>
+
+
+    <nav class="mobile-menu"
+         id="mobileMenu">
+
+        <a href="MobileDashboard.html">Dashboard</a>
+        <a href="Appointments.html">Appointments</a>
+        <a href="MobileCustomers.html">Customers</a>
+        <a href="MobileJobs.html">Jobs</a>
+        <a href="MobileInvoices.html">Invoices</a>
+        <a href="MobileExpenses.html">Expenses</a>
+
+    </nav>
+
+    <main class="page-container">
+
+        <!-- PAGE HEADER -->
+
+        <section class="page-heading">
+
+            <div>
+                <h2>Invoices</h2>
+
+                <p>
+                    Draft, sent, overdue and paid invoices
+                </p>
+            </div>
+
+            <button id="newInvoiceButton"
+                    class="primary-button"
+                    type="button">
+                + New Invoice
+            </button>
+
+        </section>
+
+
+        <!-- SUMMARY -->
+
+        <section class="summary-grid">
+
+            <div class="summary-card">
+                <span>Draft</span>
+                <strong id="draftInvoiceCount">2</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Sent</span>
+                <strong id="sentInvoiceCount">3</strong>
+            </div>
+
+            <div class="summary-card warning-card">
+                <span>Past Due</span>
+                <strong id="pastDueInvoiceCount">1</strong>
+            </div>
+
+            <div class="summary-card">
+                <span>Outstanding</span>
+                <strong id="outstandingInvoiceTotal">$4,925.00</strong>
+            </div>
+
+        </section>
+
+
+        <!-- FILTERS -->
+
+        <section class="filter-panel">
+
+            <button class="filter-button active"
+                    data-filter="All"
+                    type="button">
+                All
+            </button>
+
+            <button class="filter-button"
+                    data-filter="Draft"
+                    type="button">
+                Draft
+            </button>
+
+            <button class="filter-button"
+                    data-filter="Sent"
+                    type="button">
+                Sent
+            </button>
+
+            <button class="filter-button"
+                    data-filter="Past Due"
+                    type="button">
+                Past Due
+            </button>
+
+            <button class="filter-button"
+                    data-filter="Paid"
+                    type="button">
+                Paid
+            </button>
+
+        </section>
+
+
+        <!-- INVOICE LIST -->
+
+        <section id="invoiceList"
+                 class="invoice-list"></section>
+
+
+        <!-- INVOICE DETAIL -->
+
+        <section id="invoiceDetailPanel"
+                 class="invoice-detail hidden">
+
+            <div class="detail-header">
+
+                <div>
+
+                    <span class="section-label">
+                        Invoice
+                    </span>
+
+                    <h2 id="detailInvoiceNumber"></h2>
+
+                    <p id="detailInvoiceCustomer"></p>
+
+                </div>
+
+                <button id="closeInvoiceDetailButton"
+                        class="secondary-button"
+                        type="button">
+                    Back to Invoices
+                </button>
+
+            </div>
+
+
+            <!-- HEADER INFO -->
+
+            <section class="invoice-info-grid">
+
+                <div>
+                    <span>Status</span>
+                    <strong id="detailInvoiceStatus"></strong>
+                </div>
+
+                <div>
+                    <span>Job</span>
+                    <strong id="detailInvoiceJob"></strong>
+                </div>
+
+                <div>
+                    <span>Asset</span>
+                    <strong id="detailInvoiceAsset"></strong>
+                </div>
+
+                <div>
+                    <span>Invoice Date</span>
+                    <strong id="detailInvoiceDate"></strong>
+                </div>
+
+                <div>
+                    <span>Due Date</span>
+                    <strong id="detailInvoiceDueDate"></strong>
+                </div>
+
+                <div>
+                    <span>Balance</span>
+                    <strong id="detailInvoiceBalance"></strong>
+                </div>
+
+            </section>
+
+
+            <!-- BILL TO -->
+
+            <section class="detail-section">
+
+                <h3>Bill To</h3>
+
+                <div class="bill-to-card">
+
+                    <strong id="detailBillToName"></strong>
+
+                    <span id="detailBillToContact"></span>
+
+                    <span id="detailBillToAddress"></span>
+
+                </div>
+
+            </section>
+
+
+            <!-- LINE ITEMS -->
+
+            <section class="detail-section">
+
+                <div class="section-heading">
+
+                    <div>
+                        <h3>Invoice Items</h3>
+                        <p>Charges pulled from the completed job</p>
+                    </div>
+
+                    <button id="addInvoiceLineButton"
+                            class="secondary-button"
+                            type="button">
+                        + Add Line
+                    </button>
+
+                </div>
+
+                <div id="invoiceLineList"
+                     class="invoice-line-list"></div>
+
+            </section>
+
+
+            <!-- NOTES -->
+
+            <section class="detail-section">
+
+                <h3>Invoice Notes</h3>
+
+                <textarea id="invoiceNotes"
+                          rows="4"
+                          placeholder="Customer-facing invoice notes..."></textarea>
+
+            </section>
+
+
+            <!-- TOTALS -->
+
+            <section class="totals-panel">
+
+                <div class="total-row">
+                    <span>Subtotal</span>
+                    <strong id="invoiceSubtotal">$0.00</strong>
+                </div>
+
+                <div class="total-row">
+                    <span>Tax</span>
+                    <strong id="invoiceTax">$0.00</strong>
+                </div>
+
+                <div class="total-row grand-total">
+                    <span>Total</span>
+                    <strong id="invoiceTotal">$0.00</strong>
+                </div>
+
+                <div class="total-row">
+                    <span>Paid</span>
+                    <strong id="invoicePaid">$0.00</strong>
+                </div>
+
+                <div class="total-row balance-row">
+                    <span>Balance Due</span>
+                    <strong id="invoiceBalance">$0.00</strong>
+                </div>
+
+            </section>
+
+
+            <!-- ACTIONS -->
+
+            <section class="invoice-actions">
+
+                <button id="backToJobButton"
+                        class="secondary-button"
+                        type="button">
+                    Back to Job
+                </button>
+
+                <button id="saveInvoiceButton"
+                        class="secondary-button"
+                        type="button">
+                    Save Draft
+                </button>
+
+                <button id="sendInvoiceButton"
+                        class="primary-button"
+                        type="button">
+                    Send Invoice
+                </button>
+
+                <button id="recordPaymentButton"
+                        class="primary-button"
+                        type="button">
+                    Record Payment
+                </button>
+
+            </section>
+
+
+            <!-- PAYMENT PANEL -->
+
+            <section id="paymentPanel"
+                     class="payment-panel hidden">
+
+                <div class="form-header">
+
+                    <div>
+                        <h3>Record Payment</h3>
+                        <p>Apply a payment to this invoice</p>
+                    </div>
+
+                    <button id="closePaymentButton"
+                            class="secondary-button"
+                            type="button">
+                        Close
+                    </button>
+
+                </div>
+
+
+                <div class="payment-grid">
+
+                    <label>
+                        Amount
+
+                        <input id="paymentAmountInput"
+                               type="number"
+                               min="0"
+                               step="0.01"
+                               placeholder="0.00">
+                    </label>
+
+
+                    <label>
+                        Payment Method
+
+                        <select id="paymentMethodInput">
+                            <option value="Cash">Cash</option>
+                            <option value="Check">Check</option>
+                            <option value="Card">Card</option>
+                            <option value="ACH">ACH</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </label>
+
+
+                    <label class="full-width">
+                        Payment Note
+
+                        <input id="paymentNoteInput"
+                               type="text"
+                               placeholder="Check number, reference, etc.">
+                    </label>
+
+                </div>
+
+
+                <div class="form-actions">
+
+                    <button id="applyPaymentButton"
+                            class="primary-button"
+                            type="button">
+                        Apply Payment
+                    </button>
+
+                </div>
+
+            </section>
+
+        </section>
+
+    </main>
+
+
+    <script src="MobileInvoices.js"></script>
+
+    <script>
+        const menuButton =
+            document.getElementById("menuButton");
+
+        const mobileMenu =
+            document.getElementById("mobileMenu");
+
+        menuButton.addEventListener(
+            "click",
+            function () {
+                mobileMenu.classList.toggle("open");
+            }
+        );
+    </script>
+
+</body>
+
+</html>

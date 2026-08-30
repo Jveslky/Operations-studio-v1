@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Track Right - Schedule</title>
+
+    <link rel="stylesheet"
+          href="schedule.css">
+</head>
+
+<body>
+
+
+    <header class="app-header">
+        <div class="app-header-inner">
+
+            <a class="app-brand"
+               href="../../index.html">
+                Track Right
+            </a>
+
+            <nav class="app-nav">
+
+                <a href="shop-dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="customers.html">
+                    Customers
+                </a>
+
+                <a href="repair-orders.html">
+                    Repair Orders
+                </a>
+
+                <a href="invoices.html">
+                    Invoices
+                </a>
+
+                <a href="accounts-payable.html">
+                    Accounts Payable
+                </a>
+
+                <a href="schedule.html"
+                   class="active">
+                    Schedule
+                </a>
+
+            </nav>
+
+        </div>
+    </header>
+
+
+    <main class="ap-page">
+
+
+        <!-- PAGE HEADER -->
+
+        <section class="ap-page-header">
+
+            <div>
+
+                <span class="ap-page-label">
+                    Shop Operations
+                </span>
+
+                <h1>Schedule</h1>
+
+                <p>
+                    Appointments, shop work and field service scheduling.
+                </p>
+
+            </div>
+
+
+            <button id="new-appointment-button"
+                    type="button">
+
+                + New Appointment
+
+            </button>
+
+        </section>
+
+
+        <!-- SUMMARY -->
+
+        <section class="ap-summary-grid">
+
+            <div class="ap-summary-card">
+
+                <span>Today</span>
+
+                <strong id="todayAppointmentCount">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="ap-summary-card">
+
+                <span>Scheduled</span>
+
+                <strong id="scheduledAppointmentCount">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="ap-summary-card">
+
+                <span>In Progress</span>
+
+                <strong id="activeAppointmentCount">
+                    0
+                </strong>
+
+            </div>
+
+
+            <div class="ap-summary-card">
+
+                <span>Completed</span>
+
+                <strong id="completedAppointmentCount">
+                    0
+                </strong>
+
+            </div>
+
+        </section>
+
+
+        <!-- SCHEDULE DIRECTORY -->
+
+        <section class="schedule-directory">
+
+            <div class="schedule-directory-header">
+
+                <div>
+
+                    <span class="schedule-directory-label">
+                        Schedule
+                    </span>
+
+                    <p id="scheduleDateHeading">
+                        Today's appointments
+                    </p>
+
+                </div>
+
+
+                <div class="schedule-controls">
+
+                    <button id="previousDayButton"
+                            type="button">
+                        ←
+                    </button>
+
+
+                    <input id="scheduleDate"
+                           type="date">
+
+
+                    <button id="nextDayButton"
+                            type="button">
+                        →
+                    </button>
+
+
+                    <button id="todayButton"
+                            type="button">
+                        Today
+                    </button>
+
+                </div>
+
+            </div>
+
+
+            <div id="appointmentList"
+                 class="appointment-list">
+            </div>
+
+        </section>
+
+
+        <!-- APPOINTMENT FORM -->
+
+        <section id="appointmentFormPanel"
+                 class="appointment-form"
+                 hidden>
+
+            <div class="appointment-form-header">
+
+                <div>
+
+                    <span>
+                        Schedule
+                    </span>
+
+                    <h2>
+                        New Appointment
+                    </h2>
+
+                </div>
+
+
+                <button id="closeAppointmentButton"
+                        type="button">
+                    ×
+                </button>
+
+            </div>
+
+
+            <div class="appointment-form-grid">
+
+
+                <label>
+
+                    Customer *
+
+                    <input id="appointmentCustomer"
+                           type="text"
+                           placeholder="Customer or company">
+
+                </label>
+
+
+                <label>
+
+                    Unit / Asset
+
+                    <input id="appointmentUnit"
+                           type="text"
+                           placeholder="Truck, machine, vehicle...">
+
+                </label>
+
+
+                <label>
+
+                    Date *
+
+                    <input id="appointmentDate"
+                           type="date">
+
+                </label>
+
+
+                <label>
+
+                    Start Time *
+
+                    <input id="appointmentStartTime"
+                           type="time">
+
+                </label>
+
+
+                <label>
+
+                    End Time
+
+                    <input id="appointmentEndTime"
+                           type="time">
+
+                </label>
+
+
+                <label>
+
+                    Technician
+
+                    <select id="appointmentTechnician">
+
+                        <option value="">
+                            Unassigned
+                        </option>
+
+                        <option value="Jon">
+                            Jon
+                        </option>
+
+                        <option value="Mike">
+                            Mike
+                        </option>
+
+                    </select>
+
+                </label>
+
+
+                <label>
+
+                    Appointment Type
+
+                    <select id="appointmentType">
+
+                        <option value="Shop">
+                            Shop
+                        </option>
+
+                        <option value="Mobile">
+                            Mobile
+                        </option>
+
+                        <option value="Pickup">
+                            Pickup
+                        </option>
+
+                        <option value="Dropoff">
+                            Dropoff
+                        </option>
+
+                    </select>
+
+                </label>
+
+
+                <label>
+
+                    Status
+
+                    <select id="appointmentStatus">
+
+                        <option value="Scheduled">
+                            Scheduled
+                        </option>
+
+                        <option value="Confirmed">
+                            Confirmed
+                        </option>
+
+                        <option value="In Progress">
+                            In Progress
+                        </option>
+
+                        <option value="Completed">
+                            Completed
+                        </option>
+
+                        <option value="Cancelled">
+                            Cancelled
+                        </option>
+
+                    </select>
+
+                </label>
+
+
+                <label class="full-width">
+
+                    Location
+
+                    <input id="appointmentLocation"
+                           type="text"
+                           placeholder="Shop, customer site, yard...">
+
+                </label>
+
+
+                <label class="full-width">
+
+                    Work Requested
+
+                    <textarea id="appointmentDescription"
+                              placeholder="What are we scheduling?"></textarea>
+
+                </label>
+
+            </div>
+
+
+            <div class="appointment-form-actions">
+
+                <button id="saveAppointmentButton"
+                        type="button">
+
+                    Schedule Appointment
+
+                </button>
+
+
+                <button id="cancelAppointmentButton"
+                        type="button">
+
+                    Cancel
+
+                </button>
+
+
+                <span id="appointmentMessage">
+                </span>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+
+    <script src="schedule.js"></script>
+
+</body>
+
+</html>
