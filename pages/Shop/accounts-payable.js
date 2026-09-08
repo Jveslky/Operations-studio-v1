@@ -43,7 +43,42 @@ const totalPayable =
         "total-payable"
     );
 
+const exportApButton =
+    document.getElementById(
+        "export-ap-button"
+    );
 
+const apExportRange =
+    document.getElementById(
+        "ap-export-range"
+    );
+
+const apCustomRange =
+    document.getElementById(
+        "ap-custom-range"
+    );
+
+const apExportStart =
+    document.getElementById(
+        "ap-export-start"
+    );
+
+const apExportEnd =
+    document.getElementById(
+        "ap-export-end"
+    );
+
+apExportRange.addEventListener(
+    "change",
+    function () {
+        const useCustomRange =
+            apExportRange.value ===
+            "custom";
+
+        apCustomRange.hidden =
+            !useCustomRange;
+    }
+);
 function openBillForm() {
     billForm.hidden = false;
 
@@ -344,6 +379,246 @@ function saveBills(bills) {
     }
 );
 
+exportApButton.addEventListener(
+    "click",
+    function () {
+        const bills =
+            getBills();
+
+        const selectedRange =
+            apExportRange.value;
+
+        const now =
+            new Date();
+
+        const filteredBills =
+            bills.filter(
+                function (bill) {
+                    if (selectedRange === "all") {
+                        return true;
+                    }
+
+                    if (!bill.createdAt) {
+                        return false;
+                    }
+
+                    const billDate =
+                        new Date(
+                            bill.createdAt
+                        );
+
+                    if (selectedRange === "year") {
+                        return (
+                            billDate.getFullYear() ===
+                            now.getFullYear()
+                        );
+                    }
+
+                    if (selectedRange === "month") {
+                        return (
+                            billDate.getFullYear() ===
+                            now.getFullYear() &&
+                            billDate.getMonth() ===
+                            now.getMonth()
+                        );
+                    }
+
+                    if (selectedRange === "week") {
+                        const weekStart =
+                            new Date(now);
+
+                        weekStart.setHours(
+                            0,
+                            0,
+                            0,
+                            0
+                        );
+
+                        weekStart.setDate(
+                            now.getDate() -
+                            now.getDay()
+                        );
+
+                        const weekEnd =
+                            new Date(
+                                weekStart
+                            );
+
+                        weekEnd.setDate(
+                            weekStart.getDate() + 7
+                        );
+
+                        return (
+                            billDate >= weekStart &&
+                            billDate < weekEnd
+                        );
+                    }
+
+                    if (selectedRange === "custom") {
+                        if (
+                            !apExportStart.value ||
+                            !apExportEnd.value
+                        ) {
+                            return false;
+                        }
+
+                        const startDate =
+                            new Date(
+                                apExportStart.value
+                            );
+
+                        const endDate =
+                            new Date(
+                                apExportEnd.value
+                            );
+
+                        endDate.setHours(
+                            23,
+                            59,
+                            59,
+                            999
+                        );
+
+                        return (
+                            billDate >= startDate &&
+                            billDate <= endDate
+                        );
+                    }
+
+                    return true;
+                }
+            );
+
+        if (
+            selectedRange === "custom" &&
+            (
+                !apExportStart.value ||
+                !apExportEnd.value
+            )
+        ) {
+            alert(
+                "Select a start and end date."
+            );
+
+            return;
+        }
+
+        if (
+            selectedRange === "custom" &&
+            apExportEnd.value <
+            apExportStart.value
+        ) {
+            alert(
+                "End date cannot be before start date."
+            );
+
+            return;
+        }
+
+        if (filteredBills.length === 0) {
+            alert(
+                "No accounts payable records found for that date range."
+            );
+
+            return;
+        }
+
+        const headers = [
+            "Vendor",
+            "Reference",
+            "Amount",
+            "Due Date",
+            "Status",
+            "Created At",
+            "Paid At",
+            "Notes"
+        ];
+
+        const rows =
+            filteredBills.map(
+                function (bill) {
+                    return [
+                        bill.vendor || "",
+                        bill.reference || "",
+                        bill.amount || 0,
+                        bill.dueDate || "",
+                        bill.status || "",
+                        bill.createdAt || "",
+                        bill.paidAt || "",
+                        bill.notes || ""
+                    ];
+                }
+            );
+
+        const csvRows = [
+            headers,
+            ...rows
+        ];
+
+        const csv =
+            csvRows
+                .map(
+                    function (row) {
+                        return row
+                            .map(
+                                function (value) {
+                                    const escapedValue =
+                                        String(value)
+                                            .replace(
+                                                /"/g,
+                                                '""'
+                                            );
+
+                                    return `"${escapedValue}"`;
+                                }
+                            )
+                            .join(",");
+                    }
+                )
+                .join("\n");
+
+        const exportFile =
+            new Blob(
+                [csv],
+                {
+                    type:
+                        "text/csv;charset=utf-8;"
+                }
+            );
+
+        const downloadUrl =
+            URL.createObjectURL(
+                exportFile
+            );
+
+        const downloadLink =
+            document.createElement(
+                "a"
+            );
+
+        const date =
+            new Date()
+                .toISOString()
+                .slice(0, 10);
+
+        downloadLink.href =
+            downloadUrl;
+
+        downloadLink.download =
+            `track-right-accounts-payable-${date}.csv`;
+
+        document.body.appendChild(
+            downloadLink
+        );
+
+        downloadLink.click();
+        downloadLink.remove();
+
+        URL.revokeObjectURL(
+            downloadUrl
+        );
+    }
+);
 
 
 billList.addEventListener(

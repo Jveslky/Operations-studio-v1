@@ -54,10 +54,57 @@
     </header>
             
 
-        </div>
-    </header>
+  
 
     <main class="ap-page">
+
+        <div class="ap-page-tools">
+
+            <div class="ap-export-tools">
+
+                <select id="ap-export-range">
+                    <option value="week">
+                        This Week
+                    </option>
+
+                    <option value="month"
+                            selected>
+                        This Month
+                    </option>
+
+                    <option value="year">
+                        This Year
+                    </option>
+
+                    <option value="all">
+                        All Time
+                    </option>
+
+                    <option value="custom">
+                        Custom Range
+                    </option>
+                </select>
+
+                <div id="ap-custom-range"
+                     class="ap-custom-range"
+                     hidden>
+
+                    <input id="ap-export-start"
+                           type="date">
+
+                    <input id="ap-export-end"
+                           type="date">
+
+                </div>
+
+                <button id="export-ap-button"
+                        type="button">
+                    Export
+                </button>
+
+            </div>
+
+        </div>
 
         <section class="ap-page-header">
             <div>
@@ -114,7 +161,7 @@
 
         </section>
 
-        
+
 
 
         <section class="ap-directory">

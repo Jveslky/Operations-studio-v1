@@ -582,3 +582,124 @@
         padding: 20px 12px 18px;
     }
 }
+
+.settings-menu-button {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 4px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+    .settings-menu-button span {
+        display: block;
+        width: 18px;
+        height: 2px;
+        background: #43d3e6;
+        border-radius: 2px;
+    }
+
+.settings-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background: #252a30;
+    color: white;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+    z-index: 1000;
+    box-shadow: 4px 0 16px rgba(0, 0, 0, 0.2);
+}
+
+    .settings-sidebar.open {
+        transform: translateX(0);
+    }
+
+.settings-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px;
+    border-bottom: 2px solid #ea5b1b;
+}
+
+    .settings-sidebar-header h2 {
+        margin: 0;
+        color: #ea5b1b;
+    }
+
+    .settings-sidebar-header button {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+.settings-sidebar-nav {
+    display: flex;
+    flex-direction: column;
+    padding: 16px;
+    gap: 6px;
+}
+
+    .settings-sidebar-nav a,
+    .settings-sidebar-nav button,
+    .settings-sidebar-nav label {
+        display: block;
+        width: 100%;
+        padding: 10px 12px;
+        background: transparent;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        text-align: left;
+        text-decoration: none;
+        cursor: pointer;
+        color: #43d3e6;
+    }
+
+        .settings-sidebar-nav a:hover,
+        .settings-sidebar-nav button:hover,
+        .settings-sidebar-nav label:hover {
+                color: white;
+                background: rgba(255, 255, 255, 0.08);
+            }
+        }
+
+#data-management-toggle {
+    outline: none;
+    box-shadow: none;
+}
+
+.data-management-menu {
+    margin-top: 2px;
+    padding-left: 14px;
+}
+
+    .data-management-menu button {
+        padding: 7px 10px 7px 16px;
+        font-family: inherit;
+        font-size: 0.86rem;
+        font-weight: 400;
+        color: #ea5b1b;
+        opacity: 0.82;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+        text-align: left;
+        cursor: pointer;
+    }
+
+        .data-management-menu button:hover {
+            color: #ff7a32;
+            opacity: 1;
+            background: rgba(234, 91, 27, 0.08);
+        }

@@ -59,6 +59,306 @@ const invoiceActivity =
         "invoice-activity"
     );
 
+const settingsMenuButton =
+    document.getElementById(
+        "settings-menu-button"
+    );
+
+const settingsSidebar =
+    document.getElementById(
+        "settings-sidebar"
+    );
+
+const closeSettingsSidebar =
+    document.getElementById(
+        "close-settings-sidebar"
+    );
+
+
+settingsMenuButton.addEventListener(
+    "click",
+    function () {
+        settingsSidebar.classList.add(
+            "open"
+        );
+    }
+);
+
+closeSettingsSidebar.addEventListener(
+    "click",
+    function () {
+        settingsSidebar.classList.remove(
+            "open"
+        );
+    }
+);
+
+
+const dataManagementToggle =
+    document.getElementById(
+        "data-management-toggle"
+    );
+
+const dataManagementMenu =
+    document.getElementById(
+        "data-management-menu"
+    );
+
+const sidebarFullBackupButton =
+    document.getElementById(
+        "sidebar-full-backup-button"
+    );
+
+const sidebarImportBackupButton =
+    document.getElementById(
+        "sidebar-import-backup-button"
+    );
+
+const sidebarImportBackupInput =
+    document.getElementById(
+        "sidebar-import-backup-input"
+    );
+
+
+sidebarImportBackupButton.addEventListener(
+    "click",
+    function () {
+        sidebarImportBackupInput.click();
+    }
+);
+
+
+
+
+
+sidebarImportBackupButton.addEventListener(
+    "click",
+    function () {
+        sidebarImportBackupInput.click();
+    }
+);
+
+sidebarImportBackupInput.addEventListener(
+    "change",
+    function () {
+        const selectedFile =
+            sidebarImportBackupInput.files[0];
+
+        if (!selectedFile) {
+            return;
+        }
+
+        const fileReader =
+            new FileReader();
+
+        fileReader.addEventListener(
+            "load",
+            function () {
+                try {
+                    const backupData =
+                        JSON.parse(
+                            fileReader.result
+                        );
+
+                    const records =
+                        backupData.records ||
+                        backupData;
+
+                    const shopStorageKeys = [
+                        "track-right-customers",
+                        "track-right-invoices",
+                        "track-right-accounts-payable"
+                    ];
+
+                    Object.entries(
+                        records
+                    ).forEach(
+                        function ([key, value]) {
+                            const allowedKey =
+                                key.startsWith(
+                                    "repair-order-"
+                                ) ||
+                                shopStorageKeys.includes(
+                                    key
+                                );
+
+                            if (!allowedKey) {
+                                return;
+                            }
+
+                            localStorage.setItem(
+                                key,
+                                typeof value === "string"
+                                    ? value
+                                    : JSON.stringify(value)
+                            );
+                        }
+                    );
+
+                    alert(
+                        "Backup imported successfully."
+                    );
+
+                    window.location.reload();
+
+                } catch (error) {
+                    console.error(error);
+
+                    alert(
+                        "That file could not be imported. Make sure it is a Track Right backup."
+                    );
+                }
+
+                sidebarImportBackupInput.value =
+                    "";
+            }
+        );
+
+        fileReader.readAsText(
+            selectedFile
+        );
+    }
+);
+
+sidebarFullBackupButton.addEventListener(
+    "click",
+    function () {
+        const backupData = {
+            appMode: "shop",
+            exportedAt:
+                new Date().toISOString(),
+            records: {}
+        };
+
+        const shopStorageKeys = [
+            "track-right-customers",
+            "track-right-invoices",
+            "track-right-accounts-payable"
+        ];
+
+        for (
+            let index = 0;
+            index < localStorage.length;
+            index++
+        ) {
+            const key =
+                localStorage.key(index);
+
+            if (!key) {
+                continue;
+            }
+
+            if (
+                key.startsWith(
+                    "repair-order-"
+                )
+            ) {
+                const storedValue =
+                    localStorage.getItem(
+                        key
+                    );
+
+                try {
+                    const storedOrder =
+                        JSON.parse(
+                            storedValue
+                        );
+
+                    if (
+                        storedOrder &&
+                        storedOrder.appMode ===
+                        "shop"
+                    ) {
+                        backupData.records[key] =
+                            storedValue;
+                    }
+                } catch (error) {
+                    console.error(
+                        "Unable to read repair order:",
+                        key,
+                        error
+                    );
+                }
+
+                continue;
+            }
+
+            if (
+                shopStorageKeys.includes(
+                    key
+                )
+            ) {
+                backupData.records[key] =
+                    localStorage.getItem(
+                        key
+                    );
+            }
+        }
+
+        const backupFile =
+            new Blob(
+                [
+                    JSON.stringify(
+                        backupData,
+                        null,
+                        2
+                    )
+                ],
+                {
+                    type: "application/json"
+                }
+            );
+
+        const downloadUrl =
+            URL.createObjectURL(
+                backupFile
+            );
+
+        const downloadLink =
+            document.createElement(
+                "a"
+            );
+
+        const date =
+            new Date()
+                .toISOString()
+                .slice(0, 10);
+
+        downloadLink.href =
+            downloadUrl;
+
+        downloadLink.download =
+            `track-right-shop-backup-${date}.json`;
+
+        document.body.appendChild(
+            downloadLink
+        );
+
+        downloadLink.click();
+        downloadLink.remove();
+
+        URL.revokeObjectURL(
+            downloadUrl
+        );
+    }
+);
+
+
+dataManagementToggle.addEventListener(
+    "click",
+    function () {
+        const isHidden =
+            dataManagementMenu.hidden;
+
+        dataManagementMenu.hidden =
+            !isHidden;
+
+        dataManagementToggle.setAttribute(
+            "aria-expanded",
+            String(isHidden)
+        );
+    }
+);
 
 /* =========================
    STORAGE

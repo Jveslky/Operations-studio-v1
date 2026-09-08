@@ -479,3 +479,65 @@ body {
             white-space: nowrap;
         }
 }
+
+.ap-page-tools {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 18px;
+}
+
+.ap-export-tools {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #252a30;
+    border: 1px solid #3a4149;
+    border-radius: 8px;
+}
+
+    .ap-export-tools select,
+    .ap-export-tools input {
+        height: 36px;
+        padding: 0 10px;
+        font-family: inherit;
+        font-size: 0.9rem;
+        color: #f4f7f9;
+        background: #30363d;
+        border: 1px solid #4a535d;
+        border-radius: 6px;
+    }
+
+  
+.ap-custom-range {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+    .ap-custom-range[hidden] {
+        display: none;
+    }
+
+.ap-export-tools button {
+    height: 36px;
+    padding: 0 16px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: white;
+    background: #ea5b1b;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+    .ap-export-tools button:hover {
+        background: #ff7a32;
+    }
+
+.ap-export-tools select:focus,
+.ap-export-tools input:focus {
+    outline: 2px solid #43d3e6;
+    outline-offset: 1px;
+}
