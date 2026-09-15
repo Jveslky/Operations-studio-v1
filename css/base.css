@@ -15,6 +15,40 @@ body {
     color: #20252a;
 }
 
+.account-controls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-left: auto;
+    padding-left: 16px;
+}
+
+.account-identity {
+    max-width: 180px;
+    overflow: hidden;
+    color: #d8e2e5;
+    font-size: 13px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.account-logout {
+    padding: 8px 11px;
+    background: #454b50;
+    border: 0;
+    border-radius: 7px;
+    color: #ffffff;
+    cursor: pointer;
+    font: inherit;
+    font-weight: 700;
+}
+
+.account-users-link {
+    color: #6eb6c8;
+    font-size: 13px;
+    text-decoration: none;
+}
+
 
 /* SIDEBAR */
 

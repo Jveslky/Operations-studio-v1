@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" data-login-path="../../login.html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users | Track Right</title>
+    <link rel="stylesheet" href="../../css/base.css">
+    <link rel="stylesheet" href="users.css">
+</head>
+<body>
+    <main class="users-page">
+        <header class="users-header">
+            <div><h1>Users</h1><div>Manage access to this shop.</div></div>
+            <a href="../Shop/shop-dashboard.html">Back to dashboard</a>
+        </header>
+
+        <section class="users-panel">
+            <h2>Invite an employee</h2>
+            <p>Create a private signup link and send it to the employee.</p>
+            <form id="invite-form" class="invite-form">
+                <input name="email" type="email" placeholder="employee@example.com" required>
+                <select name="role" required>
+                    <option value="admin">Admin</option>
+                    <option value="service_writer">Service writer</option>
+                    <option value="technician" selected>Technician</option>
+                    <option value="read_only">Read only</option>
+                </select>
+                <button type="submit">Create invite</button>
+            </form>
+            <div id="invite-result" class="invite-result" hidden>
+                <input id="invite-link" readonly aria-label="Invitation link">
+                <button id="copy-invite" type="button">Copy</button>
+            </div>
+            <div id="users-message" class="users-message" role="status"></div>
+        </section>
+
+        <section class="users-panel">
+            <h2>Shop users</h2>
+            <div id="users-list" class="users-list"></div>
+        </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase-client.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="users.js"></script>
+</body>
+</html>
