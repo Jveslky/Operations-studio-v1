@@ -8,6 +8,10 @@ create table if not exists public.shops (
     created_at timestamptz not null default now()
 );
 
+alter table public.shops
+    add column if not exists created_by uuid references auth.users(id),
+    add column if not exists created_at timestamptz not null default now();
+
 create table if not exists public.shop_members (
     shop_id uuid not null references public.shops(id) on delete cascade,
     user_id uuid not null references auth.users(id) on delete cascade,
@@ -22,6 +26,41 @@ alter table public.shop_members
     add column if not exists role text not null default 'technician',
     add column if not exists is_active boolean not null default true,
     add column if not exists created_at timestamptz not null default now();
+
+-- Repair shops created before roles/ownership were introduced. This only
+-- promotes the sole active member of a shop that does not already have an
+-- owner, so it cannot silently take ownership away from another account.
+with sole_members as (
+    select shop_id, min(user_id::text)::uuid as user_id
+    from public.shop_members
+    where is_active = true
+    group by shop_id
+    having count(*) = 1
+), ownerless_shops as (
+    select shops.id
+    from public.shops shops
+    where not exists (
+        select 1
+        from public.shop_members owners
+        where owners.shop_id = shops.id
+          and owners.is_active = true
+          and owners.role = 'owner'
+    )
+)
+update public.shop_members members
+set role = 'owner'
+from sole_members, ownerless_shops
+where members.shop_id = sole_members.shop_id
+  and members.user_id = sole_members.user_id
+  and members.shop_id = ownerless_shops.id;
+
+update public.shops shops
+set created_by = owners.user_id
+from public.shop_members owners
+where shops.id = owners.shop_id
+  and shops.created_by is null
+  and owners.role = 'owner'
+  and owners.is_active = true;
 
 create or replace function public.is_shop_member(requested_shop_id uuid)
 returns boolean
@@ -73,6 +112,39 @@ begin
     limit 1;
 
     if new_shop_id is not null then
+        -- A legacy sole-member shop may predate the role column. Repair that
+        -- account when it is safe to do so, then return the existing shop.
+        update public.shop_members members
+        set role = 'owner'
+        where members.shop_id = new_shop_id
+          and members.user_id = auth.uid()
+          and not exists (
+              select 1
+              from public.shop_members owners
+              where owners.shop_id = new_shop_id
+                and owners.is_active = true
+                and owners.role = 'owner'
+          )
+          and 1 = (
+              select count(*)
+              from public.shop_members active_members
+              where active_members.shop_id = new_shop_id
+                and active_members.is_active = true
+          );
+
+        update public.shops
+        set created_by = auth.uid()
+        where id = new_shop_id
+          and created_by is null
+          and exists (
+              select 1
+              from public.shop_members owners
+              where owners.shop_id = new_shop_id
+                and owners.user_id = auth.uid()
+                and owners.role = 'owner'
+                and owners.is_active = true
+          );
+
         return new_shop_id;
     end if;
 
