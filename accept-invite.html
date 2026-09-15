@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accept invitation | Track Right</title>
+    <link rel="stylesheet" href="css/base.css"><link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-page">
+    <main class="auth-shell"><div class="auth-brand">Track Right</div><section class="auth-card">
+        <h1>Join a shop</h1><p id="invite-summary">Checking your invitation…</p>
+        <form id="invite-signup-form" class="auth-form" hidden>
+            <label>Your name<input name="fullName" autocomplete="name" required></label>
+            <label>Email<input name="email" type="email" autocomplete="email" readonly required></label>
+            <label>Password<input name="password" type="password" autocomplete="new-password" minlength="10" required></label>
+            <button class="auth-primary" type="submit">Create account and join</button>
+        </form>
+        <button id="accept-invite-button" class="auth-primary" type="button" hidden>Accept invitation</button>
+        <div id="auth-message" class="auth-message" role="status" aria-live="polite"></div>
+    </section></main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script><script src="js/accept-invite.js"></script>
+</body>
+</html>

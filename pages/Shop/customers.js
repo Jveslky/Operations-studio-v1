@@ -1,10 +1,4 @@
-const SUPABASE_URL = "https://amikoqrqutnpojtcyjlx.supabase.co";
-const SUPABASE_KEY = "sb_publishable_BpyMspzQY6sfM5N1eeX_dg_qWQgzC8p";
-
-const supabaseClient = supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
-);
+const supabaseClient = window.trackRightSupabase;
 
 /* =========================
    APP CONFIGURATION
@@ -1995,20 +1989,4 @@ newRepairOrderForm.addEventListener(
 );
 
 renderCustomerDirectory();
-
-console.log("Supabase client loaded:", supabaseClient);
-
-async function testLogin() {
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: "jveselsky@yahoo.com",
-        password: "JveseSB123!!!"
-    });
-
-    if (error) {
-        console.error("Login failed:", error);
-        return;
-    }
-
-    console.log("Logged in user:", data.user);
-}
 

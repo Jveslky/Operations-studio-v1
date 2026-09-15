@@ -91,3 +91,20 @@ The goal is to create a recognizable and consistent operating environment across
 ## Current Stage
 
 Prototype platform architecture and workflow validation.
+
+---
+
+## Authentication setup
+
+Track Right uses Supabase Auth with shop-scoped membership and roles.
+
+1. Run `supabase/auth-and-membership.sql` in the Supabase SQL editor.
+2. In Supabase Authentication URL Configuration, set the production Site URL.
+3. Add the production URLs for `login.html`, `reset-password.html`, and
+   `accept-invite.html` to the allowed redirect URLs.
+4. Keep the publishable/anon key in `js/supabase-client.js`. Never put a
+   service-role key or a user password in browser code.
+
+The first signup creates a shop owner. Owners and admins can open **Users** in
+the header, create an invitation link, and assign an employee role. All app
+pages require a valid session and an active `shop_members` record.
