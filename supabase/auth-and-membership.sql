@@ -27,6 +27,12 @@ alter table public.shop_members
     add column if not exists is_active boolean not null default true,
     add column if not exists created_at timestamptz not null default now();
 
+-- Legacy installations may already have shop_members without the composite
+-- primary key declared above. Invitation acceptance relies on this unique
+-- index for ON CONFLICT (shop_id, user_id).
+create unique index if not exists shop_members_shop_user_unique
+    on public.shop_members (shop_id, user_id);
+
 -- Repair shops created before roles/ownership were introduced. This only
 -- promotes the sole active member of a shop that does not already have an
 -- owner, so it cannot silently take ownership away from another account.
