@@ -1,4 +1,9 @@
-const expenses = [];
+const mobileData = window.TrackRightMobile.load();
+const expenses = mobileData.expenses;
+
+function persistExpenses() {
+    window.TrackRightMobile.save(mobileData);
+}
 
 
 const expenseFormPanel =
@@ -90,30 +95,8 @@ document.getElementById(
     }
 );
 
-const customers = [
-    "ABC Transport",
-    "Jones Excavating",
-    "Smith Residence"
-];
-
-
-const jobs = [
-    {
-        id: "job-1001",
-        customer: "ABC Transport",
-        label: "Truck 12 - Air Leak"
-    },
-    {
-        id: "job-1002",
-        customer: "Jones Excavating",
-        label: "Excavator 3 - Hydraulic Leak"
-    },
-    {
-        id: "job-1003",
-        customer: "Smith Residence",
-        label: "Equinox - No Start"
-    }
-];
+const customers = mobileData.customers.map(function (customer) { return customer.name; });
+const jobs = mobileData.jobs.map(function (job) { return { id: job.id, customer: job.customer, label: job.asset + " - " + job.complaint }; });
 
 
 document.getElementById(
@@ -194,6 +177,8 @@ document.getElementById(
                     "Receipt scanned successfully",
             }
         );
+
+        persistExpenses();
 
 
         renderExpenses();

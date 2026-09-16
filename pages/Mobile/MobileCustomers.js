@@ -1,82 +1,9 @@
-const customers = [
-    {
-        id: "customer-1",
-        name: "ABC Transport",
-        contact: "Mike Carter",
-        phone: "302-555-0147",
-        email: "mike@abctransport.com",
-        address: "Customer Yard",
-        assets: [
-            {
-                name: "Truck 12",
-                year: "2021",
-                make: "Freightliner",
-                model: "Cascadia",
-                vin: "1FUJPLACEHOLDER",
-                serial: "",
-                mileage: "428615",
-                hours: "",
-                engine: "Detroit DD15"
-            },
+const mobileData = window.TrackRightMobile.load();
+const customers = mobileData.customers;
 
-            {
-                name: "Trailer 8",
-                year: "2018",
-                make: "Great Dane",
-                model: "",
-                vin: "",
-                serial: "GD-18472",
-                mileage: "",
-                hours: "",
-                engine: ""
-            }
-        ]
-    },
-
-    {
-        id: "customer-2",
-        name: "Jones Excavating",
-        contact: "Tom Jones",
-        phone: "302-555-0198",
-        email: "",
-        address: "North Jobsite",
-        assets: [
-            {
-                name: "Excavator 3",
-                year: "2019",
-                make: "CAT",
-                model: "320",
-                vin: "",
-                serial: "CAT0320EXAMPLE",
-                mileage: "",
-                hours: "4211.6",
-                engine: ""
-            }
-        ]
-    },
-
-    {
-        id: "customer-3",
-        name: "Smith Residence",
-        contact: "Robert Smith",
-        phone: "302-555-0182",
-        email: "",
-        address: "123 Main Street",
-        assets: [
-            {
-                name: "Equinox",
-                year: "2020",
-                make: "Chevrolet",
-                model: "Equinox",
-                vin: "",
-                serial: "",
-                mileage: "86214",
-                hours: "",
-                engine: ""
-            }
-        ]
-    }
-];
+function persistCustomers() {
+    window.TrackRightMobile.save(mobileData);
+}
 
 
 let selectedCustomerId =
@@ -531,6 +458,8 @@ document.getElementById(
             }
         );
 
+        persistCustomers();
+
 
         clearCustomerForm();
 
@@ -635,6 +564,8 @@ document.getElementById(
             }
         );
 
+        persistCustomers();
+
 
         clearAssetForm();
 
@@ -720,3 +651,6 @@ function escapeHtml(
 
 renderCustomers();
 
+if (new URLSearchParams(window.location.search).get("action") === "new") {
+    document.getElementById("newCustomerButton").click();
+}

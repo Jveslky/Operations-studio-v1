@@ -753,3 +753,18 @@ textarea {
 .summary-card:nth-child(4) {
     background: #e4e8ec;
 }
+
+.appointment-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.empty-state { padding: 18px; border: 1px dashed var(--border-light); border-radius: var(--radius); color: var(--text-secondary); text-align: center; }
+
+@media (max-width: 640px) {
+    .top-bar { align-items: center; }
+    .top-bar h1 { font-size: 22px; }
+    .top-bar p { font-size: 12px; }
+    .dashboard-container, .page-container { padding-left: 12px; padding-right: 12px; }
+    .page-heading, .dashboard-heading { align-items: flex-start; gap: 12px; }
+    .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .summary-card { min-width: 0; }
+    #account-controls { max-width: 46%; }
+    .account-identity { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
