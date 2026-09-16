@@ -1,136 +1,9 @@
-const invoices = [
-    {
-        id: "invoice-1001",
-        number: "INV-1001",
-        jobId: "job-1003",
-        customer: "Smith Residence",
-        contact: "Robert Smith",
-        address: "123 Main Street",
-        asset: "2020 Chevrolet Equinox",
-        status: "Draft",
-        invoiceDate: "2026-08-13",
-        dueDate: "2026-08-13",
-        notes: "Thank you for your business.",
-        taxRate: 0,
-        paidAmount: 0,
-        lines: [
-            {
-                description: "Service Call",
-                quantity: 1,
-                rate: 95
-            },
-            {
-                description: "No-start diagnosis",
-                quantity: 1,
-                rate: 125
-            },
-            {
-                description: "Battery",
-                quantity: 1,
-                rate: 189.95
-            }
-        ]
-    },
+const mobileData = window.TrackRightMobile.load();
+const invoices = mobileData.invoices;
 
-    {
-        id: "invoice-1002",
-        number: "INV-1002",
-        jobId: "job-1004",
-        customer: "ABC Transport",
-        contact: "Mike Carter",
-        address: "Customer Yard",
-        asset: "Truck 8 - Freightliner Cascadia",
-        status: "Sent",
-        invoiceDate: "2026-08-08",
-        dueDate: "2026-08-22",
-        notes: "",
-        taxRate: 0,
-        paidAmount: 0,
-        lines: [
-            {
-                description: "Service Call",
-                quantity: 1,
-                rate: 150
-            },
-            {
-                description: "Electrical diagnosis",
-                quantity: 2.5,
-                rate: 150
-            },
-            {
-                description: "Harness repair",
-                quantity: 1,
-                rate: 225
-            }
-        ]
-    },
-
-    {
-        id: "invoice-1003",
-        number: "INV-1003",
-        jobId: "job-987",
-        customer: "Jones Excavating",
-        contact: "Tom Jones",
-        address: "North Jobsite",
-        asset: "CAT 320 Excavator",
-        status: "Past Due",
-        invoiceDate: "2026-07-10",
-        dueDate: "2026-07-24",
-        notes: "",
-        taxRate: 0,
-        paidAmount: 500,
-        lines: [
-            {
-                description: "Service Call",
-                quantity: 1,
-                rate: 175
-            },
-            {
-                description: "Hydraulic diagnosis and repair",
-                quantity: 5,
-                rate: 150
-            },
-            {
-                description: "Hydraulic hose assembly",
-                quantity: 1,
-                rate: 385
-            }
-        ]
-    },
-
-    {
-        id: "invoice-1004",
-        number: "INV-1004",
-        jobId: "job-952",
-        customer: "Miller Landscaping",
-        contact: "",
-        address: "Customer Yard",
-        asset: "Takeuchi TL12",
-        status: "Paid",
-        invoiceDate: "2026-08-01",
-        dueDate: "2026-08-01",
-        notes: "",
-        taxRate: 0,
-        paidAmount: 765,
-        lines: [
-            {
-                description: "Service Call",
-                quantity: 1,
-                rate: 125
-            },
-            {
-                description: "Hydraulic hose replacement",
-                quantity: 2,
-                rate: 150
-            },
-            {
-                description: "Hydraulic hose",
-                quantity: 1,
-                rate: 340
-            }
-        ]
-    }
-];
+function persistInvoices() {
+    window.TrackRightMobile.save(mobileData);
+}
 
 
 let selectedInvoiceId =
@@ -982,6 +855,8 @@ document.getElementById(
                 "invoiceNotes"
             ).value.trim();
 
+        persistInvoices();
+
 
         updateInvoiceTotals(
             invoice
@@ -1013,6 +888,8 @@ document.getElementById(
 
         invoice.status =
             "Sent";
+
+        persistInvoices();
 
 
         document.getElementById(
@@ -1131,6 +1008,8 @@ document.getElementById(
         ).textContent =
             invoice.status;
 
+        persistInvoices();
+
 
         updateInvoiceTotals(
             invoice
@@ -1192,23 +1071,30 @@ document.getElementById(
 ).addEventListener(
     "click",
     function () {
+        const job = mobileData.jobs.find(function (item) {
+            return item.status === "Ready to Invoice" && !invoices.some(function (invoice) { return invoice.jobId === item.id; });
+        });
 
-        /*
-            Placeholder.
+        if (!job) {
+            window.location.href = "MobileJobs.html";
+            return;
+        }
 
-            Eventually this should either:
-
-            1. Create from a Ready to Invoice job
-
-            or
-
-            2. Allow a standalone invoice
-               if we decide we want that.
-        */
-
-        console.log(
-            "New Invoice clicked"
-        );
+        const customer = mobileData.customers.find(function (item) { return item.name === job.customer; }) || {};
+        const invoice = {
+            id: window.TrackRightMobile.id("invoice"), number: "INV-" + String(Date.now()).slice(-6), jobId: job.id,
+            customer: job.customer, contact: customer.contact || "", address: customer.address || job.location || "", asset: job.asset,
+            status: "Draft", invoiceDate: window.TrackRightMobile.localDate(0), dueDate: window.TrackRightMobile.localDate(0),
+            notes: "Thank you for your business.", taxRate: 0, paidAmount: 0,
+            lines: [
+                ...(Number(job.serviceCall) ? [{ description: "Service Call", quantity: 1, rate: Number(job.serviceCall) }] : []),
+                ...(job.labor || []), ...(job.parts || []), ...(job.misc || [])
+            ]
+        };
+        invoices.push(invoice);
+        persistInvoices();
+        renderInvoices();
+        openInvoice(invoice.id);
 
     }
 );
@@ -1277,3 +1163,6 @@ function escapeHtml(
 
 renderInvoices();
 
+if (new URLSearchParams(window.location.search).get("action") === "new") {
+    document.getElementById("newInvoiceButton").click();
+}

@@ -1,94 +1,15 @@
-const jobs = [
-    {
-        id: "job-1001",
-        customer: "ABC Transport",
-        asset: "Truck 12 - Freightliner Cascadia",
-        status: "Working",
-        technician: "Jon",
-        location: "Customer Yard",
-        complaint: "Air leak near rear brake chamber.",
-        technicianNotes: "",
-        serviceCall: 125,
-        miles: 18,
-        travelHours: 0.5,
-        labor: [
-            {
-                description: "Diagnose air leak",
-                quantity: 1,
-                rate: 150
-            }
-        ],
-        parts: [],
-        misc: []
-    },
+const mobileData = window.TrackRightMobile.load();
+const jobs = mobileData.jobs;
+const customers = mobileData.customers;
+const assets = customers.flatMap(function (customer) {
+    return (customer.assets || []).map(function (asset) {
+        return { customer: customer.name, name: [asset.name, asset.make, asset.model].filter(Boolean).join(" - ") };
+    });
+});
 
-    {
-        id: "job-1002",
-        customer: "Jones Excavating",
-        asset: "Excavator 3 - CAT 320",
-        status: "Waiting on Parts",
-        technician: "Jon",
-        location: "North Jobsite",
-        complaint: "Hydraulic leak at boom cylinder.",
-        technicianNotes: "Leak confirmed at hose fitting.",
-        serviceCall: 150,
-        miles: 31,
-        travelHours: 1,
-        labor: [
-            {
-                description: "Hydraulic leak diagnosis",
-                quantity: 1.5,
-                rate: 150
-            }
-        ],
-        parts: [],
-        misc: []
-    },
-
-    {
-        id: "job-1003",
-        customer: "Smith Residence",
-        asset: "2020 Chevrolet Equinox",
-        status: "Ready to Invoice",
-        technician: "Jon",
-        location: "123 Main Street",
-        complaint: "Vehicle will not start.",
-        technicianNotes: "Battery failed load test. Battery replaced and starting system retested.",
-        serviceCall: 95,
-        miles: 8,
-        travelHours: 0.25,
-        labor: [
-            {
-                description: "No-start diagnosis",
-                quantity: 1,
-                rate: 125
-            }
-        ],
-        parts: [
-            {
-                description: "Battery",
-                quantity: 1,
-                rate: 189.95
-            }
-        ],
-        misc: []
-    }
-];
-
-const assets = [
-    {
-        customer: "ABC Transport",
-        name: "Truck 12 - Freightliner Cascadia"
-    },
-    {
-        customer: "Jones Excavating",
-        name: "Excavator 3 - CAT 320"
-    },
-    {
-        customer: "Smith Residence",
-        name: "2020 Chevrolet Equinox"
-    }
-];
+function persistJobs() {
+    window.TrackRightMobile.save(mobileData);
+}
 
 
 const technicians = [
@@ -144,24 +65,6 @@ function getJobGroup(
 
     return "done";
 }
-
-const customers = [
-    {
-        id: "customer-1001",
-        name: "ABC Transport",
-        phone: ""
-    },
-    {
-        id: "customer-1002",
-        name: "Jones Excavating",
-        phone: ""
-    },
-    {
-        id: "customer-1003",
-        name: "Smith Residence",
-        phone: ""
-    }
-];
 
 function renderJobs() {
 
@@ -953,6 +856,8 @@ document.getElementById(
             }
         );
 
+        persistJobs();
+
 
         clearJobForm();
 
@@ -1111,6 +1016,9 @@ document.getElementById(
             job
         );
 
+        job.updatedAt = new Date().toISOString();
+        persistJobs();
+
     }
 );
 
@@ -1225,13 +1133,21 @@ document.getElementById(
                 name,
 
             phone:
-                phone
+                phone,
+
+            contact: "",
+            email: "",
+            address: "",
+            notes: "",
+            assets: []
         };
 
 
         customers.push(
             newCustomer
         );
+
+        persistJobs();
 
 
         renderCustomerOptions(
@@ -1287,6 +1203,40 @@ document.getElementById(
 
         job.status =
             "Ready to Invoice";
+
+        job.updatedAt = new Date().toISOString();
+
+        let invoice = mobileData.invoices.find(function (item) {
+            return item.jobId === job.id;
+        });
+
+        if (!invoice) {
+            const customer = customers.find(function (item) { return item.name === job.customer; }) || {};
+            invoice = {
+                id: window.TrackRightMobile.id("invoice"),
+                number: "INV-" + String(Date.now()).slice(-6),
+                jobId: job.id,
+                customer: job.customer,
+                contact: customer.contact || "",
+                address: customer.address || job.location || "",
+                asset: job.asset,
+                status: "Draft",
+                invoiceDate: window.TrackRightMobile.localDate(0),
+                dueDate: window.TrackRightMobile.localDate(0),
+                notes: "Thank you for your business.",
+                taxRate: 0,
+                paidAmount: 0,
+                lines: [
+                    ...(Number(job.serviceCall) ? [{ description: "Service Call", quantity: 1, rate: Number(job.serviceCall) }] : []),
+                    ...(job.labor || []),
+                    ...(job.parts || []),
+                    ...(job.misc || [])
+                ]
+            };
+            mobileData.invoices.push(invoice);
+        }
+
+        persistJobs();
 
 
         document.getElementById(
@@ -1430,3 +1380,10 @@ renderCustomerOptions();
 renderAssetOptions();
 renderTechnicianOptions();
 renderJobs();
+
+const jobParams = new URLSearchParams(window.location.search);
+if (jobParams.get("action") === "new") {
+    document.getElementById("newJobButton").click();
+} else if (jobParams.get("job") && jobs.some(function (job) { return job.id === jobParams.get("job"); })) {
+    openJob(jobParams.get("job"));
+}

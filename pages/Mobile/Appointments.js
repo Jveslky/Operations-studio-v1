@@ -1,576 +1,120 @@
-console.log(
-    "Appointment Book loaded"
-);
-
-
-const selectedDateLabel =
-    document.getElementById(
-        "selectedDateLabel"
-    );
-
-
-const appointmentDatePicker =
-    document.getElementById(
-        "appointmentDatePicker"
-    );
-
-
-const previousDayButton =
-    document.getElementById(
-        "previousDayButton"
-    );
-
-
-const todayButton =
-    document.getElementById(
-        "todayButton"
-    );
-
-
-const nextDayButton =
-    document.getElementById(
-        "nextDayButton"
-    );
-
-
-const openAppointmentFormButton =
-    document.getElementById(
-        "openAppointmentFormButton"
-    );
-
-
-const closeAppointmentFormButton =
-    document.getElementById(
-        "closeAppointmentFormButton"
-    );
-
-
-const appointmentFormPanel =
-    document.getElementById(
-        "appointmentFormPanel"
-    );
-
-
-const newAppointmentDate =
-    document.getElementById(
-        "newAppointmentDate"
-    );
-
-
-const newAppointmentTime =
-    document.getElementById(
-        "newAppointmentTime"
-    );
-
-
-const newAppointmentCustomer =
-    document.getElementById(
-        "newAppointmentCustomer"
-    );
-
-
-const newAppointmentAsset =
-    document.getElementById(
-        "newAppointmentAsset"
-    );
-
-
-const newAppointmentLocation =
-    document.getElementById(
-        "newAppointmentLocation"
-    );
-
-
-const newAppointmentTechnician =
-    document.getElementById(
-        "newAppointmentTechnician"
-    );
-
-
-const newAppointmentReason =
-    document.getElementById(
-        "newAppointmentReason"
-    );
-
-
-const newAppointmentNotes =
-    document.getElementById(
-        "newAppointmentNotes"
-    );
-
-
-const saveAppointmentButton =
-    document.getElementById(
-        "saveAppointmentButton"
-    );
-
-
-const appointmentFormMessage =
-    document.getElementById(
-        "appointmentFormMessage"
-    );
-
-
-const anytimeAppointmentList =
-    document.getElementById(
-        "anytimeAppointmentList"
-    );
-
-
-const timedAppointmentList =
-    document.getElementById(
-        "timedAppointmentList"
-    );
-
-
-function formatDateLabel(
-    dateValue
-) {
-
-    const date =
-        new Date(
-            dateValue + "T12:00:00"
-        );
-
-
-    return date.toLocaleDateString(
-        "en-US",
-        {
-            weekday:
-                "long",
-
-            month:
-                "long",
-
-            day:
-                "numeric",
-
-            year:
-                "numeric"
-        }
-    );
-
-}
-
-
-function updateSelectedDate(
-    dateValue
-) {
-
-    appointmentDatePicker.value =
-        dateValue;
-
-
-    newAppointmentDate.value =
-        dateValue;
-
-
-    selectedDateLabel.textContent =
-        formatDateLabel(
-            dateValue
-        );
-
-}
-
-
-function shiftSelectedDate(
-    numberOfDays
-) {
-
-    const selectedDate =
-        new Date(
-            appointmentDatePicker.value +
-            "T12:00:00"
-        );
-
-
-    selectedDate.setDate(
-        selectedDate.getDate() +
-        numberOfDays
-    );
-
-
-    const updatedDate =
-        selectedDate
-            .toISOString()
-            .split("T")[0];
-
-
-    updateSelectedDate(
-        updatedDate
-    );
-
-}
-
-
-previousDayButton.addEventListener(
-    "click",
-    function () {
-
-        shiftSelectedDate(
-            -1
-        );
-
+(function () {
+    "use strict";
+    const mobileData = window.TrackRightMobile.load();
+    const appointments = mobileData.appointments;
+    const byId = function (id) { return document.getElementById(id); };
+    const picker = byId("appointmentDatePicker");
+    const formPanel = byId("appointmentFormPanel");
+    const timedList = byId("timedAppointmentList");
+    const anytimeList = byId("anytimeAppointmentList");
+
+    function escapeHtml(value) {
+        return String(value || "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
     }
-);
 
-
-nextDayButton.addEventListener(
-    "click",
-    function () {
-
-        shiftSelectedDate(
-            1
-        );
-
+    function formatTime(value) {
+        if (!value) return "Anytime";
+        const parts = value.split(":");
+        const hour = Number(parts[0]);
+        return (hour % 12 || 12) + ":" + parts[1] + (hour >= 12 ? " PM" : " AM");
     }
-);
 
-
-todayButton.addEventListener(
-    "click",
-    function () {
-
-        const today =
-            new Date();
-
-
-        const year =
-            today.getFullYear();
-
-
-        const month =
-            String(
-                today.getMonth() + 1
-            ).padStart(
-                2,
-                "0"
-            );
-
-
-        const day =
-            String(
-                today.getDate()
-            ).padStart(
-                2,
-                "0"
-            );
-
-
-        updateSelectedDate(
-            `${year}-${month}-${day}`
-        );
-
+    function formatDate(value) {
+        return new Date(value + "T12:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
     }
-);
 
-
-appointmentDatePicker.addEventListener(
-    "change",
-    function () {
-
-        if (
-            !appointmentDatePicker.value
-        ) {
-            return;
-        }
-
-
-        updateSelectedDate(
-            appointmentDatePicker.value
-        );
-
-    }
-);
-
-
-openAppointmentFormButton.addEventListener(
-    "click",
-    function () {
-
-        appointmentFormPanel.classList.remove(
-            "hidden"
-        );
-
-
-        newAppointmentDate.value =
-            appointmentDatePicker.value;
-
-
-        appointmentFormMessage.textContent =
-            "";
-
-    }
-);
-
-
-closeAppointmentFormButton.addEventListener(
-    "click",
-    function () {
-
-        appointmentFormPanel.classList.add(
-            "hidden"
-        );
-
-    }
-);
-
-
-saveAppointmentButton.addEventListener(
-    "click",
-    function () {
-
-        const date =
-            newAppointmentDate.value;
-
-
-        const time =
-            newAppointmentTime.value.trim();
-
-
-        const customer =
-            newAppointmentCustomer.value.trim();
-
-
-        const asset =
-            newAppointmentAsset.value.trim();
-
-
-        const location =
-            newAppointmentLocation.value.trim();
-
-
-        const technician =
-            newAppointmentTechnician.value.trim();
-
-
-        const reason =
-            newAppointmentReason.value.trim();
-
-
-        const notes =
-            newAppointmentNotes.value.trim();
-
-
-        if (
-            !date ||
-            !customer
-        ) {
-
-            appointmentFormMessage.textContent =
-                "Date and customer are required.";
-
-            return;
-
-        }
-
-
-        const appointmentCard =
-            document.createElement(
-                "article"
-            );
-
-
-        appointmentCard.className =
-            "appointment-card";
-
-
-        const timeDisplay =
-            time
-                ? formatAppointmentTime(
-                    time
-                )
-                : "Anytime";
-
-
-        appointmentCard.innerHTML =
-            `
-                <div class="appointment-time ${time ? "" : "anytime"}">
-                    ${escapeHtml(timeDisplay)}
+    function card(appointment) {
+        const completed = appointment.status === "Completed";
+        return `<article class="appointment-card" data-appointment-id="${escapeHtml(appointment.id)}">
+            <div class="appointment-time ${appointment.time ? "" : "anytime"}">${escapeHtml(formatTime(appointment.time))}</div>
+            <div class="appointment-details">
+                <div class="appointment-title"><div><strong>${escapeHtml(appointment.customer)}</strong><span>${escapeHtml(appointment.asset || "Asset not selected")}</span></div><span class="status-badge ${completed ? "completed" : "scheduled"}">${escapeHtml(appointment.status)}</span></div>
+                <p>${escapeHtml(appointment.reason || "No service reason entered")}</p>
+                <div class="appointment-meta"><span>📍 ${escapeHtml(appointment.location || "Location not entered")}</span><span>Tech: ${escapeHtml(appointment.technician || "Unassigned")}</span></div>
+                ${appointment.notes ? `<p>${escapeHtml(appointment.notes)}</p>` : ""}
+                <div class="appointment-actions">
+                    ${completed ? "" : `<button type="button" class="secondary-button start-job">Start job</button><button type="button" class="secondary-button complete-appointment">Complete</button>`}
                 </div>
+            </div>
+        </article>`;
+    }
 
-                <div class="appointment-details">
+    function render() {
+        const selected = appointments.filter(function (item) { return item.date === picker.value; });
+        const timed = selected.filter(function (item) { return item.time; }).sort(function (a, b) { return a.time.localeCompare(b.time); });
+        const anytime = selected.filter(function (item) { return !item.time; });
+        timedList.innerHTML = timed.length ? timed.map(card).join("") : '<div class="empty-state">No timed calls scheduled.</div>';
+        anytimeList.innerHTML = anytime.length ? anytime.map(card).join("") : '<div class="empty-state">No anytime calls scheduled.</div>';
+        byId("appointmentCount").textContent = selected.length;
+        byId("completedCount").textContent = selected.filter(function (item) { return item.status === "Completed"; }).length;
+        byId("remainingCount").textContent = selected.filter(function (item) { return item.status !== "Completed"; }).length;
+        byId("selectedDateLabel").textContent = formatDate(picker.value);
+        byId("newAppointmentDate").value = picker.value;
+    }
 
-                    <div class="appointment-title">
+    function changeDate(days) {
+        const date = new Date(picker.value + "T12:00:00");
+        date.setDate(date.getDate() + days);
+        picker.value = [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
+        render();
+    }
 
-                        <div>
-                            <strong>
-                                ${escapeHtml(customer)}
-                            </strong>
-
-                            <span>
-                                ${escapeHtml(asset || "Asset not selected")}
-                            </span>
-                        </div>
-
-                        <span class="status-badge scheduled">
-                            Scheduled
-                        </span>
-
-                    </div>
-
-                    <p>
-                        ${escapeHtml(reason || "No reason entered")}
-                    </p>
-
-                    <div class="appointment-meta">
-
-                        <span>
-                            📍 ${escapeHtml(location || "Location not entered")}
-                        </span>
-
-                        <span>
-                            Tech: ${escapeHtml(technician || "Unassigned")}
-                        </span>
-
-                    </div>
-
-                    ${notes
-                ? `
-                                <p>
-                                    ${escapeHtml(notes)}
-                                </p>
-                            `
-                : ""
-            }
-
-                </div>
-            `;
-
-
-        if (
-            time
-        ) {
-
-            timedAppointmentList.appendChild(
-                appointmentCard
-            );
-
-        } else {
-
-            anytimeAppointmentList.appendChild(
-                appointmentCard
-            );
-
+    function createJob(appointment) {
+        let job = mobileData.jobs.find(function (item) { return item.appointmentId === appointment.id; });
+        if (!job) {
+            job = {
+                id: window.TrackRightMobile.id("job"), appointmentId: appointment.id, customer: appointment.customer, asset: appointment.asset,
+                status: "Working", technician: appointment.technician || "Unassigned", location: appointment.location, complaint: appointment.reason,
+                customerNotes: appointment.notes || "", technicianNotes: "", serviceCall: 0, miles: 0, travelHours: 0,
+                labor: [], parts: [], misc: [], updatedAt: new Date().toISOString()
+            };
+            mobileData.jobs.push(job);
+            appointment.status = "In Progress";
+            window.TrackRightMobile.save(mobileData);
         }
-
-
-        appointmentFormMessage.textContent =
-            "Appointment added.";
-
-
-        clearAppointmentForm();
-
-
-        /*
-            Placeholder only.
-
-            This is where the eventual
-            Supabase INSERT will go.
-        */
-
-    }
-);
-
-
-function formatAppointmentTime(
-    timeValue
-) {
-
-    const parts =
-        timeValue.split(
-            ":"
-        );
-
-
-    let hour =
-        Number(
-            parts[0]
-        );
-
-
-    const minutes =
-        parts[1];
-
-
-    const suffix =
-        hour >= 12
-            ? "PM"
-            : "AM";
-
-
-    hour =
-        hour % 12;
-
-
-    if (
-        hour === 0
-    ) {
-        hour = 12;
+        window.location.href = "MobileJobs.html?job=" + encodeURIComponent(job.id);
     }
 
+    function handleListClick(event) {
+        const article = event.target.closest("[data-appointment-id]");
+        if (!article) return;
+        const appointment = appointments.find(function (item) { return item.id === article.dataset.appointmentId; });
+        if (!appointment) return;
+        if (event.target.closest(".start-job")) createJob(appointment);
+        if (event.target.closest(".complete-appointment")) {
+            appointment.status = "Completed";
+            window.TrackRightMobile.save(mobileData);
+            render();
+        }
+    }
 
-    return `${hour}:${minutes} ${suffix}`;
+    byId("previousDayButton").addEventListener("click", function () { changeDate(-1); });
+    byId("nextDayButton").addEventListener("click", function () { changeDate(1); });
+    byId("todayButton").addEventListener("click", function () { picker.value = window.TrackRightMobile.localDate(0); render(); });
+    picker.addEventListener("change", render);
+    byId("openAppointmentFormButton").addEventListener("click", function () { formPanel.classList.remove("hidden"); byId("newAppointmentDate").value = picker.value; });
+    byId("closeAppointmentFormButton").addEventListener("click", function () { formPanel.classList.add("hidden"); });
+    timedList.addEventListener("click", handleListClick);
+    anytimeList.addEventListener("click", handleListClick);
 
-}
+    byId("saveAppointmentButton").addEventListener("click", function () {
+        const date = byId("newAppointmentDate").value;
+        const customer = byId("newAppointmentCustomer").value.trim();
+        if (!date || !customer) { byId("appointmentFormMessage").textContent = "Date and customer are required."; return; }
+        appointments.push({
+            id: window.TrackRightMobile.id("appointment"), date, time: byId("newAppointmentTime").value,
+            customer, asset: byId("newAppointmentAsset").value.trim(), location: byId("newAppointmentLocation").value.trim(),
+            technician: byId("newAppointmentTechnician").value.trim(), reason: byId("newAppointmentReason").value.trim(),
+            notes: byId("newAppointmentNotes").value.trim(), status: "Scheduled"
+        });
+        window.TrackRightMobile.save(mobileData);
+        picker.value = date;
+        ["newAppointmentTime", "newAppointmentCustomer", "newAppointmentAsset", "newAppointmentLocation", "newAppointmentTechnician", "newAppointmentReason", "newAppointmentNotes"].forEach(function (id) { byId(id).value = ""; });
+        formPanel.classList.add("hidden");
+        render();
+    });
 
-
-function clearAppointmentForm() {
-
-    newAppointmentTime.value =
-        "";
-
-
-    newAppointmentCustomer.value =
-        "";
-
-
-    newAppointmentAsset.value =
-        "";
-
-
-    newAppointmentLocation.value =
-        "";
-
-
-    newAppointmentTechnician.value =
-        "";
-
-
-    newAppointmentReason.value =
-        "";
-
-
-    newAppointmentNotes.value =
-        "";
-
-}
-
-
-function escapeHtml(
-    value
-) {
-
-    return value
-        .replaceAll(
-            "&",
-            "&amp;"
-        )
-        .replaceAll(
-            "<",
-            "&lt;"
-        )
-        .replaceAll(
-            ">",
-            "&gt;"
-        )
-        .replaceAll(
-            '"',
-            "&quot;"
-        )
-        .replaceAll(
-            "'",
-            "&#039;"
-        );
-
-}
+    picker.value = window.TrackRightMobile.localDate(0);
+    render();
+    if (new URLSearchParams(window.location.search).get("action") === "new") byId("openAppointmentFormButton").click();
+}());
