@@ -3,9 +3,10 @@
 
     const NOTES_KEY = "trackRightDevelopmentNotesV1";
     const repository = "Jveslky/Operations-studio-v1";
+    const rootPrefix = document.documentElement.dataset.rootPrefix || "";
     const project = {
-        pages: 35,
-        protectedPages: 22,
+        pages: 36,
+        protectedPages: 23,
         modules: [
             { name: "Platform & Access", state: "live", progress: 82, description: "Login, shop membership, invitations, roles, account recovery, and module routing.", href: "pages/Admin/users.html" },
             { name: "Shop Operations", state: "partial", progress: 66, description: "Core shop screens exist. Shared data wiring, exports, and invoice flow still need consolidation.", href: "pages/Shop/shop-dashboard.html" },
@@ -55,7 +56,7 @@
 
         byId("module-grid").innerHTML = project.modules.map((module, index) => `
             <article class="module-card"><div class="module-card-top"><span class="module-index">${String(index + 1).padStart(2, "0")}</span><span class="status-chip ${module.state}">${labelForState(module.state)}</span></div>
-                <h3>${module.name}</h3><p>${module.description}</p><div class="module-progress"><div><span>Connected build</span><strong>${module.progress}%</strong></div><div class="progress-track"><span style="width:${module.progress}%"></span></div></div><a href="${module.href}">Open module →</a></article>`).join("");
+                <h3>${module.name}</h3><p>${module.description}</p><div class="module-progress"><div><span>Connected build</span><strong>${module.progress}%</strong></div><div class="progress-track"><span style="width:${module.progress}%"></span></div></div><a href="${rootPrefix}${module.href}">Open module →</a></article>`).join("");
 
         byId("backlog-list").innerHTML = project.backlog.map((item) => `<li><div><strong>${item.title}</strong><small>${item.detail}</small></div><span class="status-chip ${item.state}">${labelForState(item.state)}</span></li>`).join("");
         byId("activity-list").innerHTML = project.activity.map((item) => `<div class="activity-item"><strong>${item.title}</strong><span>${item.detail}</span></div>`).join("");
