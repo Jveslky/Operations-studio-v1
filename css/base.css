@@ -49,6 +49,30 @@ body {
     text-decoration: none;
 }
 
+.public-login-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 38px;
+    padding: 8px 16px;
+    background: #db6128;
+    border: 1px solid #ef7d48;
+    border-radius: 7px;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.public-login-link:hover {
+    background: #ef6c2f;
+}
+
+.nav-login {
+    margin-top: 16px;
+    border: 1px solid rgba(219, 97, 40, 0.55);
+    color: #f28a59;
+}
+
 
 /* SIDEBAR */
 
