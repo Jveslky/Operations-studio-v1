@@ -1,216 +1,97 @@
 <!DOCTYPE html>
 <html lang="en" data-login-path="login.html">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>Operations Platform</title>
-
-    <!-- CSS -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Development Home | Track Right</title>
     <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/dashboard.css">
-    
+    <link rel="stylesheet" href="css/development-dashboard.css">
 </head>
-
 <body>
+    <aside class="dev-sidebar" aria-label="Development navigation">
+        <a class="dev-brand" href="index.html"><span>Track Right</span><small>Development</small></a>
+        <nav class="dev-nav">
+            <a class="active" href="#overview">Overview</a><a href="#modules">Modules</a>
+            <a href="#build-status">Build status</a><a href="#backlog">Backlog</a><a href="#notes">Notes</a>
+        </nav>
+        <div class="dev-sidebar-section">
+            <p>Open workspace</p>
+            <a href="pages/Shop/shop-dashboard.html">Shop</a>
+            <a href="pages/Mobile/MobileDashboard.html">Mobile Service</a>
+            <a href="pages/PersonalFleet/Personaldashboard.html">Personal Fleet</a>
+            <a href="pages/Admin/users.html">Users &amp; access</a>
+        </div>
+        <div class="dev-sidebar-footer"><span class="status-dot" id="sidebar-status-dot"></span><span id="sidebar-status">Checking platform</span></div>
+    </aside>
 
-    <!-- SIDEBAR (static or injected later) -->
-    <div class="sidebar">
-
-        <aside class="sidebar">
-            <div class="sidebar-inner">
-                <div class="sidebar-brand">
-                    Task Menu
-                </div>
-
-                <nav class="sidebar-nav">
-                    <a href="index.html"
-                       class="nav-item">
-                        Dashboard
-                    </a>
-
-                    <a href="pages/PersonalFleet/Personaldashboard.html"
-                       class="nav-item">
-                        Personal Fleet
-                    </a>
-
-                    <a href="pages/Shop/shop-dashboard.html"
-                       class="nav-item">
-                        Shop
-                    </a>
-
-                    <a href="pages/Shop/repair-orders.html"
-                       class="nav-item">
-                        Repair Orders
-                    </a>
-
-                    <a href="pages/customers/customers.html"
-                       class="nav-item">
-                        Customers
-                    </a>
-
-                    <a href="pages/Mobile/MobileDashboard.html"
-                       class="nav-item">
-                        Mobile
-                    </a>
-                </nav>
-            </div>
-        </aside>
-    </div>
-   
-    <!-- APP WRAPPER -->
-    <div class="app">
-
-        <!-- NAVBAR -->
-        <header class="navbar">
-
-            <div class="navbar-inner">
-
-                <div class="navbar-left">
-                </div>
-
-                <div class="navbar-brand">
-                    <h2>Track Right Overview</h2>
-                </div>
-
-                <div class="navbar-right">
-                    <!-- status / user / actions -->
-                </div>
-
-            </div>
-
+    <div class="dev-shell">
+        <header class="dev-header">
+            <button class="mobile-menu-button" id="mobile-menu-button" type="button" aria-label="Open navigation" aria-expanded="false">☰</button>
+            <div><p class="eyebrow">OWNER WORKSPACE</p><h1>Development Home</h1></div>
+            <div class="header-context"><span id="current-date"></span></div>
         </header>
 
-        <!-- MAIN CONTENT -->
-        <main class="page-content">
-
-            <section class="landing-intro">
-                <div>
-                    <p class="landing-eyebrow">OPERATIONS PLATFORM</p>
-
-                    <h1>Choose a workspace</h1>
-
-                    <p class="landing-description">
-                        Open the part of Track Right you want to work in.
-                        Each workspace has its own dashboard, tools, and records.
-                    </p>
-                </div>
+        <main id="development-dashboard">
+            <section class="hero" id="overview">
+                <div><p class="eyebrow">TRACK RIGHT PLATFORM</p><h2>Build what matters next.</h2><p class="hero-copy">One place to see project progress, unfinished connections, system health, and the next piece of work.</p></div>
+                <div class="hero-focus"><span>Current focus</span><strong id="current-focus">Development dashboard</strong><small id="focus-detail">Owner home base and project visibility</small></div>
             </section>
 
-
-            <section class="workspace-grid">
-
-                <a href="pages/PersonalFleet/Personaldashboard.html"
-                   class="workspace-card">
-
-                    <div class="workspace-card-top">
-                        <span class="workspace-number">01</span>
-                        <span class="workspace-status available">Available</span>
-                    </div>
-
-                    <div class="workspace-card-content">
-                        <h2>Personal Fleet</h2>
-
-                        <p>
-                            Manage personal vehicles, service records,
-                            repair orders, costs, and maintenance history.
-                        </p>
-                    </div>
-
-                    <div class="workspace-card-action">
-                        Open Personal Fleet
-                        <span aria-hidden="true">→</span>
-                    </div>
-                </a>
-
-
-                <a href="pages/Shop/shop-dashboard.html"
-                   class="workspace-card">
-
-                    <div class="workspace-card-top">
-                        <span class="workspace-number">02</span>
-                        <span class="workspace-status available">Available</span>
-                    </div>
-
-                    <div class="workspace-card-content">
-                        <h2>Shop Operations</h2>
-
-                        <p>
-                            Manage customers, repair orders, estimates,
-                            approvals, work, invoices, and payments.
-                        </p>
-                    </div>
-
-                    <div class="workspace-card-action">
-                        Open Shop Operations
-                        <span aria-hidden="true">→</span>
-                    </div>
-                </a>
-
-
-                <a href="pages/Mobile/MobileDashboard.html"
-                   class="workspace-card">
-
-                    <div class="workspace-card-top">
-                        <span class="workspace-number">03</span>
-                        <span class="workspace-status available">Available</span>
-                    </div>
-
-                    <div class="workspace-card-content">
-                        <h2>Mobile Service</h2>
-
-                        <p>
-                            Manage appointments, customers, field jobs,
-                            invoices, expenses, and mobile service activity.
-                        </p>
-                    </div>
-
-                    <div class="workspace-card-action">
-                        Open Mobile Service
-                        <span aria-hidden="true">→</span>
-                    </div>
-                </a>
-
+            <section class="metric-grid" aria-label="Project metrics">
+                <article class="metric-card"><span class="metric-label">Modules tracked</span><strong id="metric-modules">0</strong><small id="metric-modules-detail">0 complete</small></article>
+                <article class="metric-card"><span class="metric-label">Application pages</span><strong id="metric-pages">0</strong><small>Current repository inventory</small></article>
+                <article class="metric-card"><span class="metric-label">Protected pages</span><strong id="metric-protected">0</strong><small id="metric-protected-detail">0 still need coverage</small></article>
+                <article class="metric-card attention"><span class="metric-label">Attention items</span><strong id="metric-attention">0</strong><small>Partial, blocked, or disconnected</small></article>
             </section>
 
-
-            <section class="landing-lower">
-
-                <div class="landing-info-panel">
-                    <p class="panel-label">PLATFORM</p>
-                    <h2>Built as separate working environments</h2>
-
-                    <p>
-                        Each Track Right workspace can grow independently while
-                        sharing the same overall platform and design system.
-                    </p>
-                </div>
-
-
-                <div class="landing-info-panel">
-                    <p class="panel-label">NEXT UP</p>
-                    <h2>More modules are on the way</h2>
-
-                    <p>
-                        Parts, inventory, tracking, customer access, and additional
-                        service tools can be added without crowding the main workspaces.
-                    </p>
-                </div>
-
+            <section class="dashboard-grid">
+                <article class="panel attention-panel">
+                    <div class="panel-heading"><div><p class="eyebrow">ATTENTION NEEDED</p><h2>What needs work</h2></div><span class="count-badge" id="attention-count">0</span></div>
+                    <div class="attention-list" id="attention-list"></div>
+                </article>
+                <article class="panel continue-panel">
+                    <div class="panel-heading"><div><p class="eyebrow">CONTINUE WORKING</p><h2 id="continue-title">Project dashboard</h2></div><span class="status-chip working">In progress</span></div>
+                    <p id="continue-description">Establish the private project home base and surface the complete development state.</p>
+                    <div class="progress-track" aria-label="Current focus progress"><span id="continue-progress"></span></div>
+                    <div class="panel-actions"><a class="primary-action" href="#backlog">View next priorities</a><a href="https://github.com/Jveslky/Operations-studio-v1" target="_blank" rel="noreferrer">Open GitHub ↗</a></div>
+                </article>
             </section>
 
+            <section id="modules" class="section-block">
+                <div class="section-heading"><div><p class="eyebrow">MODULE MAP</p><h2>Platform build coverage</h2></div><p>Statuses reflect implemented code and connected data—not presentation-only screens.</p></div>
+                <div class="module-grid" id="module-grid"></div>
+            </section>
+
+            <section id="build-status" class="section-block">
+                <div class="section-heading"><div><p class="eyebrow">BUILD HEALTH</p><h2>Systems and connections</h2></div><button class="secondary-button" id="refresh-health" type="button">Refresh checks</button></div>
+                <div class="health-grid" id="health-grid"></div>
+            </section>
+
+            <section class="dashboard-grid lower-grid">
+                <article class="panel" id="backlog"><div class="panel-heading"><div><p class="eyebrow">PRIORITIZED BACKLOG</p><h2>Next pieces</h2></div><span class="count-badge" id="backlog-count">0</span></div><ol class="backlog-list" id="backlog-list"></ol></article>
+                <article class="panel" id="recent-work"><div class="panel-heading"><div><p class="eyebrow">RECENT WORK</p><h2>Latest changes</h2></div></div><div class="activity-list" id="activity-list"></div></article>
+            </section>
+
+            <section class="notes-panel" id="notes">
+                <div class="notes-copy"><p class="eyebrow">PROJECT NOTES</p><h2>Keep the thought before it disappears.</h2><p>Notes save automatically in this browser. Use them for ideas, questions, or the exact place you stopped.</p><span id="notes-status">No local notes saved yet</span></div>
+                <div class="notes-editor"><label for="project-notes">Your notes</label><textarea id="project-notes" placeholder="What are you thinking about next?"></textarea><div class="notes-actions"><span id="notes-count">0 characters</span><button id="clear-notes" type="button">Clear notes</button></div></div>
+            </section>
+
+            <section class="quick-links" aria-label="Development links">
+                <a href="https://github.com/Jveslky/Operations-studio-v1" target="_blank" rel="noreferrer"><span>Repository</span><strong>GitHub ↗</strong></a>
+                <a href="https://supabase.com/dashboard" target="_blank" rel="noreferrer"><span>Backend</span><strong>Supabase ↗</strong></a>
+                <a href="pages/Admin/users.html"><span>Access</span><strong>Users &amp; invites →</strong></a>
+                <a href="README.md"><span>Project</span><strong>Readme →</strong></a>
+            </section>
         </main>
 
+        <section class="access-denied" id="development-access-denied" hidden>
+            <p class="eyebrow">OWNER WORKSPACE</p><h1>Development dashboard restricted</h1><p>This page is reserved for the Track Right project owner. Use an operational workspace instead.</p>
+            <div class="panel-actions"><a class="primary-action" href="pages/Shop/shop-dashboard.html">Open Shop</a><a href="pages/Mobile/MobileDashboard.html">Open Mobile Service</a></div>
+        </section>
     </div>
 
-    <!-- JS -->
-    <script src="js/main.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-client.js"></script>
-    <script src="js/auth.js"></script>
+    <script src="js/supabase-client.js"></script><script src="js/auth.js"></script><script src="js/development-dashboard.js"></script>
 </body>
-
 </html>
