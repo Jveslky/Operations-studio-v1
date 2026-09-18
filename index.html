@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-login-path="login.html">
+<html lang="en">
 
 <head>
     <meta charset="UTF-8" />
@@ -27,8 +27,8 @@
 
                 <nav class="sidebar-nav">
                     <a href="index.html"
-                       class="nav-item">
-                        Dashboard
+                       class="nav-item active">
+                        Overview
                     </a>
 
                     <a href="pages/PersonalFleet/Personaldashboard.html"
@@ -46,7 +46,7 @@
                         Repair Orders
                     </a>
 
-                    <a href="pages/customers/customers.html"
+                    <a href="pages/Shop/customers.html"
                        class="nav-item">
                         Customers
                     </a>
@@ -54,6 +54,11 @@
                     <a href="pages/Mobile/MobileDashboard.html"
                        class="nav-item">
                         Mobile
+                    </a>
+
+                    <a href="login.html"
+                       class="nav-item nav-login">
+                        Log in
                     </a>
                 </nav>
             </div>
@@ -76,7 +81,7 @@
                 </div>
 
                 <div class="navbar-right">
-                    <!-- status / user / actions -->
+                    <a href="login.html" class="public-login-link">Log in</a>
                 </div>
 
             </div>
@@ -90,11 +95,11 @@
                 <div>
                     <p class="landing-eyebrow">OPERATIONS PLATFORM</p>
 
-                    <h1>Choose a workspace</h1>
+                    <h1>Service operations, organized.</h1>
 
                     <p class="landing-description">
-                        Open the part of Track Right you want to work in.
-                        Each workspace has its own dashboard, tools, and records.
+                        Track Right brings shop, personal fleet, and mobile-service
+                        workflows into focused workspaces built for real repair operations.
                     </p>
                 </div>
             </section>
@@ -205,12 +210,6 @@
 
     </div>
 
-    <!-- JS -->
-    <script src="js/main.js"></script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="js/supabase-client.js"></script>
-    <script src="js/auth.js"></script>
 </body>
 
 </html>
