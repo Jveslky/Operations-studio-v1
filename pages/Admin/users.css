@@ -54,6 +54,7 @@
 }
 
 .invite-result input { flex: 1; padding: 10px; }
+.invite-result a { display: inline-flex; align-items: center; padding: 8px 13px; border: 1px solid #397f90; border-radius: 6px; color: #397f90; font-weight: 700; text-decoration: none; }
 
 .users-list { display: grid; gap: 9px; }
 

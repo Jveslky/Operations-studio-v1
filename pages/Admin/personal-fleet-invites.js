@@ -5,6 +5,7 @@
     const message = document.getElementById("users-message");
     const result = document.getElementById("invite-result");
     const linkInput = document.getElementById("invite-link");
+    const openInvite = document.getElementById("open-invite");
     const list = document.getElementById("personal-invites-list");
 
     function escapeHtml(value) {
@@ -46,7 +47,9 @@
         });
         submit.disabled = false;
         if (error) { showMessage(error.message, "error"); return; }
-        linkInput.value = new URL(`../../personal-fleet-invite.html?token=${token}`, window.location.href).href;
+        const invitationUrl = new URL(`../../personal-fleet-invite.html?token=${encodeURIComponent(token)}`, window.location.href).href;
+        linkInput.value = invitationUrl;
+        openInvite.href = invitationUrl;
         result.hidden = false;
         showMessage("Invitation ready. Copy the private link and send it to the invited owner.", "success");
         form.reset();
