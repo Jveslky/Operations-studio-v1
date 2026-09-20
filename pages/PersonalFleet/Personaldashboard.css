@@ -193,6 +193,27 @@ body {
         line-height: 1.55;
     }
 
+.dashboard-scope-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+    color: #303b43;
+    font-weight: 800;
+}
+
+.dashboard-scope-control select {
+    padding: 9px 12px;
+    border: 1px solid #799aa0;
+    border-radius: 7px;
+    background: #fff;
+    color: #202833;
+    font: inherit;
+}
+
+.future-metric { opacity: .72; }
+.metric-future { font-size: 1.25rem; color: #68717a; }
+
 .dashboard-sections {
     display: grid;
     gap: 28px;

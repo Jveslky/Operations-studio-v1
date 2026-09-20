@@ -31,6 +31,12 @@ const yearlyMaintenanceDisplay =
 const purchaseCostDisplay =
     document.querySelector("#dashboard-purchase-cost");
 
+const lifetimePurchasesDisplay =
+    document.querySelector("#dashboard-lifetime-purchases");
+
+const dashboardScopeInput =
+    document.querySelector("#dashboard-scope");
+
 const lifetimeCostDisplay =
     document.querySelector("#dashboard-lifetime-cost");
 
@@ -196,12 +202,24 @@ function renderDashboard() {
         unit => unit.archived === true
     );
 
+    const dashboardFleet = dashboardScopeInput.value === "all"
+        ? fleet
+        : [
+            ...activeFleet,
+            ...archivedFleet.filter(unit => unit.includeInDashboardTotals === true)
+        ];
+
+    const dashboardFleetIds = new Set(dashboardFleet.map(unit => String(unit.id)));
+    const dashboardRepairOrders = repairOrders.filter(order =>
+        !order.unitId || dashboardFleetIds.has(String(order.unitId))
+    );
+
     const activeUnits = activeFleet.filter(
         unit => unit.status === "Active"
     ).length;
 
     const openRepairOrders =
-        repairOrders.filter(order =>
+        dashboardRepairOrders.filter(order =>
             order.archived !== true &&
             !completedStatuses.includes(
                 order.status
@@ -215,7 +233,7 @@ function renderDashboard() {
         ).length;
 
     const ordersThisYear =
-        repairOrders.filter(order => {
+        dashboardRepairOrders.filter(order => {
             const orderDate =
                 getOrderDate(order);
 
@@ -228,12 +246,12 @@ function renderDashboard() {
 
     const yearlyMaintenance =
         getYearlyMaintenance(
-            fleet,
+            dashboardFleet,
             currentYear
         );
 
-    const initialFleetPurchase =
-        fleet.reduce(
+    const activeFleetPurchase =
+        dashboardFleet.reduce(
             (total, unit) =>
                 total +
                 (
@@ -244,6 +262,11 @@ function renderDashboard() {
             0
         );
 
+    const lifetimeUnitPurchases = fleet.reduce(
+        (total, unit) => total + (Number(unit.purchasePrice) || Number(unit.purchaseCost) || 0),
+        0
+    );
+
     const lifetimeRepairCost =
         fleet.reduce(
             (total, unit) =>
@@ -253,7 +276,7 @@ function renderDashboard() {
         );
 
     totalUnitsDisplay.textContent =
-        activeFleet.length.toLocaleString();
+        dashboardFleet.length.toLocaleString();
 
     activeUnitsDisplay.textContent =
         activeUnits.toLocaleString();
@@ -274,11 +297,14 @@ function renderDashboard() {
         formatCurrency(yearlyMaintenance);
 
     purchaseCostDisplay.textContent =
-        formatCurrency(initialFleetPurchase);
+        formatCurrency(activeFleetPurchase);
+
+    lifetimePurchasesDisplay.textContent =
+        formatCurrency(lifetimeUnitPurchases);
 
     lifetimeCostDisplay.textContent =
         formatCurrency(lifetimeRepairCost);
 }
 
-
+dashboardScopeInput.addEventListener("change", renderDashboard);
 renderDashboard();

@@ -126,6 +126,8 @@ button {
     margin-bottom: 24px;
 }
 
+.page-actions { display: flex; gap: 10px; }
+
 .eyebrow {
     margin: 0 0 6px;
     color: #db6128;
@@ -236,7 +238,7 @@ h1 {
 
 .fleet-summary {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 18px;
     margin-bottom: 30px;
 }
@@ -344,6 +346,55 @@ h1 {
     box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
 }
 
+.unit-card.archived-unit {
+    border-left-color: #68717a;
+    background: #f8f9fa;
+}
+
+.archive-details {
+    margin: 0 0 16px;
+    padding: 12px 14px;
+    border-radius: 7px;
+    background: #eceff1;
+    color: #4c555d;
+    line-height: 1.45;
+}
+
+.archive-details strong { color: #252a30; }
+
+.unit-filters {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    border-radius: 8px;
+    background: #dce1e5;
+}
+
+.unit-filter {
+    border: 0;
+    border-radius: 6px;
+    padding: 8px 13px;
+    background: transparent;
+    color: #4a535b;
+    font-weight: 700;
+}
+
+.unit-filter.active {
+    background: #fff;
+    color: #b84f20;
+    box-shadow: 0 1px 4px rgba(0,0,0,.12);
+}
+
+.restore-unit-btn { background: #2f7850; color: #fff; }
+.dashboard-inclusion {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-right: auto;
+    font-size: .85rem;
+    font-weight: 700;
+}
+
 .unit-card-header {
     display: flex;
     align-items: flex-start;
@@ -449,6 +500,9 @@ h1 {
         align-items: stretch;
     }
 
+    .page-actions { width: 100%; }
+    .page-actions button { flex: 1; }
+
     .header-inner {
         padding: 16px 0;
     }
@@ -462,6 +516,8 @@ h1 {
     .fleet-list {
         grid-template-columns: 1fr;
     }
+
+    .section-heading { align-items: flex-start; gap: 12px; flex-direction: column; }
 }
 .app-header-inner {
     width: min(1390px, calc(100% - 48px));
