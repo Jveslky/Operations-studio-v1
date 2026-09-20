@@ -5,30 +5,31 @@
     const repository = "Jveslky/Operations-studio-v1";
     const rootPrefix = document.documentElement.dataset.rootPrefix || "";
     const project = {
-        pages: 36,
-        protectedPages: 23,
+        pages: 38,
+        protectedPages: 25,
         modules: [
-            { name: "Platform & Access", state: "live", progress: 82, description: "Login, shop membership, invitations, roles, account recovery, and module routing.", href: "pages/Admin/users.html" },
+            { name: "Platform & Access", state: "live", progress: 88, description: "Login, workspace routing, shop and Personal Fleet memberships, invitations, roles, and account recovery.", href: "pages/Admin/personal-fleet-invites.html" },
             { name: "Shop Operations", state: "partial", progress: 66, description: "Core shop screens exist. Shared data wiring, exports, and invoice flow still need consolidation.", href: "pages/Shop/shop-dashboard.html" },
             { name: "Mobile Service", state: "working", progress: 74, description: "Connected field workflow is functional with local persistence; Supabase migration remains.", href: "pages/Mobile/MobileDashboard.html" },
-            { name: "Personal Fleet", state: "partial", progress: 48, description: "Vehicle and repair screens exist. Add-on permissions and shared data architecture remain.", href: "pages/PersonalFleet/Personaldashboard.html" }
+            { name: "Personal Fleet", state: "working", progress: 72, description: "Account-scoped cloud units, maintenance history, repair orders, feature entitlements, backups, and beta invitations are connected.", href: "pages/PersonalFleet/Personaldashboard.html" }
         ],
         attention: [
             { title: "Operational data layer", detail: "Shop, Mobile, and Personal Fleet do not yet share one Supabase model.", state: "partial" },
             { title: "Automated test coverage", detail: "No repeatable browser or unit test suite is connected.", state: "not-connected" },
             { title: "Shop import workflow", detail: "Backup import and validation are not connected.", state: "not-connected" },
-            { title: "Personal Fleet permissions", detail: "Repair-order add-on access rules are not wired.", state: "blocked" },
+            { title: "Personal Fleet field test", detail: "Run the real invitation, email confirmation, unit, service, and repair-order flow with the first feedback accounts.", state: "working" },
             { title: "Responsive coverage", detail: "Mobile Service is checked; the full Shop and Fleet page set is not.", state: "partial" },
             { title: "Project status automation", detail: "Module progress is maintained here and is not yet derived from tests.", state: "not-connected" }
         ],
         backlog: [
             { title: "Connect operational data to Supabase", detail: "Define the shared model and migrate one module at a time.", state: "planned" },
             { title: "Finish Shop data management", detail: "Invoice/AP export, full backup, import validation, and recovery.", state: "partial" },
-            { title: "Add Personal Fleet feature permissions", detail: "Keep core fleet available and gate repair-order add-ons.", state: "planned" },
+            { title: "Field-test Personal Fleet beta", detail: "Validate invitations, cloud persistence, backups, and phone layouts with the two feedback accounts.", state: "working" },
             { title: "Create automated smoke tests", detail: "Protect auth, navigation, and the critical record workflows.", state: "not-connected" },
             { title: "Complete responsive review", detail: "Verify every Shop and Personal Fleet page at phone width.", state: "partial" }
         ],
         activity: [
+            { title: "Personal Fleet beta connected", detail: "Cloud records, manual service entries, feature access, 20-unit limits, and complimentary invitations are wired." },
             { title: "Mobile Service workflow completed", detail: "Appointments now flow into jobs and draft invoices." },
             { title: "Invitation membership conflict repaired", detail: "Legacy membership constraints now support the invite flow." },
             { title: "Authentication system connected", detail: "Login, recovery, membership, roles, and protected routes are live." },
@@ -60,7 +61,9 @@
 
         byId("backlog-list").innerHTML = project.backlog.map((item) => `<li><div><strong>${item.title}</strong><small>${item.detail}</small></div><span class="status-chip ${item.state}">${labelForState(item.state)}</span></li>`).join("");
         byId("activity-list").innerHTML = project.activity.map((item) => `<div class="activity-item"><strong>${item.title}</strong><span>${item.detail}</span></div>`).join("");
-        byId("continue-progress").style.width = "90%";
+        byId("continue-title").textContent = "Personal Fleet beta";
+        byId("continue-description").textContent = "Finish deployment setup, create the two complimentary invitations, and validate the real onboarding flow.";
+        byId("continue-progress").style.width = "72%";
     }
 
     function healthCard(name, state, value, detail) {
@@ -127,7 +130,7 @@
     async function initialize() {
         const context = await window.trackRightAuthReady;
         if (!context) return;
-        if (context.role !== "owner") {
+        if (context.platformRole !== "platform_owner" && context.platformRole !== "platform_admin") {
             byId("development-dashboard").hidden = true;
             document.querySelector(".dev-sidebar").hidden = true;
             byId("development-access-denied").hidden = false;
