@@ -3,6 +3,9 @@ const fleetStorageKey = "track-right-fleet";
 const showFormButton =
     document.querySelector("#show-form-button");
 
+const exportUnitsButton =
+    document.querySelector("#export-units-button");
+
 const formPanel =
     document.querySelector("#unit-form-panel");
 
@@ -30,6 +33,14 @@ const activeUnits =
 const outOfServiceUnits =
     document.querySelector("#out-of-service-units");
 
+const archivedUnits =
+    document.querySelector("#archived-units");
+
+const filterButtons =
+    document.querySelectorAll(".unit-filter");
+
+let currentFilter = "active";
+
 const unitIdInput =
     document.querySelector("#unit-id");
 
@@ -53,6 +64,9 @@ const unitMakeInput =
 
 const unitModelInput =
     document.querySelector("#unit-model");
+
+const unitEngineSizeInput =
+    document.querySelector("#unit-engine-size");
 
 const unitVinInput =
     document.querySelector("#unit-vin");
@@ -127,6 +141,7 @@ function openForm(unit = null) {
         unitYearInput.value = unit.year || "";
         unitMakeInput.value = unit.make || "";
         unitModelInput.value = unit.model || "";
+        unitEngineSizeInput.value = unit.engineSize || "";
         unitVinInput.value = unit.vin || "";
         unitMileageInput.value = unit.mileage ?? "";
         unitHoursInput.value = unit.hours ?? "";
@@ -182,24 +197,30 @@ function getStatusClass(status) {
 function renderFleet() {
     const fleet = getFleet();
 
-    const visibleFleet = fleet.filter(
-        unit => unit.archived !== true
-    );
+    const activeFleet = fleet.filter(unit => unit.archived !== true);
+    const archivedFleet = fleet.filter(unit => unit.archived === true);
+    const visibleFleet = currentFilter === "all"
+        ? fleet
+        : currentFilter === "archived"
+            ? archivedFleet
+            : activeFleet;
 
     fleetList.innerHTML = "";
 
     totalUnits.textContent =
-        visibleFleet.length;
+        activeFleet.length;
 
     activeUnits.textContent =
-        visibleFleet.filter(
+        activeFleet.filter(
             unit => unit.status === "Active"
         ).length;
 
     outOfServiceUnits.textContent =
-        visibleFleet.filter(
+        activeFleet.filter(
             unit => unit.status === "Out of Service"
         ).length;
+
+    archivedUnits.textContent = archivedFleet.length;
 
     emptyMessage.style.display =
         visibleFleet.length === 0
@@ -210,7 +231,7 @@ function renderFleet() {
         const card =
             document.createElement("article");
 
-        card.className = "unit-card";
+        card.className = `unit-card${unit.archived === true ? " archived-unit" : ""}`;
 
         const serviceHistory =
             Array.isArray(unit.serviceHistory)
@@ -285,9 +306,16 @@ function renderFleet() {
                 <span
                     class="status-badge ${getStatusClass(unit.status)}"
                 >
-                    ${escapeHtml(unit.status)}
+                    ${unit.archived === true ? "Archived" : escapeHtml(unit.status)}
                 </span>
             </div>
+
+            ${unit.archived === true ? `
+                <p class="archive-details">
+                    <strong>Archived ${escapeHtml(formatArchiveDate(unit.archivedAt))}</strong>
+                    ${unit.archiveReason ? `<br>${escapeHtml(unit.archiveReason)}` : ""}
+                </p>
+            ` : ""}
 
             <div class="unit-details">
                 <div class="unit-detail">
@@ -308,6 +336,11 @@ function renderFleet() {
                 <div class="unit-detail">
                     <span>Model</span>
                     <strong>${escapeHtml(formatValue(unit.model))}</strong>
+                </div>
+
+                <div class="unit-detail">
+                    <span>Engine Size</span>
+                    <strong>${escapeHtml(formatValue(unit.engineSize))}</strong>
                 </div>
 
                 <div class="unit-detail">
@@ -357,10 +390,20 @@ function renderFleet() {
 </div>
 
             <div class="unit-actions">
+                ${unit.archived === true ? `
+                <label class="dashboard-inclusion">
+                    <input class="dashboard-inclusion-toggle" type="checkbox"
+                        data-unit-id="${escapeHtml(unit.id)}"
+                        ${unit.includeInDashboardTotals === true ? "checked" : ""}>
+                    Include in dashboard totals
+                </label>
+                ` : ""}
                 <button
                     class="log-service-btn"
                     type="button"
                     data-unit-id="${escapeHtml(unit.id)}"
+                    ${unit.archived === true ? "disabled" : ""}
+                    title="${unit.archived === true ? "Restore this unit before adding routine records" : "Add a maintenance record"}"
                 >
                     Log service
                 </button>
@@ -374,11 +417,11 @@ function renderFleet() {
                 </button>
 
                 <button
-                    class="archive-unit-btn"
+                    class="${unit.archived === true ? "restore-unit-btn" : "archive-unit-btn"}"
                     type="button"
                     data-unit-id="${escapeHtml(unit.id)}"
                 >
-                    Archive
+                    ${unit.archived === true ? "Restore to Active" : "Archive"}
                 </button>
             </div>
         `;
@@ -386,6 +429,47 @@ function renderFleet() {
         fleetList.appendChild(card);
     });
 }
+
+function formatArchiveDate(value) {
+    if (!value) return "(date unavailable)";
+    const date = new Date(value);
+    return Number.isNaN(date.getTime())
+        ? String(value)
+        : date.toLocaleDateString();
+}
+
+filterButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+        currentFilter = button.dataset.filter;
+        filterButtons.forEach((item) => item.classList.toggle("active", item === button));
+        renderFleet();
+    });
+});
+
+exportUnitsButton.addEventListener("click", () => {
+    const headers = [
+        "Name", "Unit Number", "Type", "Status", "Year", "Make", "Model",
+        "Engine Size", "VIN / Serial", "Mileage", "Hours", "Purchase Price",
+        "Archived", "Archived Date", "Archive Reason", "Included in Dashboard Totals"
+    ];
+    const rows = getFleet().map(unit => [
+        unit.name, unit.number, unit.type, unit.status, unit.year, unit.make, unit.model,
+        unit.engineSize, unit.vin, unit.mileage, unit.hours, unit.purchasePrice,
+        unit.archived === true ? "Yes" : "No", unit.archivedAt || "", unit.archiveReason || "",
+        unit.archived === true ? (unit.includeInDashboardTotals === true ? "Yes" : "No") : "Yes"
+    ]);
+    const csv = [headers, ...rows]
+        .map(row => row.map(value => `"${String(value ?? "").replaceAll('"', '""')}"`).join(","))
+        .join("\r\n");
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `track-right-units-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+});
 
 
 if (showFormButton) {
@@ -449,6 +533,9 @@ unitForm.addEventListener(
             model:
                 unitModelInput.value.trim(),
 
+            engineSize:
+                unitEngineSizeInput.value.trim(),
+
             vin:
                 unitVinInput.value.trim(),
 
@@ -481,14 +568,13 @@ unitForm.addEventListener(
             const existingUnit =
                 fleet[existingIndex];
 
-            unitRecord.archived =
-                existingUnit.archived || false;
-
-            unitRecord.serviceHistory =
-                existingUnit.serviceHistory || [];
-
-            unitRecord.repairCost =
-                Number(existingUnit.repairCost) || 0;
+            Object.assign(unitRecord, {
+                ...existingUnit,
+                ...unitRecord,
+                archived: existingUnit.archived === true,
+                serviceHistory: existingUnit.serviceHistory || [],
+                repairCost: Number(existingUnit.repairCost) || 0
+            });
 
             fleet[existingIndex] =
                 unitRecord;
@@ -520,10 +606,33 @@ fleetList.addEventListener(
                 ".archive-unit-btn"
             );
 
+        const restoreButton = event.target.closest(".restore-unit-btn");
+        const dashboardToggle = event.target.closest(".dashboard-inclusion-toggle");
+
         const serviceButton =
             event.target.closest(".log-service-btn");
 
         const fleet = getFleet();
+
+        if (dashboardToggle) {
+            const unit = fleet.find(item => item.id === dashboardToggle.dataset.unitId);
+            if (!unit) return;
+            unit.includeInDashboardTotals = dashboardToggle.checked;
+            saveFleet(fleet);
+            await window.trackRightPersonalData.flush();
+            return;
+        }
+
+        if (restoreButton) {
+            const unit = fleet.find(item => item.id === restoreButton.dataset.unitId);
+            if (!unit || !confirm(`Restore ${unit.name} to the active fleet?`)) return;
+            unit.archived = false;
+            unit.restoredAt = new Date().toISOString();
+            saveFleet(fleet);
+            await window.trackRightPersonalData.flush();
+            renderFleet();
+            return;
+        }
 
         if (serviceButton) {
             const unit = fleet.find((item) => item.id === serviceButton.dataset.unitId);
@@ -575,7 +684,14 @@ fleetList.addEventListener(
                 return;
             }
 
+            const reason = prompt("Optional archive reason:", unit.archiveReason || "");
+            if (reason === null) return;
+            const removeFromTotals = confirm("Remove this unit from current dashboard totals?\n\nOK removes it. Cancel keeps its history included in dashboard totals.");
+
             unit.archived = true;
+            unit.archivedAt = new Date().toISOString();
+            unit.archiveReason = reason.trim();
+            unit.includeInDashboardTotals = !removeFromTotals;
 
             saveFleet(fleet);
             await window.trackRightPersonalData.flush();

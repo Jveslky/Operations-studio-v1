@@ -14,6 +14,17 @@
         catch (error) { console.error("Personal Fleet data could not be read:", error); return fallback; }
     }
 
+    function normalizeUnit(unit) {
+        return {
+            ...unit,
+            engineSize: unit.engineSize ?? unit.engine_size ?? "",
+            archived: unit.archived === true,
+            includeInDashboardTotals: unit.archived === true
+                ? unit.includeInDashboardTotals === true
+                : true
+        };
+    }
+
     function track(promise) {
         pendingWrites.add(promise);
         promise.finally(() => pendingWrites.delete(promise));
@@ -42,7 +53,7 @@
     }
 
     async function syncFleet(serializedFleet) {
-        const fleet = parse(serializedFleet, []);
+        const fleet = parse(serializedFleet, []).map(normalizeUnit);
         if (!Array.isArray(fleet)) return;
         const { data: existing, error: readError } = await client
             .from("personal_fleet_units").select("record_id").eq("account_id", accountId);
@@ -103,7 +114,7 @@
         if (unitsResult.error) throw unitsResult.error;
         if (ordersResult.error) throw ordersResult.error;
 
-        const legacyFleet = parse(localStorage.getItem(fleetKey), []);
+        const legacyFleet = parse(localStorage.getItem(fleetKey), []).map(normalizeUnit);
         const legacyOrders = [];
         for (let index = 0; index < localStorage.length; index += 1) {
             const key = localStorage.key(index);
@@ -113,7 +124,7 @@
             }
         }
 
-        let units = (unitsResult.data || []).map((row) => row.payload);
+        let units = (unitsResult.data || []).map((row) => normalizeUnit(row.payload));
         let orders = (ordersResult.data || []).map((row) => row.payload);
         const migrationKey = `track-right-personal-migrated-${accountId}`;
         if (!units.length && !orders.length && !localStorage.getItem(migrationKey) &&

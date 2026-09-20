@@ -49,13 +49,18 @@
                 </p>
             </div>
 
-            <button
-                id="show-form-button"
-                class="primary-btn"
-                type="button"
-            >
-                Add Unit
-            </button>
+            <div class="page-actions">
+                <button id="export-units-button" class="secondary-btn" type="button">
+                    Export Units
+                </button>
+                <button
+                    id="show-form-button"
+                    class="primary-btn"
+                    type="button"
+                >
+                    Add Unit
+                </button>
+            </div>
         </section>
 
         <section
@@ -90,6 +95,7 @@
                         <select id="unit-type">
                             <option value="Truck">Truck</option>
                             <option value="Car">Car</option>
+                            <option value="Motorcycle">Motorcycle</option>
                             <option value="Trailer">Trailer</option>
                             <option value="Equipment">Equipment</option>
                             <option value="Other">Other</option>
@@ -140,6 +146,13 @@
                         <input id="unit-model"
                                type="text"
                                placeholder="F-250">
+                    </label>
+
+                    <label>
+                        Engine Size
+                        <input id="unit-engine-size"
+                               type="text"
+                               placeholder="5.9L, 998 cc, Dual-motor electric">
                     </label>
 
                     <label>
@@ -197,7 +210,7 @@
 
         <section class="fleet-summary">
             <div class="summary-card">
-                <span>Total Units</span>
+                <span>Active Fleet Units</span>
                 <strong id="total-units">0</strong>
             </div>
 
@@ -210,11 +223,21 @@
                 <span>Out of Service</span>
                 <strong id="out-of-service-units">0</strong>
             </div>
+
+            <div class="summary-card">
+                <span>Archived Units</span>
+                <strong id="archived-units">0</strong>
+            </div>
         </section>
 
         <section>
             <div class="section-heading">
                 <h2>Fleet Units</h2>
+                <div class="unit-filters" role="group" aria-label="Filter fleet units">
+                    <button type="button" class="unit-filter active" data-filter="active">Active</button>
+                    <button type="button" class="unit-filter" data-filter="archived">Archived</button>
+                    <button type="button" class="unit-filter" data-filter="all">All</button>
+                </div>
             </div>
 
             <div id="fleet-list" class="fleet-list"></div>
