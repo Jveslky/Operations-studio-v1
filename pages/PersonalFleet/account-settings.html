@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" data-login-path="../../login.html" data-workspace="personal_fleet">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile and Account | Track Right</title>
+    <link rel="stylesheet" href="../../css/base.css"><link rel="stylesheet" href="../../css/layout.css">
+    <link rel="stylesheet" href="PersonalFleet.css"><link rel="stylesheet" href="../../css/account-settings.css">
+</head>
+<body>
+    <header class="app-header"><div class="app-header-inner">
+        <a class="app-brand" href="Personaldashboard.html">Track Right</a>
+        <nav class="app-nav"><a href="Personaldashboard.html">Dashboard</a><a href="PersonalFleet.html">Fleet</a><a href="Personalrepair-orders.html">Repair Orders</a></nav>
+    </div></header>
+    <main class="settings-page">
+        <header class="settings-heading"><p class="settings-kicker">Account</p><h1>Profile/Account</h1><p>Update the name attached to your Track Right login.</p></header>
+        <section class="settings-card"><form id="profile-settings-form">
+            <label>Display Name<input id="profile-name" maxlength="120" autocomplete="name" required></label>
+            <label>Email<input id="profile-email" type="email" readonly></label>
+            <div class="settings-actions"><button type="submit">Save Profile</button><p id="profile-message" class="settings-message" role="status" aria-live="polite"></p></div>
+        </form></section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="account-settings.js"></script>
+</body></html>

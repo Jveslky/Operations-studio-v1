@@ -612,6 +612,7 @@ exportBackupButton.addEventListener(
         const backupData = {
             version: 2,
             appMode: appMode,
+            fleetName: window.trackRightAuth?.personalAccount?.name || "Personal Fleet",
             exportedAt:
                 new Date().toISOString(),
             fleet: getFleetUnits(),

@@ -50,14 +50,21 @@
                 Manage vehicles, equipment, service,
                 costs, and repair history.
             </p>
-            <label class="dashboard-scope-control">
-                Dashboard scope
-                <select id="dashboard-scope">
-                    <option value="active">Active Fleet</option>
-                    <option value="all">All Units</option>
-                    <option value="custom" disabled>Custom (coming later)</option>
-                </select>
-            </label>
+            <div class="dashboard-scope-control">
+                <div>
+                    <span class="scope-eyebrow">Reporting view</span>
+                    <strong>Dashboard Scope</strong>
+                    <small>Choose which units feed the figures below.</small>
+                </div>
+                <label>
+                    <span class="visually-hidden">Dashboard scope</span>
+                    <select id="dashboard-scope">
+                        <option value="active">Active Fleet</option>
+                        <option value="all">All Units</option>
+                        <option value="custom" disabled>Custom — coming later</option>
+                    </select>
+                </label>
+            </div>
         </header>
 
         <section class="dashboard-sections">
@@ -99,6 +106,11 @@
                         </strong>
                     </article>
                 </div>
+
+                <details class="type-breakdown">
+                    <summary>View fleet by type</summary>
+                    <div id="dashboard-type-breakdown" class="type-breakdown-grid"></div>
+                </details>
             </section>
 
 
@@ -158,12 +170,33 @@
                     </article>
 
                     <article class="metric-card">
-                        <span class="metric-label">
+                        <span id="purchase-cost-label" class="metric-label">
                             Active Fleet Purchase Cost
                         </span>
 
                         <strong id="dashboard-purchase-cost"
                                 class="metric-value">
+                            $0.00
+                        </strong>
+                    </article>
+
+                    <article class="metric-card">
+                        <span id="active-repair-label" class="metric-label">
+                            Active Fleet Repair Cost
+                        </span>
+
+                        <strong id="dashboard-active-repair-cost"
+                                class="metric-value">
+                            $0.00
+                        </strong>
+                    </article>
+
+                    <article class="metric-card">
+                        <span id="active-investment-label" class="metric-label">
+                            Active Fleet Investment
+                        </span>
+
+                        <strong id="dashboard-active-investment" class="metric-value">
                             $0.00
                         </strong>
                     </article>
@@ -176,16 +209,6 @@
                         <strong id="dashboard-lifetime-purchases"
                                 class="metric-value">
                             $0.00
-                        </strong>
-                    </article>
-
-                    <article class="metric-card future-metric" aria-label="Planned metric">
-                        <span class="metric-label">
-                            Active Fleet Current Value
-                        </span>
-
-                        <strong class="metric-value metric-future">
-                            Future
                         </strong>
                     </article>
 

@@ -196,23 +196,50 @@ body {
 .dashboard-scope-control {
     display: flex;
     align-items: center;
-    gap: 10px;
+    justify-content: space-between;
+    gap: 22px;
     margin-top: 18px;
+    padding: 14px 16px;
+    border: 1px solid rgba(64, 102, 109, .35);
+    border-radius: 10px;
+    background: rgba(255,255,255,.55);
     color: #303b43;
-    font-weight: 800;
+}
+
+.dashboard-scope-control > div { display: grid; gap: 2px; }
+.dashboard-scope-control strong { font-size: 1rem; }
+.dashboard-scope-control small { color: #5c686f; }
+.scope-eyebrow {
+    color: #b84f20;
+    font-size: .68rem;
+    font-weight: 900;
+    letter-spacing: .1em;
+    text-transform: uppercase;
 }
 
 .dashboard-scope-control select {
-    padding: 9px 12px;
-    border: 1px solid #799aa0;
-    border-radius: 7px;
-    background: #fff;
+    min-width: 190px;
+    padding: 11px 42px 11px 14px;
+    border: 1px solid #648b92;
+    border-radius: 9px;
+    background-color: #fff;
     color: #202833;
     font: inherit;
+    font-weight: 800;
+    box-shadow: 0 2px 7px rgba(31, 52, 57, .12);
 }
 
-.future-metric { opacity: .72; }
-.metric-future { font-size: 1.25rem; color: #68717a; }
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+}
 
 .dashboard-sections {
     display: grid;
@@ -277,6 +304,40 @@ body {
     line-height: 1;
 }
 
+.type-breakdown {
+    margin-top: 16px;
+    border-top: 1px solid rgba(36, 42, 49, .14);
+    padding-top: 14px;
+}
+
+.type-breakdown summary {
+    width: fit-content;
+    color: #a94a20;
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.type-breakdown-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.type-breakdown-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid #ccd6d9;
+    border-radius: 8px;
+    background: rgba(255,255,255,.68);
+}
+
+.type-breakdown-card span { color: #59656d; font-weight: 700; }
+.type-breakdown-card strong { color: #242a31; font-size: 1.25rem; }
+
 @media (max-width: 800px) {
     .metric-grid {
         grid-template-columns: 1fr;
@@ -292,6 +353,9 @@ body {
     .dashboard-header {
         padding: 22px;
     }
+
+    .dashboard-scope-control { align-items: stretch; flex-direction: column; }
+    .dashboard-scope-control select { width: 100%; }
 
         .dashboard-header h1 {
             font-size: 1.8rem;

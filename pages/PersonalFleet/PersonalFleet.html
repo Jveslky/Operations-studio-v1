@@ -233,10 +233,28 @@
         <section>
             <div class="section-heading">
                 <h2>Fleet Units</h2>
-                <div class="unit-filters" role="group" aria-label="Filter fleet units">
-                    <button type="button" class="unit-filter active" data-filter="active">Active</button>
-                    <button type="button" class="unit-filter" data-filter="archived">Archived</button>
-                    <button type="button" class="unit-filter" data-filter="all">All</button>
+                <div class="fleet-view-controls">
+                    <div class="unit-filters" role="group" aria-label="Filter fleet units by archive status">
+                        <button type="button" class="unit-filter active" data-filter="active">Active</button>
+                        <button type="button" class="unit-filter" data-filter="archived">Archived</button>
+                        <button type="button" class="unit-filter" data-filter="all">All</button>
+                    </div>
+                    <label class="type-filter-label">
+                        <span>Type</span>
+                        <select id="unit-type-filter">
+                            <option value="all">All Types</option>
+                            <option value="Car">Car</option>
+                            <option value="Truck">Truck</option>
+                            <option value="Motorcycle">Motorcycle</option>
+                            <option value="Trailer">Trailer</option>
+                            <option value="Equipment">Equipment</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </label>
+                    <label class="group-type-toggle">
+                        <input id="group-by-type" type="checkbox">
+                        <span>Group by type</span>
+                    </label>
                 </div>
             </div>
 

@@ -167,7 +167,7 @@
     }
 
     function addAccountControls(context) {
-        const header = document.querySelector(".app-header-inner, .navbar-inner, .dev-header");
+        const header = document.querySelector(".app-header-inner, .header-inner, .navbar-inner, .dev-header");
         if (!header || document.getElementById("account-controls")) {
             return;
         }
@@ -176,38 +176,104 @@
         controls.id = "account-controls";
         controls.className = "account-controls";
 
-        const identity = document.createElement("span");
-        identity.className = "account-identity";
-        identity.textContent = context.personalAccount?.name || context.shop?.name || context.user.email || "Account";
+        const rootPath = loginPath.replace(/login\.html(?:\?.*)?$/, "");
+        const profileName = context.user.user_metadata?.full_name ||
+            context.user.user_metadata?.name || "";
+        const accountName = context.workspace === "personal_fleet"
+            ? (context.personalAccount?.name || profileName || context.user.email || "Personal Fleet")
+            : context.workspace === "platform"
+                ? (profileName || context.user.email || "Platform")
+                : (context.shop?.name || "Shop");
+        window.trackRightAccountName = accountName;
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "account-menu-button";
+        button.setAttribute("aria-haspopup", "menu");
+        button.setAttribute("aria-expanded", "false");
+        button.innerHTML = `<span class="account-menu-label"></span><span class="account-menu-caret" aria-hidden="true">▼</span>`;
+        button.querySelector(".account-menu-label").textContent = accountName;
 
-        if (context.platformRole === "platform_owner" || context.platformRole === "platform_admin") {
-            const developmentLink = document.createElement("a");
-            developmentLink.className = "account-users-link";
-            developmentLink.href = `${loginPath.replace(/login\.html(?:\?.*)?$/, "")}pages/Admin/development-dashboard.html`;
-            developmentLink.textContent = "Development";
-            controls.appendChild(developmentLink);
+        const menu = document.createElement("div");
+        menu.className = "account-menu";
+        menu.setAttribute("role", "menu");
+        menu.hidden = true;
+
+        function addLink(label, href) {
+            const link = document.createElement("a");
+            link.href = href;
+            link.textContent = label;
+            link.setAttribute("role", "menuitem");
+            link.tabIndex = -1;
+            menu.appendChild(link);
         }
 
-        if (context.workspace === "shop" && window.trackRightCan("users.manage")) {
-            const usersLink = document.createElement("a");
-            usersLink.className = "account-users-link";
-            usersLink.href = `${loginPath.replace(/login\.html(?:\?.*)?$/, "")}pages/Admin/users.html`;
-            usersLink.textContent = "Users";
-            controls.appendChild(usersLink);
+        if (context.workspace === "personal_fleet") {
+            addLink("Fleet Settings", `${rootPath}pages/PersonalFleet/fleet-settings.html`);
+            addLink("Profile/Account", `${rootPath}pages/PersonalFleet/account-settings.html`);
+        } else if (context.workspace === "platform") {
+            addLink("Development", `${rootPath}pages/Admin/development-dashboard.html`);
+        } else {
+            if (window.trackRightCan("users.manage")) {
+                addLink("Users", `${rootPath}pages/Admin/users.html`);
+            }
+            addLink("Shop Settings", `${rootPath}pages/Shop/shop-settings.html`);
         }
+
+        const divider = document.createElement("div");
+        divider.className = "account-menu-divider";
+        divider.setAttribute("role", "separator");
+        menu.appendChild(divider);
 
         const logout = document.createElement("button");
         logout.type = "button";
         logout.className = "account-logout";
         logout.textContent = "Log out";
+        logout.setAttribute("role", "menuitem");
+        logout.tabIndex = -1;
         logout.addEventListener("click", async function () {
             logout.disabled = true;
             await client.auth.signOut();
             sendToLogin();
         });
 
-        controls.append(identity, logout);
+        menu.appendChild(logout);
+        controls.append(button, menu);
         header.appendChild(controls);
+
+        function setOpen(open, focusFirst = false) {
+            controls.classList.toggle("open", open);
+            menu.hidden = !open;
+            button.setAttribute("aria-expanded", String(open));
+            if (open && focusFirst) menu.querySelector('[role="menuitem"]')?.focus();
+        }
+        button.addEventListener("click", () => setOpen(menu.hidden));
+        button.addEventListener("keydown", (event) => {
+            if (event.key === "ArrowDown") { event.preventDefault(); setOpen(true, true); }
+        });
+        menu.addEventListener("keydown", (event) => {
+            const items = Array.from(menu.querySelectorAll('[role="menuitem"]'));
+            const index = items.indexOf(document.activeElement);
+            if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+                event.preventDefault();
+                const step = event.key === "ArrowDown" ? 1 : -1;
+                items[(index + step + items.length) % items.length]?.focus();
+            }
+        });
+        document.addEventListener("click", (event) => {
+            if (!controls.contains(event.target)) setOpen(false);
+        });
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && !menu.hidden) {
+                setOpen(false);
+                button.focus();
+            }
+        });
+
+        window.trackRightSetAccountLabel = function (name) {
+            const resolvedName = name || profileName || context.user.email || "Account";
+            window.trackRightAccountName = resolvedName;
+            button.querySelector(".account-menu-label").textContent = resolvedName;
+        };
     }
 
     window.trackRightAuthReady = loadContext();

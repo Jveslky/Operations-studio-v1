@@ -34,8 +34,21 @@ const purchaseCostDisplay =
 const lifetimePurchasesDisplay =
     document.querySelector("#dashboard-lifetime-purchases");
 
+const activeRepairCostDisplay =
+    document.querySelector("#dashboard-active-repair-cost");
+
+const activeInvestmentDisplay =
+    document.querySelector("#dashboard-active-investment");
+
 const dashboardScopeInput =
     document.querySelector("#dashboard-scope");
+
+const typeBreakdownDisplay =
+    document.querySelector("#dashboard-type-breakdown");
+
+const purchaseCostLabel = document.querySelector("#purchase-cost-label");
+const activeRepairLabel = document.querySelector("#active-repair-label");
+const activeInvestmentLabel = document.querySelector("#active-investment-label");
 
 const lifetimeCostDisplay =
     document.querySelector("#dashboard-lifetime-cost");
@@ -125,6 +138,15 @@ function formatCurrency(value) {
             currency: "USD"
         }
     );
+}
+
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 }
 
 
@@ -218,6 +240,22 @@ function renderDashboard() {
         unit => unit.status === "Active"
     ).length;
 
+    const typeOrder = ["Car", "Truck", "Motorcycle", "Trailer", "Equipment", "Other"];
+    const typeCounts = dashboardFleet.reduce((counts, unit) => {
+        const type = typeOrder.includes(unit.type) ? unit.type : "Other";
+        counts[type] = (counts[type] || 0) + 1;
+        return counts;
+    }, {});
+    typeBreakdownDisplay.innerHTML = typeOrder
+        .filter(type => typeCounts[type])
+        .map(type => `<div class="type-breakdown-card"><span>${escapeHtml(type)}</span><strong>${typeCounts[type]}</strong></div>`)
+        .join("") || '<p>No units in this dashboard scope.</p>';
+
+    const scopeLabel = dashboardScopeInput.value === "all" ? "All Units" : "Active Fleet";
+    purchaseCostLabel.textContent = `${scopeLabel} Purchase Cost`;
+    activeRepairLabel.textContent = `${scopeLabel} Repair Cost`;
+    activeInvestmentLabel.textContent = `${scopeLabel} Investment`;
+
     const openRepairOrders =
         dashboardRepairOrders.filter(order =>
             order.archived !== true &&
@@ -267,6 +305,11 @@ function renderDashboard() {
         0
     );
 
+    const activeFleetRepairCost = dashboardFleet.reduce(
+        (total, unit) => total + (Number(unit.repairCost) || 0),
+        0
+    );
+
     const lifetimeRepairCost =
         fleet.reduce(
             (total, unit) =>
@@ -301,6 +344,12 @@ function renderDashboard() {
 
     lifetimePurchasesDisplay.textContent =
         formatCurrency(lifetimeUnitPurchases);
+
+    activeRepairCostDisplay.textContent =
+        formatCurrency(activeFleetRepairCost);
+
+    activeInvestmentDisplay.textContent =
+        formatCurrency(activeFleetPurchase + activeFleetRepairCost);
 
     lifetimeCostDisplay.textContent =
         formatCurrency(lifetimeRepairCost);
