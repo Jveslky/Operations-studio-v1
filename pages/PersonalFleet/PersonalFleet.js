@@ -39,7 +39,20 @@ const archivedUnits =
 const filterButtons =
     document.querySelectorAll(".unit-filter");
 
-let currentFilter = "active";
+const typeFilterInput = document.querySelector("#unit-type-filter");
+const groupByTypeInput = document.querySelector("#group-by-type");
+const viewPreferenceKey = "track-right-fleet-view";
+const unitTypes = ["Car", "Truck", "Motorcycle", "Trailer", "Equipment", "Other"];
+
+const savedView = (() => {
+    try { return JSON.parse(localStorage.getItem(viewPreferenceKey)) || {}; }
+    catch { return {}; }
+})();
+let currentFilter = ["active", "archived", "all"].includes(savedView.status)
+    ? savedView.status
+    : "active";
+typeFilterInput.value = savedView.type || "all";
+groupByTypeInput.checked = savedView.groupByType === true;
 
 const unitIdInput =
     document.querySelector("#unit-id");
@@ -199,11 +212,14 @@ function renderFleet() {
 
     const activeFleet = fleet.filter(unit => unit.archived !== true);
     const archivedFleet = fleet.filter(unit => unit.archived === true);
-    const visibleFleet = currentFilter === "all"
+    const statusFleet = currentFilter === "all"
         ? fleet
         : currentFilter === "archived"
             ? archivedFleet
             : activeFleet;
+    const visibleFleet = typeFilterInput.value === "all"
+        ? statusFleet
+        : statusFleet.filter(unit => (unit.type || "Other") === typeFilterInput.value);
 
     fleetList.innerHTML = "";
 
@@ -426,8 +442,33 @@ function renderFleet() {
             </div>
         `;
 
-        fleetList.appendChild(card);
+        if (groupByTypeInput.checked) {
+            const type = unitTypes.includes(unit.type) ? unit.type : "Other";
+            let groupList = fleetList.querySelector(`[data-type-group="${type}"] .fleet-type-list`);
+            if (!groupList) {
+                const typeUnits = visibleFleet.filter(item =>
+                    (unitTypes.includes(item.type) ? item.type : "Other") === type
+                );
+                const group = document.createElement("section");
+                group.className = "fleet-type-group";
+                group.dataset.typeGroup = type;
+                group.innerHTML = `<div class="fleet-type-heading"><h3>${escapeHtml(type)}</h3><span>${typeUnits.length}</span></div><div class="fleet-type-list"></div>`;
+                fleetList.appendChild(group);
+                groupList = group.querySelector(".fleet-type-list");
+            }
+            groupList.appendChild(card);
+        } else {
+            fleetList.appendChild(card);
+        }
     });
+}
+
+function saveViewPreference() {
+    localStorage.setItem(viewPreferenceKey, JSON.stringify({
+        status: currentFilter,
+        type: typeFilterInput.value,
+        groupByType: groupByTypeInput.checked
+    }));
 }
 
 function formatArchiveDate(value) {
@@ -442,9 +483,14 @@ filterButtons.forEach((button) => {
     button.addEventListener("click", () => {
         currentFilter = button.dataset.filter;
         filterButtons.forEach((item) => item.classList.toggle("active", item === button));
+        saveViewPreference();
         renderFleet();
     });
 });
+
+filterButtons.forEach(button => button.classList.toggle("active", button.dataset.filter === currentFilter));
+typeFilterInput.addEventListener("change", () => { saveViewPreference(); renderFleet(); });
+groupByTypeInput.addEventListener("change", () => { saveViewPreference(); renderFleet(); });
 
 exportUnitsButton.addEventListener("click", () => {
     const headers = [
@@ -452,7 +498,14 @@ exportUnitsButton.addEventListener("click", () => {
         "Engine Size", "VIN / Serial", "Mileage", "Hours", "Purchase Price",
         "Archived", "Archived Date", "Archive Reason", "Included in Dashboard Totals"
     ];
-    const rows = getFleet().map(unit => [
+    const fleet = getFleet();
+    const statusFleet = currentFilter === "all" ? fleet : fleet.filter(unit =>
+        currentFilter === "archived" ? unit.archived === true : unit.archived !== true
+    );
+    const exportFleet = typeFilterInput.value === "all"
+        ? statusFleet
+        : statusFleet.filter(unit => (unit.type || "Other") === typeFilterInput.value);
+    const rows = exportFleet.map(unit => [
         unit.name, unit.number, unit.type, unit.status, unit.year, unit.make, unit.model,
         unit.engineSize, unit.vin, unit.mileage, unit.hours, unit.purchasePrice,
         unit.archived === true ? "Yes" : "No", unit.archivedAt || "", unit.archiveReason || "",
