@@ -2,6 +2,10 @@
     color-scheme: light;
 }
 
+[hidden] {
+    display: none !important;
+}
+
 body.auth-page {
     min-height: 100vh;
     display: grid;

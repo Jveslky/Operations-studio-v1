@@ -16,6 +16,13 @@
     }
 
     async function acceptInvitation() {
+        if (!token) {
+            signupForm.hidden = true;
+            acceptButton.hidden = true;
+            existingAccount.hidden = true;
+            showMessage("Open the complete private invitation link. It must include the invitation code after ?token=.", "error");
+            return;
+        }
         acceptButton.disabled = true;
         showMessage("Opening your Personal Fleet…");
         const { error } = await client.rpc("accept_personal_fleet_invitation", {
@@ -33,6 +40,10 @@
     async function initialize() {
         if (!token) {
             summary.textContent = "This invitation link is incomplete.";
+            signupForm.hidden = true;
+            acceptButton.hidden = true;
+            existingAccount.hidden = true;
+            showMessage("Return to Fleet beta invites and use Copy or Open on the active invitation.", "error");
             return;
         }
         const { data: details, error } = await client.rpc("get_personal_fleet_invitation", {
@@ -59,6 +70,10 @@
 
     signupForm.addEventListener("submit", async function (event) {
         event.preventDefault();
+        if (!token) {
+            await acceptInvitation();
+            return;
+        }
         const formData = new FormData(signupForm);
         const redirectUrl = new URL("personal-fleet-invite.html", window.location.href);
         redirectUrl.searchParams.set("token", token);
