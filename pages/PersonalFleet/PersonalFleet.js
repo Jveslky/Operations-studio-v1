@@ -68,6 +68,16 @@ const unitPurchasePriceInput =
         "#unit-purchase-price"
     );
 
+const serviceDialog = document.querySelector("#service-dialog");
+const serviceForm = document.querySelector("#service-form");
+const serviceUnitIdInput = document.querySelector("#service-unit-id");
+const serviceDialogTitle = document.querySelector("#service-dialog-title");
+const serviceDateInput = document.querySelector("#service-date");
+const serviceDescriptionInput = document.querySelector("#service-description");
+const serviceCostInput = document.querySelector("#service-cost");
+const serviceMileageInput = document.querySelector("#service-mileage");
+const serviceHoursInput = document.querySelector("#service-hours");
+
 
 function getFleet() {
     const savedFleet =
@@ -152,11 +162,20 @@ function formatValue(value) {
     return value;
 }
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
 
 function getStatusClass(status) {
-    return `status-${status
+    return `status-${String(status || "unknown")
         .toLowerCase()
-        .replaceAll(" ", "-")}`;
+        .replace(/[^a-z0-9]+/g, "-")}`;
 }
 
 
@@ -219,18 +238,18 @@ function renderFleet() {
                 <div class="service-history-item">
                     <div>
                         <strong>
-                            RO #${record.repairOrderId}
+                            ${record.repairOrderId ? `RO #${escapeHtml(record.repairOrderId)}` : "Service entry"}
                         </strong>
 
                         <span>
-                            ${record.completedAt || "No date"}
+                            ${escapeHtml(record.completedAt || "No date")}
                         </span>
                     </div>
 
                     <p>
-                        ${record.workPerformed ||
+                        ${escapeHtml(record.workPerformed ||
                         record.complaint ||
-                        "Completed repair"}
+                        "Completed repair")}
                     </p>
 
                     <strong>
@@ -256,54 +275,54 @@ function renderFleet() {
         card.innerHTML = `
             <div class="unit-card-header">
                 <div>
-                    <h3>${unit.name}</h3>
+                    <h3>${escapeHtml(unit.name)}</h3>
 
                     <div class="unit-number">
-                        ${formatValue(unit.number)}
+                        ${escapeHtml(formatValue(unit.number))}
                     </div>
                 </div>
 
                 <span
                     class="status-badge ${getStatusClass(unit.status)}"
                 >
-                    ${unit.status}
+                    ${escapeHtml(unit.status)}
                 </span>
             </div>
 
             <div class="unit-details">
                 <div class="unit-detail">
                     <span>Type</span>
-                    <strong>${formatValue(unit.type)}</strong>
+                    <strong>${escapeHtml(formatValue(unit.type))}</strong>
                 </div>
 
                 <div class="unit-detail">
                     <span>Year</span>
-                    <strong>${formatValue(unit.year)}</strong>
+                    <strong>${escapeHtml(formatValue(unit.year))}</strong>
                 </div>
 
                 <div class="unit-detail">
                     <span>Make</span>
-                    <strong>${formatValue(unit.make)}</strong>
+                    <strong>${escapeHtml(formatValue(unit.make))}</strong>
                 </div>
 
                 <div class="unit-detail">
                     <span>Model</span>
-                    <strong>${formatValue(unit.model)}</strong>
+                    <strong>${escapeHtml(formatValue(unit.model))}</strong>
                 </div>
 
                 <div class="unit-detail">
                     <span>Mileage</span>
-                    <strong>${formatValue(unit.mileage)}</strong>
+                    <strong>${escapeHtml(formatValue(unit.mileage))}</strong>
                 </div>
 
                 <div class="unit-detail">
                     <span>Hours</span>
-                    <strong>${formatValue(unit.hours)}</strong>
+                    <strong>${escapeHtml(formatValue(unit.hours))}</strong>
                 </div>
 
                 <div class="unit-detail">
                     <span>VIN / Serial</span>
-                    <strong>${formatValue(unit.vin)}</strong>
+                    <strong>${escapeHtml(formatValue(unit.vin))}</strong>
                 </div>
             </div>
 
@@ -324,7 +343,7 @@ function renderFleet() {
         </div>
 
         <div>
-            <span>Completed Repairs</span>
+            <span>Service Records</span>
 
             <strong>
                 ${serviceHistory.length}
@@ -339,9 +358,17 @@ function renderFleet() {
 
             <div class="unit-actions">
                 <button
+                    class="log-service-btn"
+                    type="button"
+                    data-unit-id="${escapeHtml(unit.id)}"
+                >
+                    Log service
+                </button>
+
+                <button
                     class="edit-unit-btn"
                     type="button"
-                    data-unit-id="${unit.id}"
+                    data-unit-id="${escapeHtml(unit.id)}"
                 >
                     Edit
                 </button>
@@ -349,7 +376,7 @@ function renderFleet() {
                 <button
                     class="archive-unit-btn"
                     type="button"
-                    data-unit-id="${unit.id}"
+                    data-unit-id="${escapeHtml(unit.id)}"
                 >
                     Archive
                 </button>
@@ -380,13 +407,21 @@ cancelButton.addEventListener(
 
 unitForm.addEventListener(
     "submit",
-    function (event) {
+    async function (event) {
         event.preventDefault();
 
         const fleet = getFleet();
 
         const existingId =
             unitIdInput.value;
+
+        const unitLimit = Number(
+            window.trackRightAuth?.personalAccount?.unit_limit || 20
+        );
+        if (!existingId && fleet.filter((unit) => unit.archived !== true).length >= unitLimit) {
+            alert(`Your current plan supports up to ${unitLimit} active units.`);
+            return;
+        }
 
         const unitRecord = {
             id:
@@ -465,6 +500,7 @@ unitForm.addEventListener(
         }
 
         saveFleet(fleet);
+        await window.trackRightPersonalData.flush();
         closeForm();
         renderFleet();
     }
@@ -473,7 +509,7 @@ unitForm.addEventListener(
 
 fleetList.addEventListener(
     "click",
-    function (event) {
+    async function (event) {
         const editButton =
             event.target.closest(
                 ".edit-unit-btn"
@@ -484,7 +520,24 @@ fleetList.addEventListener(
                 ".archive-unit-btn"
             );
 
+        const serviceButton =
+            event.target.closest(".log-service-btn");
+
         const fleet = getFleet();
+
+        if (serviceButton) {
+            const unit = fleet.find((item) => item.id === serviceButton.dataset.unitId);
+            if (!unit) return;
+            serviceForm.reset();
+            serviceUnitIdInput.value = unit.id;
+            serviceDialogTitle.textContent = `Log service · ${unit.name}`;
+            serviceDateInput.value = new Date().toISOString().slice(0, 10);
+            serviceMileageInput.value = unit.mileage ?? "";
+            serviceHoursInput.value = unit.hours ?? "";
+            serviceDialog.showModal();
+            serviceDescriptionInput.focus();
+            return;
+        }
 
         if (editButton) {
             const unit =
@@ -525,10 +578,39 @@ fleetList.addEventListener(
             unit.archived = true;
 
             saveFleet(fleet);
+            await window.trackRightPersonalData.flush();
             renderFleet();
         }
     }
 );
+
+document.querySelector("#close-service-dialog").addEventListener("click", () => serviceDialog.close());
+document.querySelector("#cancel-service").addEventListener("click", () => serviceDialog.close());
+
+serviceForm.addEventListener("submit", async function (event) {
+    event.preventDefault();
+    const fleet = getFleet();
+    const unit = fleet.find((item) => item.id === serviceUnitIdInput.value);
+    if (!unit) return;
+    if (!Array.isArray(unit.serviceHistory)) unit.serviceHistory = [];
+    const cost = Number(serviceCostInput.value) || 0;
+    unit.serviceHistory.push({
+        id: crypto.randomUUID ? crypto.randomUUID() : `service-${Date.now()}`,
+        source: "manual",
+        completedAt: serviceDateInput.value,
+        workPerformed: serviceDescriptionInput.value.trim(),
+        totalCost: cost,
+        mileage: serviceMileageInput.value === "" ? "" : Number(serviceMileageInput.value),
+        hours: serviceHoursInput.value === "" ? "" : Number(serviceHoursInput.value)
+    });
+    unit.repairCost = unit.serviceHistory.reduce((total, record) => total + (Number(record.totalCost) || 0), 0);
+    if (serviceMileageInput.value !== "") unit.mileage = Number(serviceMileageInput.value);
+    if (serviceHoursInput.value !== "") unit.hours = Number(serviceHoursInput.value);
+    saveFleet(fleet);
+    await window.trackRightPersonalData.flush();
+    serviceDialog.close();
+    renderFleet();
+});
 
 
 renderFleet();

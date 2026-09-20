@@ -1,37 +1,4 @@
-const repairOrders = [
-    {
-        id: "1042",
-        customer: "ABC Construction",
-        unit: "Unit 24",
-        status: "Open",
-        priority: "High",
-        technician: "Mike",
-        complaint: "Hydraulic leak at boom cylinder",
-        partsNeeded: "Boom seal kit\nHydraulic fluid",
-        customerNotes:
-            "Customer reports leak worsens during heavy operation.",
-        technicianNotes:
-            "Verified leak at boom. Recommend resealing cylinder and retest.",
-        laborHours: 2.5,
-        additionalTechnician: "",
-        additionalWorkPerformed: ""
-    },
-    {
-        id: "1043",
-        customer: "Example Customer",
-        unit: "Unit 12",
-        status: "In Progress",
-        priority: "Medium",
-        technician: "Unassigned",
-        complaint: "Example complaint for repair order 1043",
-        partsNeeded: "",
-        customerNotes: "",
-        technicianNotes: "",
-        laborHours: 0,
-        additionalTechnician: "",
-        additionalWorkPerformed: ""
-    }
-];
+const repairOrders = [];
 
 
 /* =========================
@@ -203,11 +170,11 @@ if (!repairOrder) {
             repairOrder.additionalWorkPerformed || "";
     }
 
-    repairOrder.laborRate =
-        Number(laborRateInput.value) || 0;
+    laborRateInput.value =
+        Number(repairOrder.laborRate) || 0;
 
-    repairOrder.partsCost =
-        Number(partsCostInput.value) || 0;
+    partsCostInput.value =
+        Number(repairOrder.partsCost) || 0;
 
     completionMileageInput.value =
         repairOrder.completionMileage ?? "";
@@ -436,7 +403,7 @@ if (!repairOrder) {
        SAVE REPAIR ORDER
     ========================= */
 
-    saveButton.addEventListener("click", function () {
+    saveButton.addEventListener("click", async function () {
         repairOrder.customer =
             repairOrder.customer || "";
 
@@ -537,6 +504,8 @@ if (!repairOrder) {
             writeRepairToFleetUnit(repairOrder);
         }
 
+        await window.trackRightPersonalData.flush();
+
         hasUnsavedChanges = false;
 
         saveMessage.textContent = "Saved";
@@ -573,7 +542,7 @@ if (!repairOrder) {
 
 ======================== */
 
-        archiveButton.addEventListener("click", function () {
+        archiveButton.addEventListener("click", async function () {
             const shouldArchive = confirm(
                 "Archive this repair order?"
             );
@@ -589,6 +558,7 @@ if (!repairOrder) {
                 JSON.stringify(repairOrder)
             );
 
+            await window.trackRightPersonalData.flush();
             window.location.href =
                 "./Personalrepair-orders.html";
     

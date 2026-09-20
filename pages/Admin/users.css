@@ -70,8 +70,15 @@
 .user-role { text-transform: capitalize; }
 .user-status { color: #24703a; }
 .users-message.error { color: #a32626; }
+.users-message.success { color: #24703a; }
+.personal-invite-form { grid-template-columns: minmax(180px, .8fr) minmax(240px, 1fr) auto; }
+.users-header-inline { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+.users-header-inline p, .invite-row small { display: block; color: #665f58; margin: 4px 0 0; }
+.users-header-inline button, .revoke-invite { min-height: 36px; padding: 7px 12px; border: 1px solid #b8ada3; border-radius: 6px; background: #fff; cursor: pointer; }
+.invite-row { grid-template-columns: 1fr 190px 90px auto; }
 
 @media (max-width: 700px) {
     .invite-form,
+    .personal-invite-form,
     .user-row { grid-template-columns: 1fr; }
 }

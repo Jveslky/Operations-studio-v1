@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-login-path="../../login.html">
+<html lang="en" data-login-path="../../login.html" data-workspace="personal_fleet">
 
 <head>
     <meta charset="UTF-8">
@@ -194,9 +194,11 @@
         </section>
     </main>
 
-    <script src="vehicles.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script>
+    <script src="../../js/supabase-client.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/personal-fleet-data.js"></script>
+    <script>window.trackRightPersonalData.loadPage("vehicles.js");</script>
 </body>
 
 </html>

@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en" data-login-path="../../login.html" data-workspace="platform">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Personal Fleet Invitations | Track Right</title>
+    <link rel="stylesheet" href="../../css/base.css">
+    <link rel="stylesheet" href="users.css">
+</head>
+<body>
+    <main class="users-page">
+        <header class="users-header">
+            <div><h1>Personal Fleet beta</h1><div>Create and manage complimentary feedback accounts.</div></div>
+            <a href="development-dashboard.html">Development Home</a>
+        </header>
+        <section class="users-panel">
+            <h2>Create complimentary invitation</h2>
+            <p>The link is email-specific, single-use, and does not expire unless you revoke it.</p>
+            <form id="personal-invite-form" class="invite-form personal-invite-form">
+                <input name="accountName" type="text" placeholder="Fleet or owner name" required>
+                <input name="email" type="email" placeholder="owner@example.com" required>
+                <button type="submit">Create invite</button>
+            </form>
+            <div id="invite-result" class="invite-result" hidden>
+                <input id="invite-link" readonly aria-label="Personal Fleet invitation link">
+                <button id="copy-invite" type="button">Copy</button>
+            </div>
+            <div id="users-message" class="users-message" role="status" aria-live="polite"></div>
+        </section>
+        <section class="users-panel">
+            <div class="users-header-inline"><div><h2>Invitations</h2><p>Accepted links remain visible as an audit record.</p></div><button id="refresh-invites" type="button">Refresh</button></div>
+            <div id="personal-invites-list" class="users-list"></div>
+        </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase-client.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="personal-fleet-invites.js"></script>
+</body>
+</html>

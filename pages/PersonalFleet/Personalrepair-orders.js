@@ -156,6 +156,15 @@ function getStatusDotClass(status) {
     }
 }
 
+function escapeHtml(value) {
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
 
 /* =========================
    CARD CREATION
@@ -169,7 +178,7 @@ function createRepairOrderCard(order) {
         "repair-order-card";
 
     card.href =
-        `./Personalrepair-order-details.html?id=${order.id}`;
+        `./Personalrepair-order-details.html?id=${encodeURIComponent(order.id)}`;
 
     card.innerHTML = `
         <div class="repair-order-heading">
@@ -177,25 +186,25 @@ function createRepairOrderCard(order) {
                 class="status-dot ${getStatusDotClass(order.status)}"
             ></span>
 
-            <h3>RO #${order.id}</h3>
+            <h3>RO #${escapeHtml(order.id)}</h3>
         </div>
 
         <p class="repair-order-customer">
-            ${order.customer || "No owner entered"}
+            ${escapeHtml(order.customer || "No owner entered")}
             •
-            ${order.unit || "No unit entered"}
+            ${escapeHtml(order.unit || "No unit entered")}
         </p>
 
         <p class="repair-order-complaint">
-            ${order.complaint || "No work entered"}
+            ${escapeHtml(order.complaint || "No work entered")}
         </p>
 
         <p class="repair-order-meta">
-            ${order.status || "Open"}
+            ${escapeHtml(order.status || "Open")}
             •
-            ${order.technician || "Unassigned"}
+            ${escapeHtml(order.technician || "Unassigned")}
             •
-            ${order.priority || "Medium"} Priority
+            ${escapeHtml(order.priority || "Medium")} Priority
         </p>
     `;
 
@@ -534,7 +543,7 @@ function getNextRepairOrderId() {
 
 newRepairOrderForm.addEventListener(
     "submit",
-    function (event) {
+    async function (event) {
         event.preventDefault();
 
         const newRepairOrder = {
@@ -578,7 +587,8 @@ newRepairOrderForm.addEventListener(
             additionalTechnician: "",
             additionalWorkPerformed: "",
             archived: false,
-            appMode: appMode
+            appMode: appMode,
+            createdAt: new Date().toISOString()
         };
 
         localStorage.setItem(
@@ -586,6 +596,7 @@ newRepairOrderForm.addEventListener(
             JSON.stringify(newRepairOrder)
         );
 
+        await window.trackRightPersonalData.flush();
         window.location.reload();
     }
 );
@@ -599,9 +610,11 @@ exportBackupButton.addEventListener(
     "click",
     function () {
         const backupData = {
+            version: 2,
             appMode: appMode,
             exportedAt:
                 new Date().toISOString(),
+            fleet: getFleetUnits(),
             records: {}
         };
 
@@ -690,7 +703,7 @@ importBackupInput.addEventListener(
 
         fileReader.addEventListener(
             "load",
-            function () {
+            async function () {
                 try {
                     const backupData =
                         JSON.parse(
@@ -700,6 +713,15 @@ importBackupInput.addEventListener(
                     const records =
                         backupData.records ||
                         backupData;
+
+                    if (Array.isArray(backupData.fleet)) {
+                        const unitLimit = Number(window.trackRightAuth?.personalAccount?.unit_limit || 20);
+                        const activeCount = backupData.fleet.filter((unit) => unit.archived !== true).length;
+                        if (activeCount > unitLimit) {
+                            throw new Error(`This backup contains ${activeCount} active units. Your plan supports ${unitLimit}.`);
+                        }
+                        localStorage.setItem(fleetStorageKey, JSON.stringify(backupData.fleet));
+                    }
 
                     Object.entries(
                         records
@@ -722,6 +744,7 @@ importBackupInput.addEventListener(
                         "Backup imported successfully."
                     );
 
+                    await window.trackRightPersonalData.flush();
                     window.location.reload();
                 } catch (error) {
                     console.error(error);

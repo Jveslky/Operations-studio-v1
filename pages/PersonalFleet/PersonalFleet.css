@@ -474,3 +474,23 @@ h1 {
     justify-content: space-between;
     gap: 28px;
 }
+.service-dialog {
+    width: min(640px, calc(100% - 32px));
+    padding: 0;
+    border: 0;
+    border-radius: 14px;
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .32);
+}
+
+.service-dialog::backdrop { background: rgba(21, 27, 31, .72); }
+.service-dialog form { padding: 24px; }
+.service-dialog-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.service-dialog-heading span { color: #b84f20; font-size: 11px; font-weight: 800; letter-spacing: .1em; }
+.service-dialog-heading h2 { margin: 4px 0 0; }
+.service-dialog-heading button { border: 0; background: transparent; font-size: 28px; cursor: pointer; }
+.service-dialog label { display: grid; gap: 7px; font-weight: 700; }
+.service-dialog input, .service-dialog textarea { width: 100%; padding: 10px 11px; border: 1px solid #aaa29a; border-radius: 7px; font: inherit; }
+.service-description-field { grid-column: 1 / -1; }
+.log-service-btn { background: #397f90; color: #fff; }
+.service-dialog .form-actions button { padding: 10px 16px; border: 0; border-radius: 7px; font-weight: 700; }
+.service-dialog .form-actions button[type="submit"] { background: #db6128; color: #fff; }

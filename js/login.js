@@ -16,7 +16,24 @@
         const returnTo = params.get("returnTo");
         return returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")
             ? returnTo
-            : "pages/Shop/shop-dashboard.html";
+            : null;
+    }
+
+    async function accountDestination() {
+        const requested = requestedDestination();
+        if (requested) return requested;
+        const { data: userData } = await client.auth.getUser();
+        const userId = userData.user?.id;
+        if (!userId) return "login.html";
+        const [platform, personal, shop] = await Promise.all([
+            client.from("platform_users").select("role").eq("user_id", userId).maybeSingle(),
+            client.from("personal_fleet_members").select("account_id").eq("user_id", userId).eq("is_active", true).limit(1).maybeSingle(),
+            client.from("shop_members").select("shop_id").eq("user_id", userId).eq("is_active", true).limit(1).maybeSingle()
+        ]);
+        if (platform.data) return "pages/Admin/development-dashboard.html";
+        if (personal.data) return "pages/PersonalFleet/Personaldashboard.html";
+        if (shop.data) return "pages/Shop/shop-dashboard.html";
+        return "account-required.html";
     }
 
     async function finishPendingShopSetup() {
@@ -39,9 +56,9 @@
         localStorage.removeItem("track-right-pending-shop-name");
     }
 
-    client.auth.getSession().then(function ({ data }) {
+    client.auth.getSession().then(async function ({ data }) {
         if (data.session) {
-            window.location.replace(requestedDestination());
+            window.location.replace(await accountDestination());
         }
     });
 
@@ -64,7 +81,7 @@
 
         try {
             await finishPendingShopSetup();
-            window.location.replace(requestedDestination());
+            window.location.replace(await accountDestination());
         } catch (setupError) {
             console.error(setupError);
             showMessage(
