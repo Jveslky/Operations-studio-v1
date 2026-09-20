@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en" data-login-path="../../login.html" data-workspace="personal_fleet">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fleet Settings | Track Right</title>
+    <link rel="stylesheet" href="../../css/base.css">
+    <link rel="stylesheet" href="../../css/layout.css">
+    <link rel="stylesheet" href="PersonalFleet.css">
+    <link rel="stylesheet" href="../../css/account-settings.css">
+</head>
+<body>
+    <header class="app-header"><div class="app-header-inner">
+        <a class="app-brand" href="Personaldashboard.html">Track Right</a>
+        <nav class="app-nav">
+            <a href="Personaldashboard.html">Dashboard</a>
+            <a href="PersonalFleet.html">Fleet</a>
+            <a href="Personalrepair-orders.html">Repair Orders</a>
+        </nav>
+    </div></header>
+    <main class="settings-page">
+        <header class="settings-heading">
+            <p class="settings-kicker">Personal Fleet</p>
+            <h1>Fleet Settings</h1>
+            <p>Name this fleet the way you know it—JV Fleet, Charlie’s Cars, Lights Landscaping, or anything that fits.</p>
+        </header>
+        <section class="settings-card">
+            <form id="fleet-settings-form">
+                <label>Fleet Name<input id="fleet-name" name="fleetName" maxlength="120" autocomplete="organization" required></label>
+                <p class="field-help">This name appears in the account menu and is carried into Track Right exports, reports, and future shared documents.</p>
+                <div class="settings-actions">
+                    <button type="submit">Save Fleet Name</button>
+                    <p id="settings-message" class="settings-message" role="status" aria-live="polite"></p>
+                </div>
+            </form>
+        </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase-client.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="fleet-settings.js"></script>
+</body>
+</html>

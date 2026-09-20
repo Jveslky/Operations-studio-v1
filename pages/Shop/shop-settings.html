@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en" data-login-path="../../login.html">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Settings | Track Right</title>
+    <link rel="stylesheet" href="../../css/base.css"><link rel="stylesheet" href="../../css/layout.css"><link rel="stylesheet" href="shop-dashboard.css"><link rel="stylesheet" href="../../css/account-settings.css">
+</head>
+<body>
+    <header class="app-header"><div class="app-header-inner">
+        <a class="app-brand" href="shop-dashboard.html">Track Right</a>
+        <nav class="app-nav"><a href="shop-dashboard.html">Dashboard</a><a href="schedule.html">Schedule</a><a href="customers.html">Customers</a><a href="repair-orders.html">Repair Orders</a><a href="invoices.html">Invoices</a><a href="accounts-payable.html">Accounts Payable</a></nav>
+    </div></header>
+    <main class="settings-page">
+        <header class="settings-heading"><p class="settings-kicker">Shop</p><h1>Shop Settings</h1><p>Central shop preferences will live here as shared settings are moved out of individual screens.</p></header>
+        <section class="settings-card"><h2>Shop Identity</h2><p id="shop-settings-name">Loading shop…</p><p class="field-help">The authenticated shop name is used throughout the Shop workspace.</p></section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script>
+    <script>window.trackRightAuthReady.then(function (context) { document.getElementById("shop-settings-name").textContent = context.shop?.name || "Shop"; });</script>
+</body></html>

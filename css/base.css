@@ -16,6 +16,7 @@ body {
 }
 
 .account-controls {
+    position: relative;
     display: flex;
     align-items: center;
     gap: 10px;
@@ -23,30 +24,79 @@ body {
     padding-left: 16px;
 }
 
-.account-identity {
-    max-width: 180px;
-    overflow: hidden;
-    color: #d8e2e5;
-    font-size: 13px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.account-logout {
+.account-menu-button {
+    display: inline-flex;
+    max-width: 220px;
+    align-items: center;
+    gap: 7px;
     padding: 8px 11px;
-    background: #454b50;
-    border: 0;
-    border-radius: 7px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 8px;
+    background: #383e43;
     color: #ffffff;
     cursor: pointer;
     font: inherit;
     font-weight: 700;
+    transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
 }
 
-.account-users-link {
-    color: #6eb6c8;
-    font-size: 13px;
+.account-menu-button:hover,
+.account-menu-button:focus-visible { background: #454c52; outline: none; }
+.account-controls.open .account-menu-button {
+    border-color: #ef7d48;
+    box-shadow: 0 0 0 2px rgba(219,97,40,.2);
+}
+.account-menu-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.account-menu-caret { color: #ef7d48; font-size: 11px; transition: transform .15s ease; }
+.account-controls.open .account-menu-caret { transform: rotate(180deg); }
+
+.account-menu {
+    position: absolute;
+    z-index: 1000;
+    top: calc(100% + 8px);
+    right: 0;
+    width: max-content;
+    min-width: 205px;
+    padding: 7px;
+    border: 1px solid #c9cfd3;
+    border-top: 3px solid #db6128;
+    border-radius: 9px;
+    background: #fff;
+    box-shadow: 0 14px 35px rgba(15,22,27,.24);
+}
+
+.account-menu[hidden] { display: none; }
+.account-menu a,
+.account-menu button {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    padding: 10px 11px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #252a30;
+    cursor: pointer;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: left;
     text-decoration: none;
+}
+.account-menu a:hover,
+.account-menu a:focus-visible,
+.account-menu button:hover,
+.account-menu button:focus-visible {
+    background: #f7e8df;
+    color: #a94316;
+    outline: none;
+}
+.account-menu-divider { height: 1px; margin: 6px 4px; background: #e1e4e6; }
+.account-menu .account-logout { color: #8e3028; }
+
+@media (max-width: 700px) {
+    .account-controls { padding-left: 4px; }
+    .account-menu-button { max-width: 150px; }
 }
 
 .public-login-link {

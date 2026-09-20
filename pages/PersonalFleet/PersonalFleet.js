@@ -494,7 +494,7 @@ groupByTypeInput.addEventListener("change", () => { saveViewPreference(); render
 
 exportUnitsButton.addEventListener("click", () => {
     const headers = [
-        "Name", "Unit Number", "Type", "Status", "Year", "Make", "Model",
+        "Fleet Name", "Name", "Unit Number", "Type", "Status", "Year", "Make", "Model",
         "Engine Size", "VIN / Serial", "Mileage", "Hours", "Purchase Price",
         "Archived", "Archived Date", "Archive Reason", "Included in Dashboard Totals"
     ];
@@ -506,6 +506,7 @@ exportUnitsButton.addEventListener("click", () => {
         ? statusFleet
         : statusFleet.filter(unit => (unit.type || "Other") === typeFilterInput.value);
     const rows = exportFleet.map(unit => [
+        window.trackRightAuth?.personalAccount?.name || "Personal Fleet",
         unit.name, unit.number, unit.type, unit.status, unit.year, unit.make, unit.model,
         unit.engineSize, unit.vin, unit.mileage, unit.hours, unit.purchasePrice,
         unit.archived === true ? "Yes" : "No", unit.archivedAt || "", unit.archiveReason || "",
@@ -517,7 +518,9 @@ exportUnitsButton.addEventListener("click", () => {
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const link = document.createElement("a");
     link.href = url;
-    link.download = `track-right-units-${new Date().toISOString().slice(0, 10)}.csv`;
+    const fleetSlug = String(window.trackRightAuth?.personalAccount?.name || "personal-fleet")
+        .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    link.download = `track-right-${fleetSlug || "personal-fleet"}-units-${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     link.remove();
