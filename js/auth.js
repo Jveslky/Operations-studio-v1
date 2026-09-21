@@ -67,7 +67,7 @@
         if (workspace === "personal_fleet") {
             const personalResult = await client
                 .from("personal_fleet_members")
-                .select("account_id, role, personal_fleet_accounts(id, name, plan_code, billing_status, unit_limit, features, status)")
+                .select("account_id, role, personal_fleet_accounts(id, name, plan_code, billing_status, unit_limit, features, status, region_code, locale_code, currency_code, distance_unit, volume_unit, temperature_unit, pressure_unit)")
                 .eq("user_id", user.id)
                 .eq("is_active", true)
                 .limit(1)
