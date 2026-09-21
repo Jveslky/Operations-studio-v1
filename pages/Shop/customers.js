@@ -279,6 +279,11 @@ const saveCustomerUnitButton =
         "save-customer-unit-button"
     );
 
+const customerUnitSaveMessage =
+    document.getElementById(
+        "customer-unit-save-message"
+    );
+
 const customerDirectoryList =
     document.getElementById("customer-directory-list");
 
@@ -1366,7 +1371,26 @@ async function renderCustomerUnits() {
     customerUnitList.innerHTML = "";
 
     if (!selectedCustomerId) {
-        return;
+        return false;
+    }
+
+    let shopId;
+
+    try {
+        shopId = await getCurrentShopId();
+    } catch (shopError) {
+        console.error(
+            "Could not determine shop:",
+            shopError
+        );
+
+        customerUnitList.innerHTML = `
+            <p class="customer-search-empty">
+                ${escapeHtml(shopError.message)}
+            </p>
+        `;
+
+        return false;
     }
 
     const {
@@ -1375,6 +1399,7 @@ async function renderCustomerUnits() {
     } = await supabaseClient
         .from("customer_units")
         .select("*")
+        .eq("shop_id", shopId)
         .eq("customer_id", selectedCustomerId)
         .eq("archived", false)
         .order("created_at");
@@ -1385,7 +1410,13 @@ async function renderCustomerUnits() {
             error
         );
 
-        return;
+        customerUnitList.innerHTML = `
+            <p class="customer-search-empty">
+                Could not load units: ${escapeHtml(error.message)}
+            </p>
+        `;
+
+        return false;
     }
 
     const units =
@@ -1412,7 +1443,7 @@ async function renderCustomerUnits() {
             </p>
         `;
 
-        return;
+        return true;
     }
 
     units.forEach(
@@ -1547,6 +1578,8 @@ async function renderCustomerUnits() {
             );
         }
     );
+
+    return true;
 }
 
 /* =========================
@@ -1656,8 +1689,10 @@ function openCustomerUnitForm() {
     }
 
     editingCustomerUnitId = null;
+    saveCustomerUnitButton.disabled = false;
 
     addCustomerUnitForm.reset();
+    customerUnitSaveMessage.textContent = "";
 
     customerUnitFormTitle.textContent =
         "Add Customer Unit";
@@ -1739,6 +1774,8 @@ function closeCustomerUnitForm() {
     addCustomerUnitForm.hidden = true;
 
     addCustomerUnitForm.reset();
+    saveCustomerUnitButton.disabled = false;
+    customerUnitSaveMessage.textContent = "";
 
     editingCustomerUnitId = null;
 
@@ -1764,19 +1801,58 @@ addCustomerUnitForm.addEventListener(
     async function (event) {
         event.preventDefault();
 
-        const {
-            data: membership,
-            error: membershipError
-        } = await supabaseClient
-            .from("shop_members")
-            .select("shop_id")
-            .single();
+        const customerId = selectedCustomerId;
 
-        if (membershipError || !membership) {
+        if (!customerId) {
+            customerUnitSaveMessage.textContent =
+                "Select a customer before saving a unit.";
+            return;
+        }
+
+        saveCustomerUnitButton.disabled = true;
+        customerUnitSaveMessage.textContent =
+            editingCustomerUnitId
+                ? "Updating unit…"
+                : "Saving unit…";
+
+        let shopId;
+
+        try {
+            shopId = await getCurrentShopId();
+        } catch (shopError) {
             console.error(
                 "Could not determine shop:",
-                membershipError
+                shopError
             );
+
+            customerUnitSaveMessage.textContent =
+                shopError.message;
+            saveCustomerUnitButton.disabled = false;
+            return;
+        }
+
+        const {
+            data: customer,
+            error: customerError
+        } = await supabaseClient
+            .from("Customers")
+            .select("id")
+            .eq("id", customerId)
+            .eq("shop_id", shopId)
+            .eq("archived", false)
+            .maybeSingle();
+
+        if (customerError || !customer) {
+            console.error(
+                "Could not validate unit customer:",
+                customerError
+            );
+
+            customerUnitSaveMessage.textContent =
+                customerError
+                    ? `Could not validate customer: ${customerError.message}`
+                    : "This customer is not active in your shop.";
+            saveCustomerUnitButton.disabled = false;
             return;
         }
 
@@ -1822,6 +1898,7 @@ addCustomerUnitForm.addEventListener(
 
         if (editingCustomerUnitId) {
             const {
+                data: updatedUnit,
                 error
             } = await supabaseClient
                 .from("customer_units")
@@ -1836,45 +1913,73 @@ addCustomerUnitForm.addEventListener(
                 )
                 .eq(
                     "customer_id",
-                    selectedCustomerId
-                );
+                    customerId
+                )
+                .eq("shop_id", shopId)
+                .select()
+                .single();
 
-            if (error) {
+            if (error || !updatedUnit) {
                 console.error(
                     "Unit update failed:",
                     error
                 );
+
+                customerUnitSaveMessage.textContent =
+                    `Unit update failed: ${error?.message || "No unit was updated."}`;
+                saveCustomerUnitButton.disabled = false;
                 return;
             }
         } else {
             const {
+                data: savedUnit,
                 error
             } = await supabaseClient
                 .from("customer_units")
                 .insert({
-                    shop_id:
-                        membership.shop_id,
+                    shop_id: shopId,
 
-                    customer_id:
-                        selectedCustomerId,
+                    customer_id: customerId,
 
                     ...unitValues,
 
                     archived: false
-                });
+                })
+                .select()
+                .single();
 
-            if (error) {
+            if (error || !savedUnit) {
                 console.error(
                     "Unit save failed:",
                     error
                 );
+
+                customerUnitSaveMessage.textContent =
+                    `Unit save failed: ${error?.message || "No unit was created."}`;
+                saveCustomerUnitButton.disabled = false;
                 return;
             }
         }
 
-        closeCustomerUnitForm();
+        const unitsRefreshed =
+            await renderCustomerUnits();
 
-        renderCustomerUnits();
+        if (!unitsRefreshed) {
+            customerUnitSaveMessage.textContent =
+                "Unit saved, but the unit list could not refresh. Reload the page to see the change.";
+            saveCustomerUnitButton.disabled = false;
+            return;
+        }
+
+        customerUnitSaveMessage.textContent =
+            editingCustomerUnitId
+                ? "Unit updated successfully."
+                : "Unit saved and added to this customer.";
+
+        setTimeout(
+            closeCustomerUnitForm,
+            700
+        );
     }
 );
 
