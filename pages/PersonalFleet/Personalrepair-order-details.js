@@ -70,6 +70,16 @@ if (!repairOrder) {
     const technicianSelect =
         document.querySelector("#technician-select");
 
+    const technicianOptions = document.querySelector("#personal-technician-options");
+    const additionalTechnicianOptions = document.querySelector("#personal-additional-technician-options");
+    window.trackRightTechnicians.get().forEach((technician) => {
+        [technicianOptions, additionalTechnicianOptions].forEach((list) => {
+            const option = document.createElement("option");
+            option.value = technician.name;
+            list.appendChild(option);
+        });
+    });
+
     const prioritySelect =
         document.querySelector("#priority-select");
 
@@ -429,7 +439,7 @@ if (!repairOrder) {
             statusSelect.value;
 
         repairOrder.technician =
-            technicianSelect.value;
+            technicianSelect.value.trim() || "Unassigned";
 
         repairOrder.priority =
             prioritySelect.value;
@@ -484,7 +494,7 @@ if (!repairOrder) {
 
         if (
             repairOrder.status === "In Progress" &&
-            repairOrder.technician === "Unassigned"
+            (!repairOrder.technician || repairOrder.technician === "Unassigned")
         ) {
             repairOrder.status = "Needs Info";
             statusSelect.value = "Needs Info";

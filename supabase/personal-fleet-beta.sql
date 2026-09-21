@@ -86,6 +86,17 @@ create table if not exists public.personal_fleet_repair_orders (
     primary key (account_id, record_id)
 );
 
+create table if not exists public.personal_fleet_technicians (
+    id uuid primary key default gen_random_uuid(),
+    account_id uuid not null references public.personal_fleet_accounts(id) on delete cascade,
+    name text not null check (char_length(trim(name)) between 1 and 120),
+    email text,
+    phone text,
+    is_active boolean not null default true,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
 create or replace function public.is_platform_admin()
 returns boolean
 language sql
@@ -114,6 +125,17 @@ as $$
         where members.account_id = requested_account_id
           and members.user_id = auth.uid()
           and members.is_active = true
+          and accounts.status = 'active'
+    );
+$$;
+
+create or replace function public.is_personal_fleet_manager(requested_account_id uuid)
+returns boolean language sql stable security definer set search_path = public as $$
+    select exists (
+        select 1 from public.personal_fleet_members members
+        join public.personal_fleet_accounts accounts on accounts.id = members.account_id
+        where members.account_id = requested_account_id and members.user_id = auth.uid()
+          and members.is_active = true and members.role in ('owner', 'manager')
           and accounts.status = 'active'
     );
 $$;
@@ -350,6 +372,7 @@ alter table public.personal_fleet_members enable row level security;
 alter table public.personal_fleet_invitations enable row level security;
 alter table public.personal_fleet_units enable row level security;
 alter table public.personal_fleet_repair_orders enable row level security;
+alter table public.personal_fleet_technicians enable row level security;
 
 drop policy if exists "platform users can read themselves" on public.platform_users;
 create policy "platform users can read themselves" on public.platform_users
@@ -375,8 +398,23 @@ for all to authenticated
 using (public.is_personal_fleet_member(account_id))
 with check (public.is_personal_fleet_member(account_id));
 
+drop policy if exists "members read personal fleet technicians" on public.personal_fleet_technicians;
+create policy "members read personal fleet technicians" on public.personal_fleet_technicians
+for select to authenticated using (public.is_personal_fleet_member(account_id));
+drop policy if exists "managers create personal fleet technicians" on public.personal_fleet_technicians;
+create policy "managers create personal fleet technicians" on public.personal_fleet_technicians
+for insert to authenticated with check (public.is_personal_fleet_manager(account_id));
+drop policy if exists "managers update personal fleet technicians" on public.personal_fleet_technicians;
+create policy "managers update personal fleet technicians" on public.personal_fleet_technicians
+for update to authenticated using (public.is_personal_fleet_manager(account_id))
+with check (public.is_personal_fleet_manager(account_id));
+drop policy if exists "managers delete personal fleet technicians" on public.personal_fleet_technicians;
+create policy "managers delete personal fleet technicians" on public.personal_fleet_technicians
+for delete to authenticated using (public.is_personal_fleet_manager(account_id));
+
 revoke all on function public.is_platform_admin() from public;
 revoke all on function public.is_personal_fleet_member(uuid) from public;
+revoke all on function public.is_personal_fleet_manager(uuid) from public;
 revoke all on function public.create_personal_fleet_invitation(text, text, timestamptz) from public;
 revoke all on function public.get_personal_fleet_invitation(uuid) from public;
 revoke all on function public.accept_personal_fleet_invitation(uuid) from public;
@@ -387,6 +425,8 @@ revoke all on function public.revoke_personal_fleet_invitation(uuid) from public
 
 grant execute on function public.is_platform_admin() to authenticated;
 grant execute on function public.is_personal_fleet_member(uuid) to authenticated;
+grant execute on function public.is_personal_fleet_manager(uuid) to authenticated;
+grant select, insert, update, delete on public.personal_fleet_technicians to authenticated;
 grant execute on function public.create_personal_fleet_invitation(text, text, timestamptz) to authenticated;
 grant execute on function public.get_personal_fleet_invitation(uuid) to anon, authenticated;
 grant execute on function public.accept_personal_fleet_invitation(uuid) to authenticated;

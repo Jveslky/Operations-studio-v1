@@ -164,7 +164,10 @@
         flush: () => Promise.all(Array.from(pendingWrites)),
         loadPage: async function (source) {
             try {
-                await readyPromise;
+                await Promise.all([
+                    readyPromise,
+                    window.trackRightTechniciansReady || Promise.resolve()
+                ]);
                 const script = document.createElement("script");
                 script.src = source;
                 document.body.appendChild(script);

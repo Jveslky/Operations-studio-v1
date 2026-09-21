@@ -34,10 +34,32 @@
                 </div>
             </form>
         </section>
+        <section class="settings-card technician-settings-card">
+            <div class="settings-section-heading">
+                <div><p class="settings-kicker">Repair Orders</p><h2>Technicians</h2></div>
+                <button id="add-technician-button" class="secondary-settings-button" type="button">Add Technician</button>
+            </div>
+            <p class="field-help">Active technicians appear in the primary and additional technician dropdowns on repair orders.</p>
+            <form id="technician-form" hidden>
+                <input id="technician-id" type="hidden">
+                <div class="technician-form-grid">
+                    <label>Name<input id="technician-name" maxlength="120" required></label>
+                    <label>Email <span>(optional)</span><input id="technician-email" type="email" maxlength="254"></label>
+                    <label>Phone <span>(optional)</span><input id="technician-phone" type="tel" maxlength="40"></label>
+                </div>
+                <div class="settings-actions">
+                    <button type="submit">Save Technician</button>
+                    <button id="cancel-technician-button" class="secondary-settings-button" type="button">Cancel</button>
+                </div>
+            </form>
+            <div id="technician-list" class="technician-list"></div>
+            <p id="technician-message" class="settings-message" role="status" aria-live="polite"></p>
+        </section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../js/supabase-client.js"></script>
     <script src="../../js/auth.js"></script>
+    <script src="../../js/personal-fleet-technicians.js"></script>
     <script src="fleet-settings.js"></script>
 </body>
 </html>
