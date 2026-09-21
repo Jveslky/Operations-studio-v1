@@ -76,6 +76,15 @@ const importBackupInput =
 const newUnitInput =
     document.querySelector("#new-unit");
 
+const newTechnicianOptions =
+    document.querySelector("#new-technician-options");
+
+window.trackRightTechnicians.get().forEach((technician) => {
+    const option = document.createElement("option");
+    option.value = technician.name;
+    newTechnicianOptions.appendChild(option);
+});
+
 
 /* =========================
    STORAGE HELPERS
