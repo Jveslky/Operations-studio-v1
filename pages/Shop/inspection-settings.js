@@ -7,6 +7,7 @@
     const defaultTemplate = document.getElementById("inspection-default-template");
     const reportPass = document.getElementById("inspection-report-pass");
     const reportInternalMedia = document.getElementById("inspection-report-internal-media");
+    const completionNotifications = document.getElementById("inspection-completion-notifications");
     const behaviorMessage = document.getElementById("inspection-behavior-message");
     const templateForm = document.getElementById("inspection-template-form");
     const templateId = document.getElementById("inspection-template-id");
@@ -137,13 +138,14 @@
 
     async function loadBehavior() {
         const { data, error } = await client.from("shop_inspection_settings")
-            .select("default_attachment_mode, default_template_id, include_pass_items_in_report, include_internal_media_in_report")
+            .select("default_attachment_mode, default_template_id, include_pass_items_in_report, include_internal_media_in_report, completion_notifications_enabled")
             .eq("shop_id", context.shopId)
             .maybeSingle();
         if (error) throw error;
         defaultMode.value = data?.default_attachment_mode || "never";
         reportPass.checked = data?.include_pass_items_in_report !== false;
         reportInternalMedia.checked = data?.include_internal_media_in_report === true;
+        completionNotifications.checked = data?.completion_notifications_enabled !== false;
         populateDefaultTemplates(data?.default_template_id || "");
     }
 
@@ -164,6 +166,7 @@
             default_template_id: defaultTemplate.value || null,
             include_pass_items_in_report: reportPass.checked,
             include_internal_media_in_report: reportInternalMedia.checked,
+            completion_notifications_enabled: completionNotifications.checked,
             updated_at: new Date().toISOString()
         });
         status(behaviorMessage, error ? `Could not save: ${error.message}` : "Inspection behavior saved.", error ? "error" : "success");
