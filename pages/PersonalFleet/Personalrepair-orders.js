@@ -77,11 +77,12 @@ const newUnitInput =
     document.querySelector("#new-unit");
 
 const newTechnicianOptions =
-    document.querySelector("#new-technician-options");
+    document.querySelector("#new-technician");
 
 window.trackRightTechnicians.get().forEach((technician) => {
     const option = document.createElement("option");
     option.value = technician.name;
+    option.textContent = technician.name;
     newTechnicianOptions.appendChild(option);
 });
 
