@@ -5,6 +5,7 @@
     const fleetKey = "track-right-fleet";
     const orderPattern = /^repair-order-(.+)$/;
     const pendingWrites = new Set();
+    const assetVersion = "20260921-2";
     let accountId = null;
     let originalSetItem = null;
     let syncing = false;
@@ -169,7 +170,8 @@
                     window.trackRightTechniciansReady || Promise.resolve()
                 ]);
                 const script = document.createElement("script");
-                script.src = source;
+                const separator = source.includes("?") ? "&" : "?";
+                script.src = `${source}${separator}v=${assetVersion}`;
                 document.body.appendChild(script);
             } catch (error) {
                 document.body.innerHTML = `<main class="personal-data-error"><h1>Personal Fleet could not open</h1><p>${error.message}</p></main>`;
