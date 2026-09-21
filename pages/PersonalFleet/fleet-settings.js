@@ -3,6 +3,12 @@
     const form = document.getElementById("fleet-settings-form");
     const nameInput = document.getElementById("fleet-name");
     const message = document.getElementById("settings-message");
+    const regionalFields = {
+        region: document.getElementById("fleet-region"), locale: document.getElementById("fleet-locale"),
+        currency: document.getElementById("fleet-currency"), distance: document.getElementById("fleet-distance"),
+        volume: document.getElementById("fleet-volume"), temperature: document.getElementById("fleet-temperature"),
+        pressure: document.getElementById("fleet-pressure")
+    };
     const technicianForm = document.getElementById("technician-form");
     const technicianId = document.getElementById("technician-id");
     const technicianName = document.getElementById("technician-name");
@@ -18,8 +24,31 @@
         technicians = results[1];
         nameInput.value = context.personalAccount?.name ||
             context.user.user_metadata?.full_name || context.user.email || "";
+        const settings = window.trackRightFleetRegion.get();
+        regionalFields.region.value = settings.region_code;
+        regionalFields.locale.value = settings.locale_code;
+        regionalFields.currency.value = settings.currency_code;
+        regionalFields.distance.value = settings.distance_unit;
+        regionalFields.volume.value = settings.volume_unit;
+        regionalFields.temperature.value = settings.temperature_unit;
+        regionalFields.pressure.value = settings.pressure_unit;
         renderTechnicians();
     });
+
+    regionalFields.region.addEventListener("change", () => {
+        if (regionalFields.region.value === "US") {
+            Object.assign(regionalFields.locale, { value: "en-US" }); regionalFields.currency.value = "USD";
+            regionalFields.distance.value = "mi"; regionalFields.volume.value = "gal";
+            regionalFields.temperature.value = "F"; regionalFields.pressure.value = "psi";
+        } else if (regionalFields.region.value === "IE") {
+            regionalFields.locale.value = "en-IE"; regionalFields.currency.value = "EUR";
+            regionalFields.distance.value = "km"; regionalFields.volume.value = "L";
+            regionalFields.temperature.value = "C"; regionalFields.pressure.value = "bar";
+        }
+    });
+    Object.values(regionalFields).slice(1).forEach((field) => field.addEventListener("change", () => {
+        regionalFields.region.value = "CUSTOM";
+    }));
 
     function renderTechnicians() {
         technicianList.replaceChildren();
@@ -115,8 +144,15 @@
         button.disabled = true;
         message.className = "settings-message";
         message.textContent = "Saving…";
-        const { error } = await window.trackRightSupabase.rpc("update_personal_fleet_name", {
-            requested_name: name
+        const { error } = await window.trackRightSupabase.rpc("update_personal_fleet_settings", {
+            requested_name: name,
+            requested_region: regionalFields.region.value,
+            requested_locale: regionalFields.locale.value,
+            requested_currency: regionalFields.currency.value,
+            requested_distance: regionalFields.distance.value,
+            requested_volume: regionalFields.volume.value,
+            requested_temperature: regionalFields.temperature.value,
+            requested_pressure: regionalFields.pressure.value
         });
         button.disabled = false;
         if (error) {
@@ -124,9 +160,14 @@
             message.textContent = error.message;
             return;
         }
-        if (window.trackRightAuth?.personalAccount) window.trackRightAuth.personalAccount.name = name;
+        if (window.trackRightAuth?.personalAccount) Object.assign(window.trackRightAuth.personalAccount, {
+            name, region_code: regionalFields.region.value, locale_code: regionalFields.locale.value,
+            currency_code: regionalFields.currency.value, distance_unit: regionalFields.distance.value,
+            volume_unit: regionalFields.volume.value, temperature_unit: regionalFields.temperature.value,
+            pressure_unit: regionalFields.pressure.value
+        });
         window.trackRightSetAccountLabel?.(name);
         message.className = "settings-message success";
-        message.textContent = "Fleet name saved.";
+        message.textContent = "Fleet settings saved.";
     });
 })();
