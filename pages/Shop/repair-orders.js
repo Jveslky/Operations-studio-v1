@@ -2,6 +2,7 @@
    APP CONFIGURATION
 ========================= */
 
+const supabaseClient = window.trackRightSupabase;
 const appMode = "shop";
 
 const FLEET_STORAGE_KEY = "track-right-fleet";
@@ -10,6 +11,7 @@ const CUSTOMER_STORAGE_KEY = "track-right-customers";
 const repairOrders = [];
 
 let selectedCustomerId = null;
+let unitLoadRequestId = 0;
 
 
 /* =========================
@@ -50,6 +52,9 @@ const newTechnicianInput =
 
 const newComplaintInput =
     document.getElementById("new-complaint");
+
+const newRoDataMessage =
+    document.getElementById("new-ro-data-message");
 
 const editCustomerButton =
     document.getElementById("edit-customer-button");
@@ -495,20 +500,14 @@ function openNewRepairOrderForm() {
 
 newRepairOrderButton.addEventListener(
     "click",
-    function () {
+    async function () {
         selectedCustomerId = null;
 
         newRepairOrderForm.reset();
 
-        populateCustomerDropdown();
-
-        newUnitInput.innerHTML = `
-            <option value="">
-                Select a customer first
-            </option>
-        `;
-
         openNewRepairOrderForm();
+
+        await populateCustomerDropdown();
     }
 );
 
@@ -518,6 +517,10 @@ cancelNewRepairOrderButton.addEventListener(
         newRepairOrderForm.reset();
         newRepairOrderForm.hidden = true;
         selectedCustomerId = null;
+        unitLoadRequestId += 1;
+        newRoDataMessage.textContent = "";
+        newRoDataMessage.classList.remove("error");
+        setUnitDropdownState("Select a customer first", true);
     }
 );
 
@@ -1017,109 +1020,178 @@ function getSelectedCustomer() {
     });
 }
 
+function setUnitDropdownState(message, disabled) {
+    newUnitInput.innerHTML = "";
+
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = message;
+    newUnitInput.appendChild(option);
+    newUnitInput.value = "";
+    newUnitInput.disabled = disabled;
+}
+
+async function getRepairOrderShopId() {
+    const context = await window.trackRightAuthReady;
+
+    if (!context?.user || !context.shopId) {
+        throw new Error(
+            "Your active shop membership could not be determined."
+        );
+    }
+
+    return context.shopId;
+}
+
 newCustomerInput.addEventListener(
     "change",
-    function () {
-        selectedCustomerId =
+    async function () {
+        const requestId = ++unitLoadRequestId;
+        const customerId =
             newCustomerInput.value || null;
+        selectedCustomerId = customerId;
 
-        newUnitInput.innerHTML = `
-            <option value="">
-                Select a customer first
-            </option>
-        `;
+        newRoDataMessage.textContent = "";
+        newRoDataMessage.classList.remove("error");
 
-        if (!selectedCustomerId) {
+        if (!customerId) {
+            setUnitDropdownState(
+                "Select a customer first",
+                true
+            );
             return;
         }
 
-        const selectedCustomer =
-            getCustomers().find(function (customer) {
-                return (
-                    customer.id ===
-                    selectedCustomerId
-                );
+        setUnitDropdownState("Loading units…", true);
+
+        try {
+            const shopId = await getRepairOrderShopId();
+            const { data: units, error } =
+                await supabaseClient
+                    .from("customer_units")
+                    .select("id, year, make, model, serial")
+                    .eq("shop_id", shopId)
+                    .eq("customer_id", customerId)
+                    .eq("archived", false)
+                    .order("created_at");
+
+            if (requestId !== unitLoadRequestId) {
+                return;
+            }
+
+            if (error) {
+                throw error;
+            }
+
+            if (!units || units.length === 0) {
+                setUnitDropdownState("No units available", true);
+                newRoDataMessage.textContent =
+                    "This customer has no active units.";
+                return;
+            }
+
+            setUnitDropdownState(
+                "Select a customer vehicle",
+                false
+            );
+
+            units.forEach(function (unit) {
+                const option =
+                    document.createElement("option");
+
+                option.value = unit.id;
+                option.textContent = [
+                    unit.year,
+                    unit.make,
+                    unit.model
+                ]
+                    .filter(Boolean)
+                    .join(" ") ||
+                    unit.serial ||
+                    "Unnamed unit";
+
+                newUnitInput.appendChild(option);
             });
+        } catch (error) {
+            if (requestId !== unitLoadRequestId) {
+                return;
+            }
 
-        if (!selectedCustomer) {
-            return;
+            console.error(
+                "Could not load customer units:",
+                error
+            );
+            setUnitDropdownState("Units unavailable", true);
+            newRoDataMessage.textContent =
+                `Could not load units: ${error.message}`;
+            newRoDataMessage.classList.add("error");
         }
-
-        populateCustomerUnitDropdown(
-            selectedCustomer
-        );
     }
 );
 
-function populateCustomerDropdown() {
+async function populateCustomerDropdown() {
+    unitLoadRequestId += 1;
+    selectedCustomerId = null;
+    newCustomerInput.disabled = true;
     newCustomerInput.innerHTML = `
-        <option value="">
-            Select a customer
-        </option>
+        <option value="">Loading customers…</option>
     `;
+    setUnitDropdownState("Select a customer first", true);
+    newRoDataMessage.textContent = "";
+    newRoDataMessage.classList.remove("error");
 
-    const customers = getCustomers()
-        .filter(function (customer) {
-            return customer.archived !== true;
-        })
-        .sort(function (firstCustomer, secondCustomer) {
-            return firstCustomer.name.localeCompare(
-                secondCustomer.name
-            );
+    try {
+        const shopId = await getRepairOrderShopId();
+        const { data: customers, error } =
+            await supabaseClient
+                .from("Customers")
+                .select("id, name")
+                .eq("shop_id", shopId)
+                .eq("archived", false)
+                .order("name");
+
+        if (error) {
+            throw error;
+        }
+
+        newCustomerInput.innerHTML = "";
+
+        const initialOption =
+            document.createElement("option");
+        initialOption.value = "";
+        initialOption.textContent = customers?.length
+            ? "Select a customer"
+            : "No customers available";
+        newCustomerInput.appendChild(initialOption);
+
+        (customers || []).forEach(function (customer) {
+            const option =
+                document.createElement("option");
+
+            option.value = customer.id;
+            option.textContent = customer.name;
+            newCustomerInput.appendChild(option);
         });
 
-    customers.forEach(function (customer) {
-        const option =
-            document.createElement("option");
+        newCustomerInput.disabled = !customers?.length;
 
-        option.value = customer.id;
-        option.textContent = customer.name;
+        if (!customers?.length) {
+            newRoDataMessage.textContent =
+                "Add an active customer before creating a repair order.";
+        }
 
-        newCustomerInput.appendChild(option);
-    });
-}
-
-function populateCustomerUnitDropdown(customer) {
-    newUnitInput.innerHTML = `
-        <option value="">
-            Select a customer vehicle
-        </option>
-    `;
-
-    const units = Array.isArray(customer.units)
-        ? customer.units.filter(function (unit) {
-            return unit.archived !== true;
-        })
-        : [];
-
-    units.forEach(function (unit) {
-        const option =
-            document.createElement("option");
-
-        option.value = unit.id;
-
-        const unitNumber = unit.number
-            ? `${unit.number} — `
-            : "";
-
-        const unitDescription = [
-            unit.year,
-            unit.make,
-            unit.model
-        ]
-            .filter(Boolean)
-            .join(" ");
-
-        option.textContent = [
-            unit.year,
-            unit.make,
-            unit.model
-        ]
-            .filter(Boolean)
-            .join(" ");
-
-        newUnitInput.appendChild(option);
-    });
+        return customers || [];
+    } catch (error) {
+        console.error("Could not load customers:", error);
+        newCustomerInput.innerHTML = `
+            <option value="">Customers unavailable</option>
+        `;
+        newCustomerInput.disabled = true;
+        newRoDataMessage.textContent =
+            `Could not load customers: ${error.message}`;
+        newRoDataMessage.classList.add("error");
+        return [];
+    }
 }
 
 function renderCustomerUnits() {
@@ -1528,47 +1600,43 @@ addCustomerUnitForm?.addEventListener(
 
 startCustomerRepairOrderButton?.addEventListener(
     "click",
-    function () {
-        const selectedCustomer =
-            getCustomers().find(function (customer) {
-                return customer.id === selectedCustomerId;
-            });
+    async function () {
+        const customerId = selectedCustomerId;
 
-        if (!selectedCustomer) {
+        if (!customerId) {
             console.error(
-                "Could not find selected customer:",
-                selectedCustomerId
+                "Could not determine the selected customer."
             );
-
             return;
         }
 
         newRepairOrderForm.reset();
 
-        populateCustomerDropdown();
-
-        newCustomerInput.value =
-            selectedCustomer.id;
-
-        populateCustomerUnitDropdown(
-            selectedCustomer
-        );
-
-        populateCustomerUnitDropdown(
-            selectedCustomer
-        );
-
         customerRecordPanel.hidden = true;
         customerSearchResults.hidden = true;
         addCustomerForm.hidden = true;
 
-        newUnitInput.innerHTML = `
-    <option value="">
-        Select a customer first
-    </option>
-`;
-
         openNewRepairOrderForm();
+
+        await populateCustomerDropdown();
+
+        const matchingOption = Array.from(
+            newCustomerInput.options
+        ).some(function (option) {
+            return option.value === customerId;
+        });
+
+        if (!matchingOption) {
+            newRoDataMessage.textContent =
+                "That customer is not active in this shop.";
+            newRoDataMessage.classList.add("error");
+            return;
+        }
+
+        newCustomerInput.value = customerId;
+        newCustomerInput.dispatchEvent(
+            new Event("change")
+        );
     }
 );
 
