@@ -56,7 +56,7 @@
     async function renderInspections() {
         const [inspectionResult, itemResult] = await Promise.all([
             client.from("shop_inspections").select("id, title, status, created_at, created_by, completed_at").eq("shop_id", context.shopId).eq("repair_order_id", orderId).neq("status", "archived").order("created_at", { ascending: false }),
-            client.from("shop_inspection_items").select("id, inspection_id, section_title, item_label, is_required, response, notes, sort_order").eq("shop_id", context.shopId).order("sort_order")
+            client.from("shop_inspection_items").select("id, inspection_id, section_title, item_label, is_required, response, response_label, response_set_name, response_options, notes, sort_order").eq("shop_id", context.shopId).order("sort_order")
         ]);
         if (inspectionResult.error || itemResult.error) throw inspectionResult.error || itemResult.error;
         inspectionRecords = inspectionResult.data;
@@ -109,11 +109,16 @@
                     label.textContent = item.item_label;
                     const response = document.createElement("select");
                     response.className = "inspection-response";
-                    [["unanswered", "Not answered"], ["pass", "Pass"], ["attention", "Attention"], ["fail", "Fail"], ["na", "Not applicable"]].forEach(function (choice) {
+                    const choices = Array.isArray(item.response_options) ? item.response_options : [
+                        { label: "Pass", meaning: "positive" }, { label: "Attention", meaning: "attention" }, { label: "Fail", meaning: "critical" }, { label: "N/A", meaning: "na" }
+                    ];
+                    [{ label: "Not answered", meaning: "unanswered" }, ...choices].forEach(function (choice) {
                         const option = document.createElement("option");
-                        option.value = choice[0]; option.textContent = choice[1]; response.appendChild(option);
+                        option.value = choice.label; option.dataset.meaning = choice.meaning; option.textContent = choice.label; response.appendChild(option);
                     });
-                    response.value = item.response;
+                    response.value = item.response_label || (item.response === "unanswered" ? "Not answered" : choices.find(function (choice) {
+                        return ({ positive: "pass", info: "info", attention: "attention", critical: "fail", na: "na" })[choice.meaning] === item.response;
+                    })?.label || "Not answered");
                     response.disabled = inspection.status === "complete" || !canAddDocumentation();
                     const notes = document.createElement("input");
                     notes.type = "text"; notes.className = "inspection-item-notes"; notes.placeholder = "Item notes"; notes.value = item.notes || "";
@@ -342,10 +347,13 @@
     inspectionList.addEventListener("change", async function (event) {
         const itemRow = event.target.closest("[data-item-id]");
         if (!itemRow) return;
-        const response = itemRow.querySelector(".inspection-response").value;
+        const responseInput = itemRow.querySelector(".inspection-response");
+        const meaning = responseInput.selectedOptions[0].dataset.meaning;
+        const response = ({ positive: "pass", info: "info", attention: "attention", critical: "fail", na: "na", unanswered: "unanswered" })[meaning];
+        const responseLabel = response === "unanswered" ? null : responseInput.value;
         const notes = itemRow.querySelector(".inspection-item-notes").value.trim();
         const { error } = await client.from("shop_inspection_items")
-            .update({ response, notes: notes || null, updated_by: context.user.id, updated_at: new Date().toISOString() })
+            .update({ response, response_label: responseLabel, notes: notes || null, updated_by: context.user.id, updated_at: new Date().toISOString() })
             .eq("id", itemRow.dataset.itemId)
             .eq("shop_id", context.shopId);
         setMessage(error ? `Inspection item could not be saved: ${error.message}` : "Inspection item saved.", error ? "error" : "success");
@@ -354,10 +362,13 @@
     inspectionList.addEventListener("focusout", async function (event) {
         if (!event.target.matches(".inspection-item-notes")) return;
         const itemRow = event.target.closest("[data-item-id]");
-        const response = itemRow.querySelector(".inspection-response").value;
+        const responseInput = itemRow.querySelector(".inspection-response");
+        const meaning = responseInput.selectedOptions[0].dataset.meaning;
+        const response = ({ positive: "pass", info: "info", attention: "attention", critical: "fail", na: "na", unanswered: "unanswered" })[meaning];
+        const responseLabel = response === "unanswered" ? null : responseInput.value;
         const notes = event.target.value.trim();
         const { error } = await client.from("shop_inspection_items")
-            .update({ response, notes: notes || null, updated_by: context.user.id, updated_at: new Date().toISOString() })
+            .update({ response, response_label: responseLabel, notes: notes || null, updated_by: context.user.id, updated_at: new Date().toISOString() })
             .eq("id", itemRow.dataset.itemId)
             .eq("shop_id", context.shopId);
         if (error) setMessage(`Inspection notes could not be saved: ${error.message}`, "error");
@@ -372,7 +383,7 @@
         const currentValues = Array.from(row.querySelectorAll("[data-item-id]")).map(function (itemRow) {
             return {
                 id: itemRow.dataset.itemId,
-                response: itemRow.querySelector(".inspection-response").value,
+                response: itemRow.querySelector(".inspection-response").selectedOptions[0].dataset.meaning,
                 notes: itemRow.querySelector(".inspection-item-notes").value.trim()
             };
         });
