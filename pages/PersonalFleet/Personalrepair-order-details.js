@@ -1,4 +1,8 @@
 const repairOrders = [];
+const regional = window.trackRightFleetRegion;
+document.querySelector("#completion-distance-label").textContent = `Completion ${regional.distanceLabel()}`;
+document.querySelector("#labor-rate-label").textContent = `Labor Rate (${regional.get().currency_code})`;
+document.querySelector("#parts-cost-label").textContent = `Parts Cost (${regional.get().currency_code})`;
 
 
 /* =========================
@@ -193,7 +197,7 @@ if (!repairOrder) {
         Number(repairOrder.partsCost) || 0;
 
     completionMileageInput.value =
-        repairOrder.completionMileage ?? "";
+        regional.toDisplayDistance(repairOrder.completionMileage);
 
     completionHoursInput.value =
         repairOrder.completionHours ?? "";
@@ -263,14 +267,7 @@ if (!repairOrder) {
             (laborHours * laborRate) +
             partsCost;
 
-        repairTotalDisplay.textContent =
-            total.toLocaleString(
-                "en-US",
-                {
-                    style: "currency",
-                    currency: "USD"
-                }
-            );
+        repairTotalDisplay.textContent = regional.currency(total);
 
         return total;
     }
@@ -469,7 +466,7 @@ if (!repairOrder) {
         repairOrder.completionMileage =
             completionMileageInput.value === ""
                 ? ""
-                : Number(completionMileageInput.value);
+                : regional.toStoredDistance(completionMileageInput.value);
 
         repairOrder.completionHours =
             completionHoursInput.value === ""
