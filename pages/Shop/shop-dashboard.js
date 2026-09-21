@@ -547,14 +547,14 @@ function renderKpis(
         bills
             .filter(
                 function (bill) {
-                    return bill.status !== "Paid";
+                    return String(bill.status).toLowerCase() !== "paid";
                 }
             )
             .reduce(
                 function (total, bill) {
                     return (
                         total +
-                        (Number(bill.amount) || 0)
+                        (Number(bill.total ?? bill.amount) || 0)
                     );
                 },
                 0
@@ -836,15 +836,22 @@ function renderInvoiceActivity(invoices) {
    INITIAL LOAD
 ========================= */
 
-function renderShopDashboard() {
+async function renderShopDashboard() {
     const repairOrders =
         getRepairOrders();
 
     const invoices =
         getInvoices();
 
-    const bills =
-        getAccountsPayable();
+    let bills = getAccountsPayable();
+
+    try {
+        const context = await window.trackRightAuthReady;
+        const result = await window.trackRightSupabase.from("shop_accounts_payable").select("total,status").eq("shop_id", context.shopId);
+        if (!result.error) bills = result.data;
+    } catch (error) {
+        console.warn("Accounts Payable totals could not be refreshed.", error);
+    }
 
     renderKpis(
         repairOrders,
