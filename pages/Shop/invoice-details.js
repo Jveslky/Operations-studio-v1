@@ -77,6 +77,10 @@ const invoiceTotal =
         "invoice-total"
     );
 
+const invoiceSubtotal = document.getElementById("invoice-subtotal");
+const invoiceTax = document.getElementById("invoice-tax");
+const invoiceTaxLabel = document.getElementById("invoice-tax-label");
+
 const printInvoiceButton =
     document.getElementById(
         "print-invoice-button"
@@ -403,6 +407,16 @@ function renderInvoice() {
     invoiceNotes.textContent =
         currentInvoice.notes ||
         "No invoice notes entered.";
+
+    invoiceSubtotal.textContent = formatCurrency(
+        currentInvoice.subtotal ?? currentInvoice.total
+    );
+    invoiceTax.textContent = formatCurrency(
+        currentInvoice.taxAmount || 0
+    );
+    invoiceTaxLabel.textContent = currentInvoice.taxSnapshot?.taxable
+        ? `Tax (${Number(currentInvoice.taxSnapshot.rate || 0)}%)`
+        : "Tax (exempt)";
 
     invoiceTotal.textContent =
         formatCurrency(
