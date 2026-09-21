@@ -5,6 +5,8 @@
 const INVOICE_STORAGE_KEY =
     "track-right-invoices";
 
+const supabaseClient = window.trackRightSupabase;
+
 
 /* =========================
    PAGE ELEMENTS
@@ -43,6 +45,11 @@ const invoiceDueDateInput =
 const invoiceNotesInput =
     document.getElementById(
         "invoice-notes"
+    );
+
+const invoiceCreateMessage =
+    document.getElementById(
+        "invoice-create-message"
     );
 
 const invoiceSearchInput =
@@ -333,8 +340,9 @@ cancelInvoiceFormButton.addEventListener(
 
 createInvoiceForm.addEventListener(
     "submit",
-    function (event) {
+    async function (event) {
         event.preventDefault();
+        invoiceCreateMessage.textContent = "";
 
         const selectedRepairOrder =
             getAllRepairOrders().find(
@@ -347,8 +355,62 @@ createInvoiceForm.addEventListener(
             );
 
         if (!selectedRepairOrder) {
+            invoiceCreateMessage.textContent =
+                "Select a valid repair order.";
             return;
         }
+
+        let context;
+        let shopTax;
+        let customerTax = null;
+        let savedInvoiceIds = [];
+
+        try {
+            context = await window.trackRightAuthReady;
+            if (!context?.shopId) {
+                throw new Error("No active shop membership was found.");
+            }
+
+            const shopResult = await supabaseClient
+                .from("shops")
+                .select("default_taxable, default_tax_rate")
+                .eq("id", context.shopId)
+                .single();
+            if (shopResult.error) throw shopResult.error;
+            shopTax = shopResult.data;
+
+            const snapshotResult = await supabaseClient
+                .from("shop_invoice_tax_snapshots")
+                .select("invoice_id")
+                .eq("shop_id", context.shopId);
+            if (snapshotResult.error) throw snapshotResult.error;
+            savedInvoiceIds = snapshotResult.data.map(function (snapshot) {
+                return Number(snapshot.invoice_id);
+            }).filter(Number.isFinite);
+
+            if (selectedRepairOrder.customerId) {
+                const customerResult = await supabaseClient
+                    .from("customer_tax_profiles")
+                    .select("customer_id, tax_status, exemption_reason, exemption_certificate_number")
+                    .eq("customer_id", selectedRepairOrder.customerId)
+                    .eq("shop_id", context.shopId)
+                    .maybeSingle();
+                if (customerResult.error) throw customerResult.error;
+                customerTax = customerResult.data;
+            }
+        } catch (error) {
+            console.error("Could not resolve invoice tax:", error);
+            invoiceCreateMessage.textContent =
+                `Could not create the tax snapshot: ${error.message}`;
+            return;
+        }
+
+        const taxStatus = customerTax?.tax_status || "inherit";
+        const taxable = taxStatus === "taxable" ||
+            (taxStatus === "inherit" && shopTax.default_taxable === true);
+        const taxRate = taxable ? Number(shopTax.default_tax_rate || 0) : 0;
+        const subtotal = getRepairOrderTotal(selectedRepairOrder);
+        const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
 
         const invoices =
             getInvoices();
@@ -363,6 +425,7 @@ createInvoiceForm.addEventListener(
                             );
                         }
                     ).filter(Number.isFinite),
+                    ...savedInvoiceIds,
                     1000
                 ) + 1
             );
@@ -389,10 +452,20 @@ createInvoiceForm.addEventListener(
             complaint:
                 selectedRepairOrder.complaint || "",
 
-            total:
-                getRepairOrderTotal(
-                    selectedRepairOrder
-                ),
+            subtotal: subtotal,
+
+            taxAmount: taxAmount,
+
+            total: subtotal + taxAmount,
+
+            taxSnapshot: {
+                taxable: taxable,
+                rate: taxRate,
+                customerTaxStatus: taxStatus,
+                exemptionReason: taxable ? null : (customerTax?.exemption_reason || null),
+                exemptionCertificateNumber: taxable ? null : (customerTax?.exemption_certificate_number || null),
+                capturedAt: new Date().toISOString()
+            },
 
             status:
                 "Draft",
@@ -411,6 +484,30 @@ createInvoiceForm.addEventListener(
             paidAt:
                 null
         };
+
+        const snapshotInsert = await supabaseClient
+            .from("shop_invoice_tax_snapshots")
+            .insert({
+                shop_id: context.shopId,
+                invoice_id: invoiceNumber,
+                customer_id: selectedRepairOrder.customerId ? String(selectedRepairOrder.customerId) : null,
+                taxable: taxable,
+                tax_rate: taxRate,
+                subtotal: subtotal,
+                tax_amount: taxAmount,
+                total: subtotal + taxAmount,
+                customer_tax_status: taxStatus,
+                exemption_reason: invoice.taxSnapshot.exemptionReason,
+                exemption_certificate_number: invoice.taxSnapshot.exemptionCertificateNumber,
+                captured_at: invoice.taxSnapshot.capturedAt
+            });
+
+        if (snapshotInsert.error) {
+            console.error("Could not preserve invoice tax snapshot:", snapshotInsert.error);
+            invoiceCreateMessage.textContent =
+                `Invoice was not created because its tax snapshot could not be saved: ${snapshotInsert.error.message}`;
+            return;
+        }
 
         invoices.push(invoice);
 
@@ -751,15 +848,14 @@ function syncInvoicesFromRepairOrders() {
             return;
         }
 
-        const updatedTotal =
-            getRepairOrderTotal(repairOrder);
-
-        if (
-            Number(invoice.total) !==
-            Number(updatedTotal)
-        ) {
-            invoice.total = updatedTotal;
-            didChange = true;
+        // New invoices keep their financial snapshot fixed. Legacy invoices
+        // did not have a snapshot, so retain their prior draft-sync behavior.
+        if (!invoice.taxSnapshot) {
+            const updatedTotal = getRepairOrderTotal(repairOrder);
+            if (Number(invoice.total) !== Number(updatedTotal)) {
+                invoice.total = updatedTotal;
+                didChange = true;
+            }
         }
 
         if (

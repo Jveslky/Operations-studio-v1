@@ -432,6 +432,8 @@ body {
     transition: background .15s ease, border-color .15s ease, transform .15s ease;
 }
 
+.invoice-create-message { min-height: 20px; margin: 0; color: #a32626; font-weight: 700; }
+
     #create-invoice-button:hover {
         background: #c95622;
         border-color: #b84c1e;

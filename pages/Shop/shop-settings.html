@@ -52,7 +52,32 @@
                     </form>
                 </section>
 
-                <section class="settings-card settings-placeholder" id="customers-tax"><p class="settings-kicker">Next settings PR</p><h2>Customers &amp; Tax</h2><p>Shop defaults, customer exemptions, certificates, and historical invoice tax snapshots will be added separately.</p></section>
+                <section class="settings-card" id="customers-tax">
+                    <div class="settings-section-heading"><div><p class="settings-kicker">Customers &amp; Tax</p><h2>Tax defaults and exemptions</h2></div><span class="settings-scope-label">Shop-wide</span></div>
+                    <p class="field-help profile-intro">Set the normal shop behavior, then record exceptions for individual customers. New invoices preserve the effective setting as a historical snapshot.</p>
+
+                    <form id="shop-tax-form">
+                        <div class="tax-default-row">
+                            <label class="settings-checkbox"><input id="shop-default-taxable" type="checkbox"><span>New customers are taxable by default</span></label>
+                            <label>Default tax rate (%)<input id="shop-default-tax-rate" type="number" min="0" max="100" step="0.001" inputmode="decimal" required></label>
+                        </div>
+                        <div class="settings-actions"><button id="save-shop-tax" type="submit">Save Tax Defaults</button><p id="shop-tax-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                    </form>
+
+                    <hr class="settings-divider">
+
+                    <form id="customer-tax-form">
+                        <div class="settings-form-grid">
+                            <label class="settings-full-width">Customer<select id="customer-tax-customer" required><option value="">Select a customer</option></select></label>
+                            <label class="settings-full-width">Tax treatment<select id="customer-tax-status" required><option value="inherit">Use shop default</option><option value="taxable">Taxable</option><option value="exempt">Tax exempt</option></select></label>
+                            <label class="customer-exemption-field">Exemption reason<input id="customer-exemption-reason" type="text" maxlength="240"></label>
+                            <label class="customer-exemption-field">Certificate number<input id="customer-exemption-number" type="text" maxlength="120"></label>
+                            <label class="settings-full-width customer-exemption-field">Exemption certificate<input id="customer-exemption-file" type="file" accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"><span class="field-help">Private PDF, JPG, or PNG. Uploading a new file replaces the customer’s current certificate reference.</span></label>
+                        </div>
+                        <p id="customer-certificate-status" class="certificate-status"></p>
+                        <div class="settings-actions"><button id="save-customer-tax" type="submit">Save Customer Tax Setting</button><p id="customer-tax-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                    </form>
+                </section>
                 <section class="settings-card settings-placeholder" id="team-documents"><h2>Team Documents</h2><p>Licenses, certifications, insurance, employment documents, and expiration reminders are planned.</p></section>
                 <section class="settings-card settings-placeholder" id="requests"><h2>Requests</h2><p>PTO, medical absence, general requests, office review, and calendar approval are planned.</p></section>
                 <section class="settings-card settings-placeholder" id="behavior"><h2>Behavior</h2><p>Lead times, workflow defaults, reminders, and other shop operating preferences will live here.</p></section>

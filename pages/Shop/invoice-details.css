@@ -295,6 +295,10 @@ body {
     background: #f1f4f6;
 }
 
+    .invoice-total-section > div { display: grid; gap: 6px; min-width: 130px; text-align: right; }
+
+    .invoice-total-section > div:not(.invoice-grand-total) strong { font-size: 1.15rem; }
+
     .invoice-total-section span {
         color: #667085;
         font-size: 0.8rem;
