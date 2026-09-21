@@ -19,9 +19,18 @@
     const templateList = document.getElementById("inspection-template-list");
     const saveTemplate = document.getElementById("save-inspection-template");
     const cancelEdit = document.getElementById("cancel-inspection-template");
+    const responseSetForm = document.getElementById("inspection-response-set-form");
+    const responseSetId = document.getElementById("inspection-response-set-id");
+    const responseSetName = document.getElementById("inspection-response-set-name");
+    const responseSetOptions = document.getElementById("inspection-response-set-options");
+    const responseSetMessage = document.getElementById("inspection-response-set-message");
+    const responseSetList = document.getElementById("inspection-response-set-list");
+    const saveResponseSet = document.getElementById("save-inspection-response-set");
+    const cancelResponseSet = document.getElementById("cancel-inspection-response-set");
 
     let context = null;
     let templates = [];
+    let responseSets = [];
 
     function status(element, text, state) {
         element.textContent = text;
@@ -44,8 +53,15 @@
                 return;
             }
             const required = line.startsWith("!");
-            const label = required ? line.slice(1).trim() : line;
-            if (label) current.items.push({ label, required });
+            let label = required ? line.slice(1).trim() : line;
+            let responseSet = responseSets.find(function (set) { return set.name === "Standard" && !set.is_archived; });
+            const responseMatch = label.match(/^\[([^\]]+)\]\s*(.+)$/);
+            if (responseMatch) {
+                responseSet = responseSets.find(function (set) { return !set.is_archived && set.name.toLowerCase() === responseMatch[1].trim().toLowerCase(); });
+                if (!responseSet) throw new Error(`Unknown response set: ${responseMatch[1]}`);
+                label = responseMatch[2].trim();
+            }
+            if (label) current.items.push({ label, required, responseSetId: responseSet?.id || null });
         });
         if (current.items.length) sections.push(current);
         if (!sections.length || sections.some(function (section) { return !section.title; })) {
@@ -59,7 +75,9 @@
         template.sections.forEach(function (section, sectionIndex) {
             if (sectionIndex > 0) lines.push(`## ${section.title}`);
             section.items.forEach(function (item) {
-                lines.push(`${item.is_required ? "! " : ""}${item.label}`);
+                const set = responseSets.find(function (responseSet) { return responseSet.id === item.response_set_id; });
+                const prefix = set && set.name !== "Standard" ? `[${set.name}] ` : "";
+                lines.push(`${item.is_required ? "! " : ""}${prefix}${item.label}`);
             });
         });
         return lines.join("\n");
@@ -69,7 +87,7 @@
         const [templateResult, sectionResult, itemResult] = await Promise.all([
             client.from("shop_inspection_templates").select("id, name, description, is_archived, updated_at").eq("shop_id", context.shopId).order("name"),
             client.from("shop_inspection_template_sections").select("id, template_id, title, sort_order").eq("shop_id", context.shopId).order("sort_order"),
-            client.from("shop_inspection_template_items").select("id, template_id, section_id, label, is_required, sort_order").eq("shop_id", context.shopId).order("sort_order")
+            client.from("shop_inspection_template_items").select("id, template_id, section_id, label, is_required, response_set_id, sort_order").eq("shop_id", context.shopId).order("sort_order")
         ]);
         const error = templateResult.error || sectionResult.error || itemResult.error;
         if (error) throw error;
@@ -87,6 +105,56 @@
         });
         renderTemplates();
         populateDefaultTemplates();
+    }
+
+    async function loadResponseSets() {
+        const [setResult, optionResult] = await Promise.all([
+            client.from("shop_inspection_response_sets").select("id, name, is_archived, is_system").eq("shop_id", context.shopId).order("name"),
+            client.from("shop_inspection_response_options").select("id, response_set_id, label, meaning, sort_order").eq("shop_id", context.shopId).order("sort_order")
+        ]);
+        if (setResult.error || optionResult.error) throw setResult.error || optionResult.error;
+        responseSets = setResult.data.map(function (set) {
+            return { ...set, options: optionResult.data.filter(function (option) { return option.response_set_id === set.id; }) };
+        });
+        renderResponseSets();
+    }
+
+    function renderResponseSets() {
+        responseSetList.replaceChildren();
+        responseSets.forEach(function (set) {
+            const row = document.createElement("article"); row.className = "inspection-template-row";
+            const details = document.createElement("div");
+            const title = document.createElement("strong"); title.textContent = `${set.name}${set.is_archived ? " — Archived" : ""}`;
+            const summary = document.createElement("p"); summary.textContent = set.options.map(function (option) { return option.label; }).join(" · ");
+            details.append(title, summary);
+            const actions = document.createElement("div"); actions.className = "inspection-template-actions";
+            if (!set.is_archived) {
+                const edit = document.createElement("button"); edit.type = "button"; edit.dataset.editResponseSet = set.id; edit.textContent = "Edit"; actions.appendChild(edit);
+            }
+            if (!set.is_system) {
+                const archive = document.createElement("button"); archive.type = "button"; archive.dataset.archiveResponseSet = set.id; archive.textContent = set.is_archived ? "Restore" : "Archive"; actions.appendChild(archive);
+            }
+            row.append(details, actions); responseSetList.appendChild(row);
+        });
+    }
+
+    function parseResponseOptions() {
+        const meanings = new Set(["positive", "info", "attention", "critical", "na"]);
+        const options = responseSetOptions.value.split(/\r?\n/).filter(function (line) { return line.trim(); }).map(function (line) {
+            const parts = line.split("|");
+            const label = parts[0]?.trim(); const meaning = parts[1]?.trim().toLowerCase();
+            if (!label || !meanings.has(meaning)) throw new Error(`Invalid response choice: ${line}`);
+            return { label, meaning };
+        });
+        if (options.length < 2) throw new Error("A response set needs at least two choices.");
+        if (new Set(options.map(function (option) { return option.label.toLowerCase(); })).size !== options.length) {
+            throw new Error("Response choice labels must be unique within a set.");
+        }
+        return options;
+    }
+
+    function resetResponseSetForm() {
+        responseSetForm.reset(); responseSetId.value = ""; responseSetName.disabled = !canManage(); saveResponseSet.textContent = "Save Response Set"; cancelResponseSet.hidden = true;
     }
 
     function populateDefaultTemplates(selectedValue) {
@@ -172,6 +240,42 @@
         status(behaviorMessage, error ? `Could not save: ${error.message}` : "Inspection behavior saved.", error ? "error" : "success");
     });
 
+    responseSetForm.addEventListener("submit", async function (event) {
+        event.preventDefault();
+        let options;
+        try { options = parseResponseOptions(); } catch (error) { status(responseSetMessage, error.message, "error"); return; }
+        saveResponseSet.disabled = true;
+        const { error } = await client.rpc("save_shop_inspection_response_set", {
+            requested_response_set_id: responseSetId.value || null,
+            requested_name: responseSetName.value.trim(),
+            requested_options: options
+        });
+        if (error) status(responseSetMessage, `Could not save response set: ${error.message}`, "error");
+        else { resetResponseSetForm(); await loadResponseSets(); status(responseSetMessage, "Response set saved.", "success"); }
+        saveResponseSet.disabled = false;
+    });
+
+    cancelResponseSet.addEventListener("click", resetResponseSetForm);
+
+    responseSetList.addEventListener("click", async function (event) {
+        const edit = event.target.closest("button[data-edit-response-set]");
+        const archive = event.target.closest("button[data-archive-response-set]");
+        if (edit) {
+            const set = responseSets.find(function (item) { return item.id === edit.dataset.editResponseSet; });
+            if (!set) return;
+            responseSetId.value = set.id; responseSetName.value = set.name; responseSetName.disabled = set.is_system;
+            responseSetOptions.value = set.options.map(function (option) { return `${option.label} | ${option.meaning}`; }).join("\n");
+            saveResponseSet.textContent = "Update Response Set"; cancelResponseSet.hidden = false;
+            responseSetForm.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+        if (archive) {
+            const set = responseSets.find(function (item) { return item.id === archive.dataset.archiveResponseSet; });
+            if (!set) return;
+            const { error } = await client.from("shop_inspection_response_sets").update({ is_archived: !set.is_archived, updated_at: new Date().toISOString() }).eq("id", set.id).eq("shop_id", context.shopId);
+            if (error) status(responseSetMessage, `Could not update response set: ${error.message}`, "error"); else await loadResponseSets();
+        }
+    });
+
     templateForm.addEventListener("submit", async function (event) {
         event.preventDefault();
         let sections;
@@ -238,7 +342,10 @@
     async function initialize() {
         context = await window.trackRightAuthReady;
         const editable = canManage();
-        Array.from(behaviorForm.elements).concat(Array.from(templateForm.elements)).forEach(function (element) { element.disabled = !editable; });
+        Array.from(behaviorForm.elements).concat(Array.from(templateForm.elements), Array.from(responseSetForm.elements)).forEach(function (element) { element.disabled = !editable; });
+        const ensureResult = await client.rpc("ensure_shop_inspection_response_sets");
+        if (ensureResult.error) throw ensureResult.error;
+        await loadResponseSets();
         await loadTemplates();
         await loadBehavior();
         if (!editable) status(behaviorMessage, "Owner or admin access is required to change inspection settings.", "error");
