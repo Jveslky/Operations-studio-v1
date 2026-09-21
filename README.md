@@ -114,10 +114,12 @@ pages require a valid session and an active `shop_members` record.
 ## Personal Fleet beta setup
 
 1. Run `supabase/personal-fleet-beta.sql` after the shop authentication migration.
-2. Add the production `personal-fleet-invite.html` URL to Supabase Auth's allowed redirect URLs.
-3. Open **Development Home → Fleet beta invites** to create an email-specific,
+2. Run `supabase/personal-fleet-regional-settings.sql` to add account-level
+   region, currency, date-format, and measurement preferences.
+3. Add the production `personal-fleet-invite.html` URL to Supabase Auth's allowed redirect URLs.
+4. Open **Development Home → Fleet beta invites** to create an email-specific,
    single-use complimentary invitation.
-4. Test acceptance in a private browser window before sending the link.
+5. Test acceptance in a private browser window before sending the link.
 
 The migration creates separate Personal Fleet accounts, memberships, feature
 entitlements, a 20-unit beta limit, account-scoped unit and repair-order data,
