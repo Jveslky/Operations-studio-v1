@@ -177,6 +177,9 @@
         controls.className = "account-controls";
 
         const rootPath = loginPath.replace(/login\.html(?:\?.*)?$/, "");
+        if (context.workspace === "shop" && ["owner", "admin", "service_writer"].includes(context.role)) {
+            addShopNotifications(context, header, rootPath);
+        }
         const profileName = context.user.user_metadata?.full_name ||
             context.user.user_metadata?.name || "";
         const accountName = context.workspace === "personal_fleet"
@@ -274,6 +277,132 @@
             window.trackRightAccountName = resolvedName;
             button.querySelector(".account-menu-label").textContent = resolvedName;
         };
+    }
+
+    async function addShopNotifications(context, header, rootPath) {
+        if (document.getElementById("shop-notifications")) return;
+
+        const wrapper = document.createElement("div");
+        wrapper.id = "shop-notifications";
+        wrapper.className = "shop-notifications";
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "shop-notification-button";
+        button.setAttribute("aria-label", "Shop notifications");
+        button.setAttribute("aria-haspopup", "menu");
+        button.setAttribute("aria-expanded", "false");
+        button.textContent = "Notifications";
+        const badge = document.createElement("span");
+        badge.className = "shop-notification-badge";
+        badge.hidden = true;
+        button.appendChild(badge);
+        const menu = document.createElement("div");
+        menu.className = "shop-notification-menu";
+        menu.setAttribute("role", "menu");
+        menu.hidden = true;
+        wrapper.append(button, menu);
+        header.appendChild(wrapper);
+
+        function setOpen(open) {
+            menu.hidden = !open;
+            wrapper.classList.toggle("open", open);
+            button.setAttribute("aria-expanded", String(open));
+        }
+
+        function emptyMessage(text) {
+            menu.replaceChildren();
+            const empty = document.createElement("p");
+            empty.className = "shop-notification-empty";
+            empty.textContent = text;
+            menu.appendChild(empty);
+        }
+
+        async function markRead(ids) {
+            if (!ids.length) return;
+            await client.from("shop_notification_reads").upsert(
+                ids.map(function (id) { return { notification_id: id, user_id: context.user.id }; }),
+                { onConflict: "notification_id,user_id", ignoreDuplicates: true }
+            );
+        }
+
+        try {
+            const notificationResult = await client.from("shop_notifications")
+                .select("id, repair_order_id, title, message, severity, created_at")
+                .eq("shop_id", context.shopId)
+                .order("created_at", { ascending: false })
+                .limit(20);
+            if (notificationResult.error) throw notificationResult.error;
+            const notifications = notificationResult.data;
+            const ids = notifications.map(function (notification) { return notification.id; });
+            let readIds = new Set();
+            if (ids.length) {
+                const readResult = await client.from("shop_notification_reads")
+                    .select("notification_id")
+                    .eq("user_id", context.user.id)
+                    .in("notification_id", ids);
+                if (readResult.error) throw readResult.error;
+                readIds = new Set(readResult.data.map(function (read) { return read.notification_id; }));
+            }
+
+            const unread = notifications.filter(function (notification) { return !readIds.has(notification.id); });
+            badge.textContent = unread.length > 99 ? "99+" : String(unread.length);
+            badge.hidden = unread.length === 0;
+            menu.replaceChildren();
+            if (!notifications.length) {
+                emptyMessage("No inspection notifications.");
+            } else {
+                const heading = document.createElement("div");
+                heading.className = "shop-notification-heading";
+                const label = document.createElement("strong");
+                label.textContent = "Inspection notifications";
+                const markAll = document.createElement("button");
+                markAll.type = "button";
+                markAll.textContent = "Mark all read";
+                markAll.addEventListener("click", async function () {
+                    await markRead(unread.map(function (notification) { return notification.id; }));
+                    badge.hidden = true;
+                    menu.querySelectorAll(".unread").forEach(function (item) { item.classList.remove("unread"); });
+                });
+                heading.append(label, markAll);
+                menu.appendChild(heading);
+
+                notifications.forEach(function (notification) {
+                    const link = document.createElement("a");
+                    link.href = `${rootPath}pages/Shop/repair-order-details.html?id=${encodeURIComponent(notification.repair_order_id)}`;
+                    link.className = `shop-notification-item severity-${notification.severity}${readIds.has(notification.id) ? "" : " unread"}`;
+                    link.setAttribute("role", "menuitem");
+                    const title = document.createElement("strong");
+                    title.textContent = notification.title;
+                    const summary = document.createElement("span");
+                    summary.textContent = notification.message;
+                    const date = document.createElement("small");
+                    date.textContent = new Date(notification.created_at).toLocaleString();
+                    link.append(title, summary, date);
+                    link.addEventListener("click", async function (event) {
+                        event.preventDefault();
+                        await markRead([notification.id]);
+                        window.location.href = link.href;
+                    });
+                    menu.appendChild(link);
+                });
+            }
+        } catch (error) {
+            console.error("Could not load shop notifications:", error);
+            emptyMessage("Notifications could not be loaded.");
+        }
+
+        button.addEventListener("click", function () { setOpen(menu.hidden); });
+        button.addEventListener("keydown", function (event) {
+            if (event.key === "ArrowDown") {
+                event.preventDefault(); setOpen(true); menu.querySelector('[role="menuitem"]')?.focus();
+            }
+        });
+        document.addEventListener("click", function (event) {
+            if (!wrapper.contains(event.target)) setOpen(false);
+        });
+        document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && !menu.hidden) { setOpen(false); button.focus(); }
+        });
     }
 
     window.trackRightAuthReady = loadContext();
