@@ -70,15 +70,26 @@ if (!repairOrder) {
     const technicianSelect =
         document.querySelector("#technician-select");
 
-    const technicianOptions = document.querySelector("#personal-technician-options");
-    const additionalTechnicianOptions = document.querySelector("#personal-additional-technician-options");
+    const additionalTechnicianSelect = document.querySelector("#additional-technician-select");
     window.trackRightTechnicians.get().forEach((technician) => {
-        [technicianOptions, additionalTechnicianOptions].forEach((list) => {
+        [technicianSelect, additionalTechnicianSelect].forEach((list) => {
             const option = document.createElement("option");
             option.value = technician.name;
+            option.textContent = technician.name;
             list.appendChild(option);
         });
     });
+
+    function preserveHistoricalTechnician(select, name) {
+        if (!name || Array.from(select.options).some((option) => option.value === name)) return;
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = `${name} (inactive)`;
+        select.appendChild(option);
+    }
+
+    preserveHistoricalTechnician(technicianSelect, repairOrder.technician);
+    preserveHistoricalTechnician(additionalTechnicianSelect, repairOrder.additionalTechnician);
 
     const prioritySelect =
         document.querySelector("#priority-select");
@@ -97,11 +108,6 @@ if (!repairOrder) {
 
     const laborHoursInput =
         document.querySelector("#labor-hours");
-
-    const additionalTechnicianSelect =
-        document.querySelector(
-            "#additional-technician-select"
-        );
 
     const additionalWorkInput =
         document.querySelector(
