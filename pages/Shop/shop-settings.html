@@ -10,10 +10,58 @@
         <a class="app-brand" href="shop-dashboard.html">Track Right</a>
         <nav class="app-nav"><a href="shop-dashboard.html">Dashboard</a><a href="schedule.html">Schedule</a><a href="customers.html">Customers</a><a href="repair-orders.html">Repair Orders</a><a href="invoices.html">Invoices</a><a href="accounts-payable.html">Accounts Payable</a></nav>
     </div></header>
-    <main class="settings-page">
-        <header class="settings-heading"><p class="settings-kicker">Shop</p><h1>Shop Settings</h1><p>Central shop preferences will live here as shared settings are moved out of individual screens.</p></header>
-        <section class="settings-card"><h2>Shop Identity</h2><p id="shop-settings-name">Loading shop…</p><p class="field-help">The authenticated shop name is used throughout the Shop workspace.</p></section>
+    <main class="settings-page shop-settings-page">
+        <header class="settings-heading"><p class="settings-kicker">Owner workspace</p><h1>Shop Settings</h1><p>Manage the shop-wide information and operating preferences used throughout Track Right.</p></header>
+
+        <div class="shop-settings-layout">
+            <nav class="shop-settings-nav" aria-label="Shop settings sections">
+                <a class="active" href="#shop-profile">Shop Profile</a>
+                <a href="#customers-tax">Customers &amp; Tax</a>
+                <a href="../Admin/users.html">Users &amp; Permissions</a>
+                <a href="#team-documents">Team Documents</a>
+                <a href="#requests">Requests</a>
+                <a href="#behavior">Behavior</a>
+                <a href="#appearance">Appearance</a>
+                <a href="#linked-accounts">Linked Accounts</a>
+                <a href="#data-management">Data Management</a>
+                <a href="#inspections-photos">Inspections &amp; Photos</a>
+            </nav>
+
+            <div class="shop-settings-content">
+                <section class="settings-card" id="shop-profile">
+                    <div class="settings-section-heading"><div><p class="settings-kicker">Shop Profile</p><h2>Business information</h2></div><span class="settings-scope-label">Shop-wide</span></div>
+                    <p class="field-help profile-intro">This information belongs to the shop record and will be available to future invoices, reports, and shared documents.</p>
+
+                    <form id="shop-profile-form">
+                        <div class="settings-form-grid">
+                            <label class="settings-full-width">Shop name<input id="shop-profile-name" name="name" type="text" minlength="2" maxlength="120" required></label>
+                            <label>Business email<input id="shop-profile-email" name="business_email" type="email" autocomplete="email"></label>
+                            <label>Business phone<input id="shop-profile-phone" name="business_phone" type="tel" autocomplete="tel"></label>
+                            <label class="settings-full-width">Website<input id="shop-profile-website" name="website" type="url" placeholder="https://"></label>
+                            <label class="settings-full-width">Address line 1<input id="shop-profile-address-1" name="address_line_1" type="text" autocomplete="address-line1"></label>
+                            <label class="settings-full-width">Address line 2<input id="shop-profile-address-2" name="address_line_2" type="text" autocomplete="address-line2"></label>
+                            <label>City<input id="shop-profile-city" name="city" type="text" autocomplete="address-level2"></label>
+                            <label>State / Province<input id="shop-profile-region" name="region" type="text" autocomplete="address-level1"></label>
+                            <label>Postal code<input id="shop-profile-postal" name="postal_code" type="text" autocomplete="postal-code"></label>
+                            <label>Country<input id="shop-profile-country" name="country" type="text" autocomplete="country-name"></label>
+                            <label>Default labor rate<input id="shop-profile-labor-rate" name="default_labor_rate" type="number" min="0" max="100000" step="0.01" inputmode="decimal"></label>
+                            <label>Shop timezone<select id="shop-profile-timezone" name="timezone" required></select></label>
+                        </div>
+                        <p id="timezone-help" class="field-help"></p>
+                        <div class="settings-actions"><button id="save-shop-profile" type="submit">Save Shop Profile</button><p id="shop-profile-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                    </form>
+                </section>
+
+                <section class="settings-card settings-placeholder" id="customers-tax"><p class="settings-kicker">Next settings PR</p><h2>Customers &amp; Tax</h2><p>Shop defaults, customer exemptions, certificates, and historical invoice tax snapshots will be added separately.</p></section>
+                <section class="settings-card settings-placeholder" id="team-documents"><h2>Team Documents</h2><p>Licenses, certifications, insurance, employment documents, and expiration reminders are planned.</p></section>
+                <section class="settings-card settings-placeholder" id="requests"><h2>Requests</h2><p>PTO, medical absence, general requests, office review, and calendar approval are planned.</p></section>
+                <section class="settings-card settings-placeholder" id="behavior"><h2>Behavior</h2><p>Lead times, workflow defaults, reminders, and other shop operating preferences will live here.</p></section>
+                <section class="settings-card settings-placeholder" id="appearance"><h2>Appearance</h2><p>Shop-wide colors and personal dashboard layout preferences are planned.</p></section>
+                <section class="settings-card settings-placeholder" id="linked-accounts"><h2>Linked Accounts</h2><p>Reserved for future accounting and service connections.</p></section>
+                <section class="settings-card settings-placeholder" id="data-management"><h2>Data Management</h2><p>Existing Export and Import behavior remains available from the shared settings drawer while this section is expanded.</p></section>
+                <section class="settings-card settings-placeholder" id="inspections-photos"><h2>Inspections &amp; Photos</h2><p>Optional inspection rules, templates, private photos, and output preferences will be added in their dedicated PRs.</p></section>
+            </div>
+        </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script>
-    <script>window.trackRightAuthReady.then(function (context) { document.getElementById("shop-settings-name").textContent = context.shop?.name || "Shop"; });</script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="shop-settings.js"></script>
 </body></html>
