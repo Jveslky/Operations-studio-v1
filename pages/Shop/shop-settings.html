@@ -101,13 +101,25 @@
 
                     <hr class="settings-divider">
 
+                    <form id="inspection-response-set-form">
+                        <input id="inspection-response-set-id" type="hidden">
+                        <div class="settings-form-grid">
+                            <label>Response set name<input id="inspection-response-set-name" type="text" maxlength="120" required placeholder="Fluid Level"></label>
+                            <label class="settings-full-width">Choices<textarea id="inspection-response-set-options" rows="6" required placeholder="Full | positive&#10;Low | attention&#10;Topped Off | info&#10;Empty | critical&#10;N/A | na"></textarea><span class="field-help">One choice per line as <strong>Label | meaning</strong>. Meanings: positive, info, attention, critical, or na.</span></label>
+                        </div>
+                        <div class="settings-actions"><button id="save-inspection-response-set" type="submit">Save Response Set</button><button id="cancel-inspection-response-set" type="button" class="secondary-settings-button" hidden>Cancel Edit</button><p id="inspection-response-set-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                    </form>
+                    <div id="inspection-response-set-list" class="inspection-template-list"></div>
+
+                    <hr class="settings-divider">
+
                     <form id="inspection-template-form">
                         <input id="inspection-template-id" type="hidden">
                         <div class="settings-form-grid">
                             <label>Template name<input id="inspection-template-name" type="text" maxlength="120" required placeholder="Annual equipment inspection"></label>
                             <label>Section name<input id="inspection-template-section" type="text" maxlength="120" required placeholder="Safety and operation"></label>
                             <label class="settings-full-width">Description<input id="inspection-template-description" type="text" maxlength="500" placeholder="When and how this inspection should be used"></label>
-                            <label class="settings-full-width">Checklist items<textarea id="inspection-template-items" rows="9" required placeholder="! Check safety interlocks&#10;Check tires and wheels&#10;## Fluids&#10;! Check engine oil&#10;Check coolant"></textarea><span class="field-help">One item per line. Start required items with <strong>!</strong>. Start another section with <strong>## Section name</strong>.</span></label>
+                            <label class="settings-full-width">Checklist items<textarea id="inspection-template-items" rows="9" required placeholder="! Check safety interlocks&#10;Check tires and wheels&#10;## Fluids&#10;! [Fluid Level] Check engine oil&#10;[Fluid Level] Check coolant"></textarea><span class="field-help">One item per line. Start required items with <strong>!</strong>, another section with <strong>##</strong>, and assign a response set with <strong>[Response Set]</strong>.</span></label>
                         </div>
                         <div class="settings-actions"><button id="save-inspection-template" type="submit">Save Template</button><button id="cancel-inspection-template" type="button" class="secondary-settings-button" hidden>Cancel Edit</button><p id="inspection-template-message" class="settings-message" role="status" aria-live="polite"></p></div>
                     </form>
