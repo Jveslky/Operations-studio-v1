@@ -248,7 +248,7 @@
                     <h2>Inspections &amp; Media</h2>
                     <p>Inspections are optional. Add photos or video directly to this repair order at any time.</p>
                 </div>
-                <button id="attach-inspection-button" type="button" class="secondary-button">Attach Inspection</button>
+                <div class="attach-inspection-controls"><select id="inspection-template-select" aria-label="Inspection template"><option value="">General inspection</option></select><button id="attach-inspection-button" type="button" class="secondary-button">Attach Inspection</button></div>
             </div>
 
             <p id="inspection-media-message" class="inspection-media-message" role="status" aria-live="polite"></p>
@@ -259,6 +259,7 @@
                     <label>Photo or video<input id="ro-media-file" type="file" accept="image/jpeg,image/png,image/heic,image/heif,video/mp4,video/quicktime,video/webm" required></label>
                     <label>Stage<select id="ro-media-category"><option value="">Uncategorized</option><option value="before">Before</option><option value="during">During</option><option value="after">After</option></select></label>
                     <label>Visibility<select id="ro-media-visibility"><option value="internal">Internal only</option><option value="customer">Customer-visible in future outputs</option></select></label>
+                    <label>Attach to inspection item<select id="ro-media-inspection-item"><option value="">Repair order only</option></select></label>
                     <label class="ro-media-caption">Caption<input id="ro-media-caption" type="text" maxlength="500" placeholder="What does this show?"></label>
                 </div>
                 <div class="ro-media-actions"><button id="upload-ro-media" type="submit" class="primary-btn">Upload Media</button><span>Photos: 10 MB maximum · Videos: 100 MB maximum</span></div>

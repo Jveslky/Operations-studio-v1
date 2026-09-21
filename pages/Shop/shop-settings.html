@@ -84,9 +84,36 @@
                 <section class="settings-card settings-placeholder" id="appearance"><h2>Appearance</h2><p>Shop-wide colors and personal dashboard layout preferences are planned.</p></section>
                 <section class="settings-card settings-placeholder" id="linked-accounts"><h2>Linked Accounts</h2><p>Reserved for future accounting and service connections.</p></section>
                 <section class="settings-card settings-placeholder" id="data-management"><h2>Data Management</h2><p>Existing Export and Import behavior remains available from the shared settings drawer while this section is expanded.</p></section>
-                <section class="settings-card settings-placeholder" id="inspections-photos"><h2>Inspections &amp; Media</h2><p>The private photo/video and optional inspection foundation is available from repair orders. Template design, attachment rules, and output preferences follow in the next inspection PR.</p></section>
+                <section class="settings-card" id="inspections-photos">
+                    <div class="settings-section-heading"><div><p class="settings-kicker">Inspections &amp; Media</p><h2>Templates and behavior</h2></div><span class="settings-scope-label">Shop-wide</span></div>
+                    <p class="field-help profile-intro">Inspections remain optional unless this shop changes the default. Existing inspections keep their original checklist when a template is edited.</p>
+
+                    <form id="inspection-behavior-form">
+                        <div class="settings-form-grid">
+                            <label>Default attachment behavior<select id="inspection-default-mode"><option value="never">Never add automatically</option><option value="suggest">Suggest an inspection</option><option value="attach">Automatically attach</option></select></label>
+                            <label>Default template<select id="inspection-default-template"><option value="">No default template</option></select></label>
+                            <label class="settings-checkbox"><input id="inspection-report-pass" type="checkbox" checked><span>Include passed items in reports</span></label>
+                            <label class="settings-checkbox"><input id="inspection-report-internal-media" type="checkbox"><span>Include internal media in internal reports</span></label>
+                        </div>
+                        <div class="settings-actions"><button type="submit">Save Inspection Behavior</button><p id="inspection-behavior-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                    </form>
+
+                    <hr class="settings-divider">
+
+                    <form id="inspection-template-form">
+                        <input id="inspection-template-id" type="hidden">
+                        <div class="settings-form-grid">
+                            <label>Template name<input id="inspection-template-name" type="text" maxlength="120" required placeholder="Annual equipment inspection"></label>
+                            <label>Section name<input id="inspection-template-section" type="text" maxlength="120" required placeholder="Safety and operation"></label>
+                            <label class="settings-full-width">Description<input id="inspection-template-description" type="text" maxlength="500" placeholder="When and how this inspection should be used"></label>
+                            <label class="settings-full-width">Checklist items<textarea id="inspection-template-items" rows="9" required placeholder="! Check safety interlocks&#10;Check tires and wheels&#10;## Fluids&#10;! Check engine oil&#10;Check coolant"></textarea><span class="field-help">One item per line. Start required items with <strong>!</strong>. Start another section with <strong>## Section name</strong>.</span></label>
+                        </div>
+                        <div class="settings-actions"><button id="save-inspection-template" type="submit">Save Template</button><button id="cancel-inspection-template" type="button" class="secondary-settings-button" hidden>Cancel Edit</button><p id="inspection-template-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                    </form>
+                    <div id="inspection-template-list" class="inspection-template-list"></div>
+                </section>
             </div>
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="shop-settings.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="shop-settings.js"></script><script src="inspection-settings.js"></script>
 </body></html>

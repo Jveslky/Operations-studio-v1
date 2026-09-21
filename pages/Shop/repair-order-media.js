@@ -4,12 +4,14 @@
     const client = window.trackRightSupabase;
     const orderId = new URLSearchParams(window.location.search).get("id");
     const attachInspectionButton = document.getElementById("attach-inspection-button");
+    const inspectionTemplateSelect = document.getElementById("inspection-template-select");
     const inspectionList = document.getElementById("inspection-list");
     const message = document.getElementById("inspection-media-message");
     const mediaForm = document.getElementById("ro-media-form");
     const mediaFile = document.getElementById("ro-media-file");
     const mediaCategory = document.getElementById("ro-media-category");
     const mediaVisibility = document.getElementById("ro-media-visibility");
+    const mediaInspectionItem = document.getElementById("ro-media-inspection-item");
     const mediaCaption = document.getElementById("ro-media-caption");
     const uploadButton = document.getElementById("upload-ro-media");
     const mediaList = document.getElementById("ro-media-list");
@@ -20,6 +22,9 @@
 
     let context = null;
     let mediaRecords = [];
+    let inspectionRecords = [];
+    let inspectionItems = [];
+    let inspectionSettings = { default_attachment_mode: "never", default_template_id: null };
 
     function setMessage(text, state) {
         message.textContent = text;
@@ -49,16 +54,16 @@
     }
 
     async function renderInspections() {
-        const { data, error } = await client.from("shop_inspections")
-            .select("id, title, status, created_at, created_by")
-            .eq("shop_id", context.shopId)
-            .eq("repair_order_id", orderId)
-            .neq("status", "archived")
-            .order("created_at", { ascending: false });
-
-        if (error) throw error;
+        const [inspectionResult, itemResult] = await Promise.all([
+            client.from("shop_inspections").select("id, title, status, created_at, created_by, completed_at").eq("shop_id", context.shopId).eq("repair_order_id", orderId).neq("status", "archived").order("created_at", { ascending: false }),
+            client.from("shop_inspection_items").select("id, inspection_id, section_title, item_label, is_required, response, notes, sort_order").eq("shop_id", context.shopId).order("sort_order")
+        ]);
+        if (inspectionResult.error || itemResult.error) throw inspectionResult.error || itemResult.error;
+        inspectionRecords = inspectionResult.data;
+        const inspectionIds = new Set(inspectionRecords.map(function (inspection) { return inspection.id; }));
+        inspectionItems = itemResult.data.filter(function (item) { return inspectionIds.has(item.inspection_id); });
         inspectionList.replaceChildren();
-        if (!data.length) {
+        if (!inspectionRecords.length) {
             const empty = document.createElement("p");
             empty.className = "ro-media-meta";
             empty.textContent = "No inspection attached. This repair order does not require one by default.";
@@ -66,9 +71,12 @@
             return;
         }
 
-        data.forEach(function (inspection) {
+        inspectionRecords.forEach(function (inspection) {
             const row = document.createElement("article");
             row.className = "inspection-row";
+            row.dataset.inspectionId = inspection.id;
+            const header = document.createElement("div");
+            header.className = "inspection-row-header";
             const details = document.createElement("div");
             const title = document.createElement("strong");
             title.textContent = inspection.title || "Inspection";
@@ -78,9 +86,82 @@
             const status = document.createElement("span");
             status.className = "inspection-status";
             status.textContent = inspection.status;
-            row.append(details, status);
+            header.append(details, status);
+            row.appendChild(header);
+
+            const items = inspectionItems.filter(function (item) { return item.inspection_id === inspection.id; });
+            if (items.length) {
+                const checklist = document.createElement("div");
+                checklist.className = "inspection-checklist";
+                let currentSection = "";
+                items.forEach(function (item) {
+                    if (item.section_title !== currentSection) {
+                        currentSection = item.section_title;
+                        const sectionTitle = document.createElement("strong");
+                        sectionTitle.textContent = currentSection;
+                        checklist.appendChild(sectionTitle);
+                    }
+                    const itemRow = document.createElement("div");
+                    itemRow.className = "inspection-item";
+                    itemRow.dataset.itemId = item.id;
+                    const label = document.createElement("span");
+                    label.className = `inspection-item-label${item.is_required ? " required" : ""}`;
+                    label.textContent = item.item_label;
+                    const response = document.createElement("select");
+                    response.className = "inspection-response";
+                    [["unanswered", "Not answered"], ["pass", "Pass"], ["attention", "Attention"], ["fail", "Fail"], ["na", "Not applicable"]].forEach(function (choice) {
+                        const option = document.createElement("option");
+                        option.value = choice[0]; option.textContent = choice[1]; response.appendChild(option);
+                    });
+                    response.value = item.response;
+                    response.disabled = inspection.status === "complete" || !canAddDocumentation();
+                    const notes = document.createElement("input");
+                    notes.type = "text"; notes.className = "inspection-item-notes"; notes.placeholder = "Item notes"; notes.value = item.notes || "";
+                    notes.disabled = inspection.status === "complete" || !canAddDocumentation();
+                    itemRow.append(label, response, notes);
+                    checklist.appendChild(itemRow);
+                });
+                row.appendChild(checklist);
+                if (inspection.status !== "complete" && canAddDocumentation()) {
+                    const complete = document.createElement("button");
+                    complete.type = "button"; complete.className = "inspection-complete-button"; complete.dataset.completeInspection = inspection.id; complete.textContent = "Complete Inspection";
+                    row.appendChild(complete);
+                }
+            } else {
+                const emptyChecklist = document.createElement("span");
+                emptyChecklist.className = "ro-media-meta";
+                emptyChecklist.textContent = "General inspection attached without a checklist template.";
+                row.appendChild(emptyChecklist);
+            }
             inspectionList.appendChild(row);
         });
+        populateInspectionItemOptions();
+    }
+
+    function populateInspectionItemOptions() {
+        mediaInspectionItem.innerHTML = '<option value="">Repair order only</option>';
+        inspectionItems.forEach(function (item) {
+            const inspection = inspectionRecords.find(function (record) { return record.id === item.inspection_id; });
+            const option = document.createElement("option");
+            option.value = item.id;
+            option.dataset.inspectionId = item.inspection_id;
+            option.textContent = `${inspection?.title || "Inspection"} — ${item.item_label}`;
+            mediaInspectionItem.appendChild(option);
+        });
+    }
+
+    async function loadInspectionConfiguration() {
+        const [templateResult, settingsResult] = await Promise.all([
+            client.from("shop_inspection_templates").select("id, name").eq("shop_id", context.shopId).eq("is_archived", false).order("name"),
+            client.from("shop_inspection_settings").select("default_attachment_mode, default_template_id").eq("shop_id", context.shopId).maybeSingle()
+        ]);
+        if (templateResult.error || settingsResult.error) throw templateResult.error || settingsResult.error;
+        inspectionSettings = settingsResult.data || inspectionSettings;
+        inspectionTemplateSelect.innerHTML = '<option value="">General inspection</option>';
+        templateResult.data.forEach(function (template) {
+            const option = document.createElement("option"); option.value = template.id; option.textContent = template.name; inspectionTemplateSelect.appendChild(option);
+        });
+        inspectionTemplateSelect.value = inspectionSettings.default_template_id || "";
     }
 
     async function signedUrl(path) {
@@ -167,18 +248,15 @@
         if (!canAddDocumentation()) return;
         attachInspectionButton.disabled = true;
         setMessage("Attaching inspection…", "");
-        const { error } = await client.from("shop_inspections").insert({
-            shop_id: context.shopId,
-            repair_order_id: String(orderId),
-            title: "General Inspection",
-            status: "draft",
-            created_by: context.user.id
+        const { error } = await client.rpc("attach_shop_inspection", {
+            requested_repair_order_id: String(orderId),
+            requested_template_id: inspectionTemplateSelect.value || null
         });
         if (error) {
             setMessage(`Inspection could not be attached: ${error.message}`, "error");
         } else {
             await renderInspections();
-            setMessage("Inspection attached. Checklist templates will be added in the next inspection PR.", "success");
+            setMessage("Inspection attached.", "success");
         }
         attachInspectionButton.disabled = false;
     });
@@ -218,7 +296,9 @@
             object_path: path,
             mime_type: file.type,
             file_size: file.size,
-            uploaded_by: context.user.id
+            uploaded_by: context.user.id,
+            inspection_id: mediaInspectionItem.selectedOptions[0]?.dataset.inspectionId || null,
+            inspection_item_id: mediaInspectionItem.value || null
         });
         if (insert.error) {
             await client.storage.from("shop-inspection-media").remove([path]);
@@ -259,6 +339,64 @@
         setMessage("Media deleted.", "success");
     });
 
+    inspectionList.addEventListener("change", async function (event) {
+        const itemRow = event.target.closest("[data-item-id]");
+        if (!itemRow) return;
+        const response = itemRow.querySelector(".inspection-response").value;
+        const notes = itemRow.querySelector(".inspection-item-notes").value.trim();
+        const { error } = await client.from("shop_inspection_items")
+            .update({ response, notes: notes || null, updated_by: context.user.id, updated_at: new Date().toISOString() })
+            .eq("id", itemRow.dataset.itemId)
+            .eq("shop_id", context.shopId);
+        setMessage(error ? `Inspection item could not be saved: ${error.message}` : "Inspection item saved.", error ? "error" : "success");
+    });
+
+    inspectionList.addEventListener("focusout", async function (event) {
+        if (!event.target.matches(".inspection-item-notes")) return;
+        const itemRow = event.target.closest("[data-item-id]");
+        const response = itemRow.querySelector(".inspection-response").value;
+        const notes = event.target.value.trim();
+        const { error } = await client.from("shop_inspection_items")
+            .update({ response, notes: notes || null, updated_by: context.user.id, updated_at: new Date().toISOString() })
+            .eq("id", itemRow.dataset.itemId)
+            .eq("shop_id", context.shopId);
+        if (error) setMessage(`Inspection notes could not be saved: ${error.message}`, "error");
+    });
+
+    inspectionList.addEventListener("click", async function (event) {
+        const button = event.target.closest("button[data-complete-inspection]");
+        if (!button) return;
+        const inspectionId = button.dataset.completeInspection;
+        const items = inspectionItems.filter(function (item) { return item.inspection_id === inspectionId; });
+        const row = button.closest("[data-inspection-id]");
+        const currentValues = Array.from(row.querySelectorAll("[data-item-id]")).map(function (itemRow) {
+            return {
+                id: itemRow.dataset.itemId,
+                response: itemRow.querySelector(".inspection-response").value,
+                notes: itemRow.querySelector(".inspection-item-notes").value.trim()
+            };
+        });
+        const unansweredRequired = items.some(function (item) {
+            return item.is_required && currentValues.find(function (value) { return value.id === item.id; })?.response === "unanswered";
+        });
+        if (unansweredRequired) {
+            setMessage("Answer every required item before completing the inspection.", "error");
+            return;
+        }
+        button.disabled = true;
+        const { error } = await client.from("shop_inspections")
+            .update({ status: "complete", completed_by: context.user.id, completed_at: new Date().toISOString(), updated_at: new Date().toISOString() })
+            .eq("id", inspectionId)
+            .eq("shop_id", context.shopId);
+        if (error) {
+            setMessage(`Inspection could not be completed: ${error.message}`, "error");
+            button.disabled = false;
+        } else {
+            await renderInspections();
+            setMessage("Inspection completed.", "success");
+        }
+    });
+
     async function initialize() {
         context = await window.trackRightAuthReady;
         if (!orderId || !context?.shopId) {
@@ -270,7 +408,20 @@
         if (!canAddDocumentation()) {
             setMessage("Your role can view documentation but cannot add it.", "");
         }
-        await Promise.all([renderInspections(), renderMedia()]);
+        await loadInspectionConfiguration();
+        await renderInspections();
+        if (!inspectionRecords.length && inspectionSettings.default_attachment_mode === "attach" && canAddDocumentation()) {
+            const { error } = await client.rpc("attach_shop_inspection", {
+                requested_repair_order_id: String(orderId),
+                requested_template_id: inspectionSettings.default_template_id || null
+            });
+            if (error) throw error;
+            await renderInspections();
+            setMessage("The shop's default inspection was attached automatically.", "success");
+        } else if (!inspectionRecords.length && inspectionSettings.default_attachment_mode === "suggest") {
+            setMessage("This shop suggests attaching an inspection to this repair order.", "");
+        }
+        await renderMedia();
     }
 
     initialize().catch(function (error) {
