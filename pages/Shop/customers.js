@@ -15,6 +15,7 @@ const repairOrders = [];
 let selectedCustomerId = null;
 let editingCustomerId = null;
 let editingCustomerUnitId = null;
+let currentShopId = null;
 
 
 /* =========================
@@ -375,13 +376,63 @@ function getCustomerOpenRepairOrders(customerId) {
     });
 }
 
+async function getCurrentShopId() {
+    if (currentShopId) {
+        return currentShopId;
+    }
+
+    const {
+        data: { user },
+        error: userError
+    } = await supabaseClient.auth.getUser();
+
+    if (userError || !user) {
+        throw new Error("You must be logged in to load customers.");
+    }
+
+    const {
+        data: membership,
+        error: membershipError
+    } = await supabaseClient
+        .from("shop_members")
+        .select("shop_id")
+        .eq("user_id", user.id)
+        .limit(1)
+        .maybeSingle();
+
+    if (membershipError || !membership) {
+        throw new Error(
+            membershipError?.message ||
+            "No shop membership was found for this account."
+        );
+    }
+
+    currentShopId = membership.shop_id;
+    return currentShopId;
+}
+
 async function renderCustomerDirectory() {
+    let shopId;
+
+    try {
+        shopId = await getCurrentShopId();
+    } catch (error) {
+        console.error("Could not determine shop:", error);
+        customerDirectoryList.innerHTML = `
+            <p class="customer-directory-empty">
+                ${escapeHtml(error.message)}
+            </p>
+        `;
+        return false;
+    }
+
     const {
         data: customersData,
         error
     } = await supabaseClient
         .from("Customers")
         .select("*")
+        .eq("shop_id", shopId)
         .eq("archived", false)
         .order("name");
 
@@ -390,7 +441,7 @@ async function renderCustomerDirectory() {
             "Could not load customers:",
             error
         );
-        return;
+        return false;
     }
 
     const customers =
@@ -478,7 +529,7 @@ async function renderCustomerDirectory() {
             </p>
         `;
 
-        return;
+        return true;
     }
 
     customers
@@ -617,6 +668,8 @@ async function renderCustomerDirectory() {
                 card
             );
         });
+
+    return true;
 }
 
 /* =========================
@@ -740,6 +793,7 @@ function getNextRepairOrderId() {
 
 function openCustomerForm() {
     editingCustomerId = null;
+    saveCustomerButton.disabled = false;
 
     addCustomerForm.reset();
 
@@ -761,6 +815,7 @@ function openCustomerForm() {
 function closeCustomerForm() {
     addCustomerForm.hidden = true;
     addCustomerForm.reset();
+    saveCustomerButton.disabled = false;
 
     editingCustomerId = null;
 
@@ -809,45 +864,19 @@ addCustomerForm.addEventListener(
         const notes =
             customerNotesInput.value.trim();
 
-        const {
-            data: { user },
-            error: userError
-        } = await supabaseClient.auth.getUser();
+        saveCustomerButton.disabled = true;
+        customerSaveMessage.textContent = "Saving customer…";
 
-        if (userError || !user) {
-            console.error(
-                "Could not get logged-in user:",
-                userError
-            );
+        let shopId;
 
-            customerSaveMessage.textContent =
-                "You must be logged in to save a customer.";
-
+        try {
+            shopId = await getCurrentShopId();
+        } catch (shopError) {
+            console.error("Could not determine shop:", shopError);
+            customerSaveMessage.textContent = shopError.message;
+            saveCustomerButton.disabled = false;
             return;
         }
-
-        const {
-            data: membership,
-            error: membershipError
-        } = await supabaseClient
-            .from("shop_members")
-            .select("shop_id")
-            .eq("user_id", user.id)
-            .single();
-
-        if (membershipError || !membership) {
-            console.error(
-                "Could not find shop membership:",
-                membershipError
-            );
-
-            customerSaveMessage.textContent =
-                "Could not determine your shop.";
-
-            return;
-        }
-
-        const shopId = membership.shop_id;
 
         if (editingCustomerId) {
             const {
@@ -876,12 +905,24 @@ addCustomerForm.addEventListener(
                 );
 
                 customerSaveMessage.textContent =
-                    "Customer update failed.";
+                    `Customer update failed: ${error.message}`;
+
+                saveCustomerButton.disabled = false;
 
                 return;
             }
 
             selectedCustomerId = data.id;
+
+            const directoryRefreshed =
+                await renderCustomerDirectory();
+
+            if (!directoryRefreshed) {
+                customerSaveMessage.textContent =
+                    "Customer updated, but the directory could not refresh. Reload the page to see the change.";
+                saveCustomerButton.disabled = false;
+                return;
+            }
 
             customerSaveMessage.textContent =
                 `${customerName} was updated successfully.`;
@@ -893,6 +934,8 @@ addCustomerForm.addEventListener(
                     openCustomerRecord(
                         selectedCustomerId
                     );
+
+                    saveCustomerButton.disabled = false;
                 },
                 700
             );
@@ -924,7 +967,9 @@ addCustomerForm.addEventListener(
             );
 
             customerSaveMessage.textContent =
-                "Customer save failed.";
+                `Customer save failed: ${error.message}`;
+
+            saveCustomerButton.disabled = false;
 
             return;
         }
@@ -934,12 +979,23 @@ addCustomerForm.addEventListener(
             data
         );
 
+        const directoryRefreshed =
+            await renderCustomerDirectory();
+
+        if (!directoryRefreshed) {
+            customerSaveMessage.textContent =
+                "Customer saved, but the directory could not refresh. Reload the page to see the new customer.";
+            saveCustomerButton.disabled = false;
+            return;
+        }
+
         customerSaveMessage.textContent =
-            `${customerName} was saved successfully.`;
+            `${customerName} was saved and added to the directory.`;
 
         setTimeout(
             function () {
                 closeCustomerForm();
+                saveCustomerButton.disabled = false;
             },
             700
         );
@@ -948,10 +1004,6 @@ addCustomerForm.addEventListener(
 
 
      
-
-renderCustomerDirectory();
- 
-renderCustomerDirectory();
 
 /* =========================
    CUSTOMER SEARCH
@@ -1989,4 +2041,3 @@ newRepairOrderForm.addEventListener(
 );
 
 renderCustomerDirectory();
-
