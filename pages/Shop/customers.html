@@ -398,7 +398,7 @@
                 </label>
             </div>
 
-            <label>
+            <label class="customer-notes-field">
                 Customer Notes
 
                 <textarea id="customer-notes"></textarea>
@@ -418,7 +418,9 @@
             </div>
 
             <p id="customer-save-message"
-               class="customer-save-message"></p>
+               class="customer-save-message"
+               role="status"
+               aria-live="polite"></p>
         </form>
 
         <form id="new-repair-order-form"
