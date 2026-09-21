@@ -241,6 +241,24 @@ textarea.new-ro-input {
     resize: vertical;
 }
 
+.new-ro-input:disabled {
+    cursor: not-allowed;
+    background: #edf0f1;
+    color: #69747a;
+}
+
+.new-ro-data-message {
+    min-height: 20px;
+    margin: -4px 0 14px;
+    color: #687178;
+    font-size: 0.86rem;
+    font-weight: 650;
+}
+
+    .new-ro-data-message.error {
+        color: #a43f39;
+    }
+
 .new-ro-actions {
     display: flex;
     flex-wrap: wrap;
