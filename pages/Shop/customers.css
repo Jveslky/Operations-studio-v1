@@ -320,6 +320,20 @@ body {
             border-color: #737f8c;
         }
 
+    .customer-form-actions button:disabled,
+    .customer-unit-form-actions button:disabled {
+        cursor: wait;
+        opacity: 0.65;
+    }
+
+.customer-save-message {
+    min-height: 20px;
+    margin: 14px 0 0;
+    color: #475467;
+    font-size: 0.88rem;
+    font-weight: 650;
+}
+
 
 /* =========================
    FORMS
