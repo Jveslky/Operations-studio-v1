@@ -163,7 +163,7 @@
                     </label>
 
                     <label>
-                        Mileage
+                        <span id="unit-distance-label">Mileage</span>
                         <input id="unit-mileage"
                                type="number"
                                min="0"
@@ -180,7 +180,7 @@
                     </label>
 
                     <label>
-                        Purchase Price
+                        <span id="purchase-price-label">Purchase Price</span>
                         <input id="unit-purchase-price"
                                type="number"
                                min="0"
@@ -275,9 +275,9 @@
             </div>
             <div class="form-grid">
                 <label>Date<input id="service-date" type="date" required></label>
-                <label>Cost<input id="service-cost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></label>
+                <label><span id="service-cost-label">Cost</span><input id="service-cost" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></label>
                 <label class="service-description-field">Service performed<textarea id="service-description" rows="4" required placeholder="Oil and filter change, inspection, repair…"></textarea></label>
-                <label>Mileage<input id="service-mileage" type="number" min="0" step="1" inputmode="numeric"></label>
+                <label><span id="service-distance-label">Mileage</span><input id="service-mileage" type="number" min="0" step="1" inputmode="numeric"></label>
                 <label>Hours<input id="service-hours" type="number" min="0" step="0.1" inputmode="decimal"></label>
             </div>
             <div class="form-actions">
@@ -290,7 +290,8 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../js/supabase-client.js"></script>
     <script src="../../js/auth.js"></script>
-    <script src="../../js/personal-fleet-data.js?v=20260921-2"></script>
+    <script src="../../js/personal-fleet-region.js"></script>
+    <script src="../../js/personal-fleet-data.js?v=20260921-3"></script>
     <script>window.trackRightPersonalData.loadPage("PersonalFleet.js");</script>
 </body>
 </html>

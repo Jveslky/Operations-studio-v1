@@ -5,7 +5,7 @@
     const fleetKey = "track-right-fleet";
     const orderPattern = /^repair-order-(.+)$/;
     const pendingWrites = new Set();
-    const assetVersion = "20260921-2";
+    const assetVersion = "20260921-3";
     let accountId = null;
     let originalSetItem = null;
     let syncing = false;

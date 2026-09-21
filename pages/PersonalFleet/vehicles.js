@@ -36,6 +36,9 @@ const totalMileageDisplay = document.getElementById(
 const totalRepairCostDisplay = document.getElementById(
     "total-repair-cost"
 );
+const regional = window.trackRightFleetRegion;
+document.getElementById("total-distance-label").textContent = `Total ${regional.distanceLabel()}`;
+document.getElementById("vehicle-distance-label").textContent = regional.distanceLabel();
 
 function loadVehicles() {
     try {
@@ -66,17 +69,11 @@ function createVehicleId() {
 }
 
 function formatMileage(value) {
-    return Number(value || 0).toLocaleString();
+    return regional.distance(value);
 }
 
 function formatCurrency(value) {
-    return Number(value || 0).toLocaleString(
-        "en-US",
-        {
-            style: "currency",
-            currency: "USD"
-        }
-    );
+    return regional.currency(value);
 }
 
 function updateSummary(vehicles) {
@@ -114,9 +111,9 @@ function createVehicleCard(vehicle) {
         </div>
 
         <div class="vehicle-stat">
-            <span>Mileage</span>
+            <span>${regional.distanceLabel()}</span>
             <strong>
-                ${formatMileage(vehicle.mileage)} mi
+                ${formatMileage(vehicle.mileage)}
             </strong>
         </div>
 
@@ -189,7 +186,7 @@ function openVehicleForm(vehicle = null) {
 
         vehicleIdInput.value = vehicle.id;
         vehicleNameInput.value = vehicle.name;
-        vehicleMileageInput.value = vehicle.mileage;
+        vehicleMileageInput.value = regional.toDisplayDistance(vehicle.mileage);
         vehicleRepairCostInput.value =
             vehicle.repairCost;
     } else {
@@ -219,7 +216,7 @@ function handleVehicleSubmit(event) {
     const vehicleData = {
         id: existingVehicleId || createVehicleId(),
         name: vehicleNameInput.value.trim(),
-        mileage: Number(vehicleMileageInput.value),
+        mileage: regional.toStoredDistance(vehicleMileageInput.value),
         repairCost: Number(
             vehicleRepairCostInput.value
         )

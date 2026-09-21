@@ -22,14 +22,24 @@
         <header class="settings-heading">
             <p class="settings-kicker">Personal Fleet</p>
             <h1>Fleet Settings</h1>
-            <p>Name this fleet the way you know it—JV Fleet, Charlie’s Cars, Lights Landscaping, or anything that fits.</p>
+            <p>Name your fleet and choose the regional formats used throughout Personal Fleet.</p>
         </header>
         <section class="settings-card">
             <form id="fleet-settings-form">
                 <label>Fleet Name<input id="fleet-name" name="fleetName" maxlength="120" autocomplete="organization" required></label>
                 <p class="field-help">This name appears in the account menu and is carried into Track Right exports, reports, and future shared documents.</p>
+                <div class="technician-form-grid regional-settings-grid">
+                    <label>Region<select id="fleet-region"><option value="US">United States</option><option value="IE">Ireland</option><option value="CUSTOM">Custom</option></select></label>
+                    <label>Regional Format<select id="fleet-locale"><option value="en-US">United States (MM/DD/YYYY)</option><option value="en-IE">Ireland (DD/MM/YYYY)</option><option value="en-GB">United Kingdom (DD/MM/YYYY)</option></select></label>
+                    <label>Currency<select id="fleet-currency"><option value="USD">USD — $</option><option value="EUR">EUR — €</option><option value="GBP">GBP — £</option></select></label>
+                    <label>Distance<select id="fleet-distance"><option value="mi">Miles</option><option value="km">Kilometres</option></select></label>
+                    <label>Volume<select id="fleet-volume"><option value="gal">US gallons</option><option value="L">Litres</option></select></label>
+                    <label>Temperature<select id="fleet-temperature"><option value="F">Fahrenheit</option><option value="C">Celsius</option></select></label>
+                    <label>Pressure<select id="fleet-pressure"><option value="psi">PSI</option><option value="bar">bar</option><option value="kPa">kPa</option></select></label>
+                </div>
+                <p class="field-help">Distance readings are stored consistently and converted for display and entry. Changing currency updates formatting and labels; it does not perform exchange-rate conversion on historical costs.</p>
                 <div class="settings-actions">
-                    <button type="submit">Save Fleet Name</button>
+                    <button type="submit">Save Fleet Settings</button>
                     <p id="settings-message" class="settings-message" role="status" aria-live="polite"></p>
                 </div>
             </form>
@@ -59,6 +69,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../js/supabase-client.js"></script>
     <script src="../../js/auth.js"></script>
+    <script src="../../js/personal-fleet-region.js"></script>
     <script src="../../js/personal-fleet-technicians.js"></script>
     <script src="fleet-settings.js"></script>
 </body>

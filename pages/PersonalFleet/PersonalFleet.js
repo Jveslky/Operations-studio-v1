@@ -104,6 +104,11 @@ const serviceDescriptionInput = document.querySelector("#service-description");
 const serviceCostInput = document.querySelector("#service-cost");
 const serviceMileageInput = document.querySelector("#service-mileage");
 const serviceHoursInput = document.querySelector("#service-hours");
+const regional = window.trackRightFleetRegion;
+document.querySelector("#unit-distance-label").textContent = regional.distanceLabel();
+document.querySelector("#service-distance-label").textContent = regional.distanceLabel();
+document.querySelector("#purchase-price-label").textContent = `Purchase Price (${regional.get().currency_code})`;
+document.querySelector("#service-cost-label").textContent = `Cost (${regional.get().currency_code})`;
 
 
 function getFleet() {
@@ -156,7 +161,7 @@ function openForm(unit = null) {
         unitModelInput.value = unit.model || "";
         unitEngineSizeInput.value = unit.engineSize || "";
         unitVinInput.value = unit.vin || "";
-        unitMileageInput.value = unit.mileage ?? "";
+        unitMileageInput.value = regional.toDisplayDistance(unit.mileage);
         unitHoursInput.value = unit.hours ?? "";
         unitPurchasePriceInput.value =
             unit.purchasePrice ?? "";
@@ -279,7 +284,7 @@ function renderFleet() {
                         </strong>
 
                         <span>
-                            ${escapeHtml(record.completedAt || "No date")}
+                            ${escapeHtml(record.completedAt ? regional.date(record.completedAt) : "No date")}
                         </span>
                     </div>
 
@@ -290,15 +295,7 @@ function renderFleet() {
                     </p>
 
                     <strong>
-                        ${Number(
-                            record.totalCost || 0
-                        ).toLocaleString(
-                            "en-US",
-                            {
-                                style: "currency",
-                                currency: "USD"
-                            }
-                        )}
+                        ${regional.currency(record.totalCost || 0)}
                     </strong>
                 </div>
             `)
@@ -360,8 +357,8 @@ function renderFleet() {
                 </div>
 
                 <div class="unit-detail">
-                    <span>Mileage</span>
-                    <strong>${escapeHtml(formatValue(unit.mileage))}</strong>
+                    <span>${regional.distanceLabel()}</span>
+                    <strong>${escapeHtml(regional.distance(unit.mileage))}</strong>
                 </div>
 
                 <div class="unit-detail">
@@ -381,13 +378,7 @@ function renderFleet() {
             <span>Lifetime Repair Cost</span>
 
             <strong>
-                ${repairCost.toLocaleString(
-                    "en-US",
-                    {
-                        style: "currency",
-                        currency: "USD"
-                    }
-                )}
+                ${regional.currency(repairCost)}
             </strong>
         </div>
 
@@ -476,7 +467,7 @@ function formatArchiveDate(value) {
     const date = new Date(value);
     return Number.isNaN(date.getTime())
         ? String(value)
-        : date.toLocaleDateString();
+        : regional.date(date);
 }
 
 filterButtons.forEach((button) => {
@@ -495,7 +486,7 @@ groupByTypeInput.addEventListener("change", () => { saveViewPreference(); render
 exportUnitsButton.addEventListener("click", () => {
     const headers = [
         "Fleet Name", "Name", "Unit Number", "Type", "Status", "Year", "Make", "Model",
-        "Engine Size", "VIN / Serial", "Mileage", "Hours", "Purchase Price",
+        "Engine Size", "VIN / Serial", `${regional.distanceLabel()} (${regional.distanceShort()})`, "Hours", `Purchase Price (${regional.get().currency_code})`,
         "Archived", "Archived Date", "Archive Reason", "Included in Dashboard Totals"
     ];
     const fleet = getFleet();
@@ -508,7 +499,7 @@ exportUnitsButton.addEventListener("click", () => {
     const rows = exportFleet.map(unit => [
         window.trackRightAuth?.personalAccount?.name || "Personal Fleet",
         unit.name, unit.number, unit.type, unit.status, unit.year, unit.make, unit.model,
-        unit.engineSize, unit.vin, unit.mileage, unit.hours, unit.purchasePrice,
+        unit.engineSize, unit.vin, regional.toDisplayDistance(unit.mileage), unit.hours, unit.purchasePrice,
         unit.archived === true ? "Yes" : "No", unit.archivedAt || "", unit.archiveReason || "",
         unit.archived === true ? (unit.includeInDashboardTotals === true ? "Yes" : "No") : "Yes"
     ]);
@@ -598,7 +589,7 @@ unitForm.addEventListener(
             mileage:
                 unitMileageInput.value === ""
                     ? ""
-                    : Number(unitMileageInput.value),
+                    : regional.toStoredDistance(unitMileageInput.value),
 
             hours:
                 unitHoursInput.value === ""
@@ -697,7 +688,7 @@ fleetList.addEventListener(
             serviceUnitIdInput.value = unit.id;
             serviceDialogTitle.textContent = `Log service · ${unit.name}`;
             serviceDateInput.value = new Date().toISOString().slice(0, 10);
-            serviceMileageInput.value = unit.mileage ?? "";
+            serviceMileageInput.value = regional.toDisplayDistance(unit.mileage);
             serviceHoursInput.value = unit.hours ?? "";
             serviceDialog.showModal();
             serviceDescriptionInput.focus();
@@ -772,11 +763,11 @@ serviceForm.addEventListener("submit", async function (event) {
         completedAt: serviceDateInput.value,
         workPerformed: serviceDescriptionInput.value.trim(),
         totalCost: cost,
-        mileage: serviceMileageInput.value === "" ? "" : Number(serviceMileageInput.value),
+        mileage: serviceMileageInput.value === "" ? "" : regional.toStoredDistance(serviceMileageInput.value),
         hours: serviceHoursInput.value === "" ? "" : Number(serviceHoursInput.value)
     });
     unit.repairCost = unit.serviceHistory.reduce((total, record) => total + (Number(record.totalCost) || 0), 0);
-    if (serviceMileageInput.value !== "") unit.mileage = Number(serviceMileageInput.value);
+    if (serviceMileageInput.value !== "") unit.mileage = regional.toStoredDistance(serviceMileageInput.value);
     if (serviceHoursInput.value !== "") unit.hours = Number(serviceHoursInput.value);
     saveFleet(fleet);
     await window.trackRightPersonalData.flush();
