@@ -105,7 +105,32 @@
                     </div>
                     <div id="team-document-list" class="team-document-list"></div>
                 </section>
-                <section class="settings-card settings-placeholder" id="requests"><h2>Requests</h2><p>PTO, medical absence, general requests, office review, and calendar approval are planned.</p></section>
+                <section class="settings-card" id="requests">
+                    <div class="settings-section-heading"><div><p class="settings-kicker">Requests</p><h2>Time away and team requests</h2></div><span class="settings-scope-label">Team workflow</span></div>
+                    <p class="field-help profile-intro">Team members can submit requests here. Owners, admins, and service writers review them and may add approved time away to the shop calendar.</p>
+                    <div id="request-notification-preference" class="request-notification-preference" hidden>
+                        <label class="settings-checkbox"><input id="request-notifications-enabled" type="checkbox" checked><span>Notify office accounts when a team member submits a request</span></label>
+                        <button id="save-request-notifications" type="button" class="secondary-settings-button">Save Notification Preference</button>
+                    </div>
+                    <form id="shop-request-form">
+                        <div class="settings-form-grid">
+                            <label>Request type<select id="shop-request-type" required><option value="pto">PTO</option><option value="medical">Doctor / medical absence</option><option value="general">General request</option></select></label>
+                            <label>Title<input id="shop-request-title" maxlength="160" required placeholder="Vacation, appointment, schedule change…"></label>
+                            <label class="request-date-field">Start date<input id="shop-request-start" type="date"></label>
+                            <label class="request-date-field">End date<input id="shop-request-end" type="date"></label>
+                            <label class="settings-full-width">Details<textarea id="shop-request-details" rows="4" maxlength="2000" placeholder="Give the office the information needed to review this request."></textarea></label>
+                        </div>
+                        <div class="settings-actions"><button id="submit-shop-request" type="submit">Submit Request</button><p id="shop-request-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                    </form>
+                    <hr class="settings-divider">
+                    <div class="settings-section-heading"><div><p class="settings-kicker">Review queue</p><h2 id="shop-request-list-title">My requests</h2></div><label class="request-status-filter">Status<select id="shop-request-filter"><option value="open">Open</option><option value="all">All</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="declined">Declined</option></select></label></div>
+                    <div class="request-summary-grid" aria-label="Request summary">
+                        <article><span>Pending</span><strong id="shop-requests-pending">0</strong></article>
+                        <article><span>Approved</span><strong id="shop-requests-approved">0</strong></article>
+                        <article><span>Declined</span><strong id="shop-requests-declined">0</strong></article>
+                    </div>
+                    <div id="shop-request-list" class="shop-request-list"></div>
+                </section>
                 <section class="settings-card settings-placeholder" id="behavior"><h2>Behavior</h2><p>Lead times, workflow defaults, reminders, and other shop operating preferences will live here.</p></section>
                 <section class="settings-card settings-placeholder" id="appearance"><h2>Appearance</h2><p>Shop-wide colors and personal dashboard layout preferences are planned.</p></section>
                 <section class="settings-card settings-placeholder" id="linked-accounts"><h2>Linked Accounts</h2><p>Reserved for future accounting and service connections.</p></section>
@@ -154,5 +179,5 @@
             </div>
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="shop-settings.js"></script><script src="team-documents-settings.js"></script><script src="inspection-settings.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="shop-settings.js"></script><script src="team-documents-settings.js"></script><script src="shop-requests-settings.js"></script><script src="inspection-settings.js"></script>
 </body></html>

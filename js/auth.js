@@ -327,7 +327,7 @@
 
         try {
             const notificationResult = await client.from("shop_notifications")
-                .select("id, repair_order_id, title, message, severity, created_at")
+                .select("id, notification_type, source_id, repair_order_id, title, message, severity, created_at")
                 .eq("shop_id", context.shopId)
                 .order("created_at", { ascending: false })
                 .limit(20);
@@ -349,12 +349,12 @@
             badge.hidden = unread.length === 0;
             menu.replaceChildren();
             if (!notifications.length) {
-                emptyMessage("No inspection notifications.");
+                emptyMessage("No shop notifications.");
             } else {
                 const heading = document.createElement("div");
                 heading.className = "shop-notification-heading";
                 const label = document.createElement("strong");
-                label.textContent = "Inspection notifications";
+                label.textContent = "Shop notifications";
                 const markAll = document.createElement("button");
                 markAll.type = "button";
                 markAll.textContent = "Mark all read";
@@ -368,7 +368,9 @@
 
                 notifications.forEach(function (notification) {
                     const link = document.createElement("a");
-                    link.href = `${rootPath}pages/Shop/repair-order-details.html?id=${encodeURIComponent(notification.repair_order_id)}`;
+                    link.href = notification.notification_type === "team_request_submitted"
+                        ? `${rootPath}pages/Shop/shop-settings.html#requests`
+                        : `${rootPath}pages/Shop/repair-order-details.html?id=${encodeURIComponent(notification.repair_order_id)}`;
                     link.className = `shop-notification-item severity-${notification.severity}${readIds.has(notification.id) ? "" : " unread"}`;
                     link.setAttribute("role", "menuitem");
                     const title = document.createElement("strong");

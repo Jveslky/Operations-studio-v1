@@ -116,6 +116,13 @@ records, run `supabase/team-documents.sql`. Team-document files use a private
 bucket; owners and admins manage them, and employees can read only records
 explicitly shared with their own account.
 
+For PTO, medical absence, and general team requests, run
+`supabase/shop-requests.sql`. Members can see their own submissions; owners,
+admins, and service writers can review the shop queue. Approvals can create a
+shop-scoped calendar entry with an office reminder in the same database
+transaction. Request-submission notifications use the shared Shop notification
+menu and can be enabled or disabled by an owner or admin.
+
 ## Personal Fleet beta setup
 
 1. Run `supabase/personal-fleet-beta.sql` after the shop authentication migration.
