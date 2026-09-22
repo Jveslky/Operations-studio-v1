@@ -1,6 +1,6 @@
 (function () {
     "use strict";
-    window.trackRightAuthReady.then(function () {
+    window.trackRightShopAppearanceReady.then(function () {
         const main=document.querySelector("main.shop-dashboard");
         const intro=main?.querySelector(".shop-dashboard-intro");
         if(!main||!intro)return;
