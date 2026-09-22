@@ -111,6 +111,11 @@ The first signup creates a shop owner. Owners and admins can open **Users** in
 the header, create an invitation link, and assign an employee role. All app
 pages require a valid session and an active `shop_members` record.
 
+For private employee licenses, certifications, insurance, and employment
+records, run `supabase/team-documents.sql`. Team-document files use a private
+bucket; owners and admins manage them, and employees can read only records
+explicitly shared with their own account.
+
 ## Personal Fleet beta setup
 
 1. Run `supabase/personal-fleet-beta.sql` after the shop authentication migration.
