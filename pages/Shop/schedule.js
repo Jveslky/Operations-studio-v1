@@ -124,6 +124,9 @@ const appointmentFormPanel =
         "appointmentFormPanel"
     );
 
+const upcomingAppointmentList = document.getElementById("upcomingAppointmentList");
+let upcomingRangeDays = 14;
+
 
 function getLocalDateString(
     date = new Date()
@@ -258,6 +261,75 @@ function openAppointment(
     );
 }
 
+function addDays(dateString, amount) {
+    const date = new Date(`${dateString}T12:00:00`);
+    date.setDate(date.getDate() + amount);
+    return getLocalDateString(date);
+}
+
+function formatScheduleDate(dateString) {
+    return new Date(`${dateString}T12:00:00`).toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric"
+    });
+}
+
+function renderUpcomingSchedule() {
+    const startDate = getLocalDateString();
+    const endDate = addDays(startDate, upcomingRangeDays - 1);
+    const activeStatuses = new Set(["Scheduled", "Confirmed", "In Progress"]);
+    const upcomingAppointments = appointments.filter(function (appointment) {
+        return appointment.date >= startDate && appointment.date <= endDate && activeStatuses.has(appointment.status);
+    });
+    const upcomingCalendarEvents = calendarEvents.filter(function (event) {
+        return event.date <= endDate && event.endDate >= startDate;
+    });
+    const upcomingItems = upcomingAppointments.concat(upcomingCalendarEvents).sort(function (a, b) {
+        return a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime);
+    });
+
+    document.getElementById("upcomingScheduleSummary").textContent =
+        `${upcomingItems.length} active item${upcomingItems.length === 1 ? "" : "s"} from ${formatScheduleDate(startDate)} through ${formatScheduleDate(endDate)}.`;
+
+    if (!upcomingItems.length) {
+        upcomingAppointmentList.innerHTML = `<div class="empty-state"><strong>No upcoming work</strong><p>No active appointments are scheduled in the next ${upcomingRangeDays} days.</p></div>`;
+        return;
+    }
+
+    const groups = upcomingItems.reduce(function (result, item) {
+        const groupDate = item.date < startDate ? startDate : item.date;
+        if (!result[groupDate]) result[groupDate] = [];
+        result[groupDate].push(item);
+        return result;
+    }, {});
+
+    upcomingAppointmentList.innerHTML = Object.entries(groups).map(function ([date, items]) {
+        return `<section class="upcoming-day-group">
+            <div class="upcoming-day-heading"><strong>${escapeHtml(formatScheduleDate(date))}</strong><span>${items.length} item${items.length === 1 ? "" : "s"}</span></div>
+            <div class="upcoming-day-items">${items.map(function (appointment) {
+                const endDateLabel = appointment.endDate && appointment.endDate !== appointment.date ? ` through ${formatScheduleDate(appointment.endDate)}` : "";
+                return `<article class="upcoming-appointment-card ${appointment.readOnly ? "calendar-request-event" : ""}" ${appointment.readOnly ? "" : `data-appointment-id="${escapeHtml(appointment.id)}" tabindex="0" role="button"`}>
+                    <div class="upcoming-time"><strong>${appointment.allDay ? "All day" : formatTime(appointment.startTime)}</strong><span>${appointment.allDay ? endDateLabel : formatTime(appointment.endTime)}</span></div>
+                    <div class="upcoming-main"><div><strong>${escapeHtml(appointment.customer)}</strong><span>${escapeHtml(appointment.unit || "No unit selected")}</span></div><p>${escapeHtml(appointment.description || "No work description")}</p></div>
+                    <div class="upcoming-side"><span class="appointment-status">${escapeHtml(appointment.status)}</span><small>${escapeHtml(appointment.technician || "Unassigned")}</small></div>
+                </article>`;
+            }).join("")}</div>
+        </section>`;
+    }).join("");
+
+    upcomingAppointmentList.querySelectorAll("[data-appointment-id]").forEach(function (card) {
+        const open = function () { openAppointment(card.dataset.appointmentId); };
+        card.addEventListener("click", open);
+        card.addEventListener("keydown", function (event) {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                open();
+            }
+        });
+    });
+}
+
 
 function renderSchedule() {
 
@@ -320,6 +392,8 @@ function renderSchedule() {
 
     appointmentList.innerHTML =
         "";
+
+    renderUpcomingSchedule();
 
 
     if (
@@ -857,6 +931,22 @@ scheduleDate.addEventListener(
     renderSchedule
 );
 
+document.getElementById("scheduledSummaryCard").addEventListener("click", function () {
+    document.getElementById("upcomingSchedule").scrollIntoView({ behavior: "smooth", block: "start" });
+});
+
+document.querySelectorAll("[data-upcoming-days]").forEach(function (button) {
+    button.addEventListener("click", function () {
+        upcomingRangeDays = Number(button.dataset.upcomingDays);
+        document.querySelectorAll("[data-upcoming-days]").forEach(function (rangeButton) {
+            const active = rangeButton === button;
+            rangeButton.classList.toggle("active", active);
+            rangeButton.setAttribute("aria-pressed", String(active));
+        });
+        renderUpcomingSchedule();
+    });
+});
+
 document.getElementById("appointmentStartTime").addEventListener("change", function () {
     if (!this.value || selectedAppointmentId) return;
     const parts=this.value.split(":").map(Number);
@@ -966,8 +1056,9 @@ function updateCounts() {
             function (appointment) {
 
                 return (
-                    appointment.status === "Scheduled" ||
-                    appointment.status === "Confirmed"
+                    appointment.date >= today &&
+                    (appointment.status === "Scheduled" ||
+                    appointment.status === "Confirmed")
                 );
 
             }
