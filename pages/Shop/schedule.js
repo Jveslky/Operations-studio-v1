@@ -98,6 +98,9 @@ const appointments = [
     }
 ];
 
+// Approved team requests are loaded from Supabase by schedule-calendar-events.js.
+const calendarEvents = [];
+
 
 let selectedAppointmentId = null;
 
@@ -270,6 +273,9 @@ function renderSchedule() {
 
                 }
             )
+            .concat(calendarEvents.filter(function (event) {
+                return event.date <= selectedDate && event.endDate >= selectedDate;
+            }))
             .sort(
                 function (a, b) {
 
@@ -354,14 +360,14 @@ function renderSchedule() {
                 `
                 <div class="appointment-time">
 
-                    <strong>
-                        ${formatTime(
+                            <strong>
+                                ${appointment.allDay ? "All day" : formatTime(
                     appointment.startTime
                 )}
                     </strong>
 
-                    <span>
-                        ${formatTime(
+                            <span>
+                                ${appointment.allDay ? "" : formatTime(
                     appointment.endTime
                 )}
                     </span>
@@ -436,15 +442,11 @@ function renderSchedule() {
             `;
 
 
-            card.addEventListener(
-                "click",
-                function () {
-
-                    openAppointment(
-                        appointment.id
-                    );
-                }
-            );
+            if (!appointment.readOnly) {
+                card.addEventListener("click", function () { openAppointment(appointment.id); });
+            } else {
+                card.classList.add("calendar-request-event");
+            }
 
 
             appointmentList.appendChild(
