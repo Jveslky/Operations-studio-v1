@@ -164,9 +164,77 @@
             return allowed.includes("*") || allowed.includes(permission);
         };
         document.documentElement.dataset.authReady = "true";
+        addShopSettingsMenu();
         addAccountControls(context);
         document.body.style.visibility = "visible";
         return context;
+    }
+
+    function addShopSettingsMenu() {
+        const header = document.querySelector(".app-header-inner, .header-inner");
+        if (!header || document.getElementById("settings-menu-button")) return;
+        const rootPath = loginPath.replace(/login\.html(?:\?.*)?$/, "");
+        const button = document.createElement("button");
+        button.id = "settings-menu-button";
+        button.className = "settings-menu-button";
+        button.type = "button";
+        button.setAttribute("aria-label", "Open Shop settings menu");
+        button.setAttribute("aria-controls", "settings-sidebar");
+        button.setAttribute("aria-expanded", "false");
+        button.innerHTML = "<span></span><span></span><span></span>";
+
+        const overlay = document.createElement("div");
+        overlay.className = "settings-sidebar-overlay";
+        overlay.hidden = true;
+
+        const sidebar = document.createElement("aside");
+        sidebar.id = "settings-sidebar";
+        sidebar.className = "settings-sidebar";
+        sidebar.setAttribute("aria-hidden", "true");
+        sidebar.innerHTML = `
+            <div class="settings-sidebar-header">
+                <h2>Shop Settings</h2>
+                <button id="close-settings-sidebar" type="button" aria-label="Close settings menu">×</button>
+            </div>
+            <nav class="settings-sidebar-nav" aria-label="Shop settings">
+                <a href="${rootPath}pages/Shop/shop-settings.html#shop-profile">Shop Profile</a>
+                <a href="${rootPath}pages/Shop/shop-settings.html#customers-tax">Customers &amp; Tax</a>
+                ${window.trackRightCan("users.manage") ? `<a href="${rootPath}pages/Admin/users.html">Users &amp; Permissions</a>` : ""}
+                <a href="${rootPath}pages/Shop/shop-settings.html#team-documents">Team Documents</a>
+                <a href="${rootPath}pages/Shop/shop-settings.html#requests">Requests</a>
+                <a href="${rootPath}pages/Shop/shop-settings.html#behavior">Behavior</a>
+                <a href="${rootPath}pages/Shop/shop-settings.html#appearance">Appearance</a>
+                <a href="${rootPath}pages/Shop/shop-settings.html#linked-accounts">Linked Accounts</a>
+                <a href="${rootPath}pages/Shop/shop-settings.html#data-management">Data Management</a>
+                <a href="${rootPath}pages/Shop/shop-settings.html#inspections-photos">Inspections &amp; Photos</a>
+            </nav>`;
+
+        const close = () => {
+            sidebar.classList.remove("open");
+            sidebar.setAttribute("aria-hidden", "true");
+            button.setAttribute("aria-expanded", "false");
+            overlay.hidden = true;
+        };
+        const open = () => {
+            sidebar.classList.add("open");
+            sidebar.setAttribute("aria-hidden", "false");
+            button.setAttribute("aria-expanded", "true");
+            overlay.hidden = false;
+            sidebar.querySelector("a, button")?.focus();
+        };
+        button.addEventListener("click", () => {
+            if (sidebar.classList.contains("open")) close(); else open();
+        });
+        sidebar.querySelector("#close-settings-sidebar").addEventListener("click", close);
+        overlay.addEventListener("click", close);
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "Escape" && sidebar.classList.contains("open")) {
+                close();
+                button.focus();
+            }
+        });
+        header.prepend(button);
+        document.body.append(overlay, sidebar);
     }
 
     function addAccountControls(context) {
