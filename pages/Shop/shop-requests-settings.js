@@ -11,6 +11,9 @@
     const message = document.getElementById("shop-request-message");
     const filter = document.getElementById("shop-request-filter");
     const list = document.getElementById("shop-request-list");
+    const notificationPreference = document.getElementById("request-notification-preference");
+    const notificationsEnabled = document.getElementById("request-notifications-enabled");
+    const saveNotificationPreference = document.getElementById("save-request-notifications");
     let context = null;
     let requests = [];
     let members = new Map();
@@ -39,6 +42,16 @@
         const result = await client.from("shop_requests").select("*").eq("shop_id", context.shopId).order("created_at", { ascending:false });
         if (result.error) throw result.error;
         requests = result.data || []; render();
+    }
+
+    async function loadNotificationPreference() {
+        if (!isOffice()) return;
+        notificationPreference.hidden = false;
+        const result = await client.from("shops").select("request_notifications_enabled").eq("id", context.shopId).single();
+        if (result.error) throw result.error;
+        notificationsEnabled.checked = result.data.request_notifications_enabled !== false;
+        const canChange = ["owner", "admin"].includes(context.role);
+        notificationsEnabled.disabled = !canChange; saveNotificationPreference.hidden = !canChange;
     }
 
     function reviewPanel(item) {
@@ -99,5 +112,11 @@
         form.reset(); type.value="pto"; updateDateRequirement(); await loadRequests(); setMessage("Request submitted for office review.","success");
     });
     type.addEventListener("change",updateDateRequirement); filter.addEventListener("change",render);
-    window.trackRightAuthReady.then(async (authContext) => { context=authContext; updateDateRequirement(); await loadMembers(); await loadRequests(); }).catch((error) => setMessage(`Requests could not load: ${error.message}`,"error"));
+    saveNotificationPreference.addEventListener("click", async () => {
+        saveNotificationPreference.disabled=true; setMessage("Saving notification preference…","");
+        const result=await client.from("shops").update({ request_notifications_enabled:notificationsEnabled.checked, updated_at:new Date().toISOString() }).eq("id",context.shopId);
+        saveNotificationPreference.disabled=false;
+        setMessage(result.error ? `Preference could not be saved: ${result.error.message}` : "Request notification preference saved.", result.error ? "error" : "success");
+    });
+    window.trackRightAuthReady.then(async (authContext) => { context=authContext; updateDateRequirement(); await loadMembers(); await loadNotificationPreference(); await loadRequests(); }).catch((error) => setMessage(`Requests could not load: ${error.message}`,"error"));
 })();
