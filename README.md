@@ -131,6 +131,13 @@ Run `supabase/shop-appearance-settings.sql` for shop-wide color schemes and
 per-user Shop dashboard order/density. Shop themes are owner/admin controlled;
 each active member controls only their own dashboard layout.
 
+Run `supabase/shop-data-management.sql` for protected version 2 backup restores.
+Shop Settings Data Management exports CSV reports and shop-scoped cloud data
+plus remaining legacy browser records. Imports reject other-shop data and add
+only missing records; existing cloud records are not silently overwritten.
+Private Storage documents, photos, and videos are not included in the JSON
+data backup.
+
 ## Personal Fleet beta setup
 
 1. Run `supabase/personal-fleet-beta.sql` after the shop authentication migration.
