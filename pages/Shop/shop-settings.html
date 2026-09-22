@@ -147,7 +147,26 @@
                         <div class="settings-actions"><button id="save-shop-behavior" type="submit">Save Behavior</button><p id="shop-behavior-message" class="settings-message" role="status" aria-live="polite"></p></div>
                     </form>
                 </section>
-                <section class="settings-card settings-placeholder" id="appearance"><h2>Appearance</h2><p>Shop-wide colors and personal dashboard layout preferences are planned.</p></section>
+                <section class="settings-card" id="appearance">
+                    <div class="settings-section-heading"><div><p class="settings-kicker">Appearance</p><h2>Theme and dashboard layout</h2></div><span class="settings-scope-label">Shop + personal</span></div>
+                    <p class="field-help profile-intro">The color scheme is shop-wide. Dashboard order and spacing are saved separately for your account.</p>
+                    <form id="shop-theme-form">
+                        <div class="appearance-theme-grid" id="appearance-theme-options">
+                            <label class="appearance-theme-card"><input type="radio" name="shop-theme" value="industrial"><span class="theme-swatches industrial"><i></i><i></i><i></i></span><strong>Industrial</strong><small>Track Right orange and steel</small></label>
+                            <label class="appearance-theme-card"><input type="radio" name="shop-theme" value="slate"><span class="theme-swatches slate"><i></i><i></i><i></i></span><strong>Slate Blue</strong><small>Cool blue-gray workspace</small></label>
+                            <label class="appearance-theme-card"><input type="radio" name="shop-theme" value="forest"><span class="theme-swatches forest"><i></i><i></i><i></i></span><strong>Forest</strong><small>Muted green shop palette</small></label>
+                            <label class="appearance-theme-card"><input type="radio" name="shop-theme" value="high_contrast"><span class="theme-swatches high-contrast"><i></i><i></i><i></i></span><strong>High Contrast</strong><small>Dark header and gold accent</small></label>
+                        </div>
+                        <div class="settings-actions"><button id="save-shop-theme" type="submit">Save Shop Theme</button><p id="shop-theme-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                    </form>
+                    <hr class="settings-divider">
+                    <form id="dashboard-layout-form">
+                        <div class="settings-section-heading"><div><p class="settings-kicker">My dashboard</p><h2>Section order</h2></div></div>
+                        <div id="dashboard-section-order" class="dashboard-order-list"></div>
+                        <label class="settings-checkbox"><input id="compact-shop-dashboard" type="checkbox"><span>Use compact dashboard spacing</span></label>
+                        <div class="settings-actions"><button type="submit">Save My Dashboard</button><p id="dashboard-layout-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                    </form>
+                </section>
                 <section class="settings-card settings-placeholder" id="linked-accounts"><h2>Linked Accounts</h2><p>Reserved for future accounting and service connections.</p></section>
                 <section class="settings-card settings-placeholder" id="data-management"><h2>Data Management</h2><p>Existing Export and Import behavior remains available from the shared settings drawer while this section is expanded.</p></section>
                 <section class="settings-card" id="inspections-photos">
@@ -194,5 +213,5 @@
             </div>
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="../../js/shop-behavior.js"></script><script src="shop-settings.js"></script><script src="team-documents-settings.js"></script><script src="shop-requests-settings.js"></script><script src="shop-behavior-settings.js"></script><script src="inspection-settings.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="../../js/shop-behavior.js"></script><script src="shop-settings.js"></script><script src="team-documents-settings.js"></script><script src="shop-requests-settings.js"></script><script src="shop-behavior-settings.js"></script><script src="shop-appearance-settings.js"></script><script src="inspection-settings.js"></script>
 </body></html>
