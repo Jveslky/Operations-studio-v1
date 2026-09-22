@@ -616,6 +616,7 @@ body {
     border-left: 4px solid #69b2bd;
     border-radius: 8px;
 }
+.appointment-card.calendar-request-event { border-left-color: #db6128; cursor: default; }
 
 .appointment-time {
     padding-right: 16px;
