@@ -168,7 +168,23 @@
                     </form>
                 </section>
                 <section class="settings-card settings-placeholder" id="linked-accounts"><h2>Linked Accounts</h2><p>Reserved for future accounting and service connections.</p></section>
-                <section class="settings-card settings-placeholder" id="data-management"><h2>Data Management</h2><p>Existing Export and Import behavior remains available from the shared settings drawer while this section is expanded.</p></section>
+                <section class="settings-card" id="data-management">
+                    <div class="settings-section-heading"><div><p class="settings-kicker">Data Management</p><h2>Exports and recovery</h2></div><span class="settings-scope-label">Shop-scoped</span></div>
+                    <p class="field-help profile-intro">Download readable CSV reports or a versioned Shop data backup. Imports validate the source shop and add missing records without overwriting existing cloud records. Private uploaded documents, photos, and videos are not included.</p>
+                    <div class="settings-form-grid data-export-controls">
+                        <label>Export data<select id="data-export-type"><option value="customers">Customers</option><option value="units">Customer units</option><option value="accounts_payable">Accounts payable</option><option value="requests">Team requests</option><option value="calendar">Calendar events</option></select></label>
+                        <label>Date range<select id="data-export-range"><option value="all">All time</option><option value="year">This year</option><option value="month">This month</option><option value="30">Last 30 days</option><option value="custom">Custom</option></select></label>
+                        <label class="data-custom-range" hidden>Start date<input id="data-export-start" type="date"></label>
+                        <label class="data-custom-range" hidden>End date<input id="data-export-end" type="date"></label>
+                    </div>
+                    <div class="settings-actions"><button id="export-data-csv" type="button" disabled>Download CSV</button><button id="export-full-backup" type="button" class="secondary-settings-button" disabled>Download Shop Data Backup</button><p id="data-export-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                    <hr class="settings-divider">
+                    <div class="settings-section-heading"><div><p class="settings-kicker">Import</p><h2>Validate a Shop backup</h2></div></div>
+                    <label>Backup file<input id="shop-backup-file" type="file" accept=".json,application/json"></label>
+                    <div id="shop-backup-review" class="backup-review" hidden></div>
+                    <label id="shop-backup-confirm-label" class="settings-checkbox" hidden><input id="shop-backup-confirm" type="checkbox"><span>I understand that missing records will be added to this shop</span></label>
+                    <div class="settings-actions"><button id="import-shop-backup" type="button" disabled>Import Missing Records</button><p id="data-import-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                </section>
                 <section class="settings-card" id="inspections-photos">
                     <div class="settings-section-heading"><div><p class="settings-kicker">Inspections &amp; Media</p><h2>Templates and behavior</h2></div><span class="settings-scope-label">Shop-wide</span></div>
                     <p class="field-help profile-intro">Inspections remain optional unless this shop changes the default. Existing inspections keep their original checklist when a template is edited.</p>
@@ -213,5 +229,5 @@
             </div>
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="../../js/shop-appearance.js"></script><script src="../../js/shop-behavior.js"></script><script src="shop-settings.js"></script><script src="team-documents-settings.js"></script><script src="shop-requests-settings.js"></script><script src="shop-behavior-settings.js"></script><script src="shop-appearance-settings.js"></script><script src="inspection-settings.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="../../js/shop-appearance.js"></script><script src="../../js/shop-behavior.js"></script><script src="shop-settings.js"></script><script src="team-documents-settings.js"></script><script src="shop-requests-settings.js"></script><script src="shop-behavior-settings.js"></script><script src="shop-appearance-settings.js"></script><script src="shop-data-management.js"></script><script src="inspection-settings.js"></script>
 </body></html>
