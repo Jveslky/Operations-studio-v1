@@ -31,6 +31,13 @@
                 { name: "Fleet management", checks: [{ label: "Create and edit units", status: "complete" }, { label: "Archive and restore", status: "complete" }, { label: "Dashboard scopes", status: "complete" }] },
                 { name: "Maintenance workflow", checks: [{ label: "Service history and reminders", status: "complete" }, { label: "Repair orders", status: "complete" }, { label: "Technician assignment", status: "complete" }, { label: "Exports and backups", status: "complete" }] },
                 { name: "Beta validation", checks: [{ label: "Primary invitation flow", status: "complete" }, { label: "Two feedback accounts complete", status: "pending", critical: true }, { label: "Full phone-width review", status: "pending" }, { label: "Automated smoke coverage", status: "pending", critical: true }] }
+            ] },
+            { name: "Commercial Fleet", description: "Planned fleet-operations suite for multi-user commercial accounts, compliance, cost control, dispatch, and connected service workflows.", roadmap: true, scope: "1.8–2.2× Mobile", stages: [
+                { name: "Fleet foundation", checks: [{ label: "Organization and division model", status: "planned", critical: true }, { label: "Commercial unit registry", status: "planned" }, { label: "Driver and operator assignments", status: "planned" }, { label: "Bulk fleet import and onboarding", status: "planned" }] },
+                { name: "Maintenance operations", checks: [{ label: "Preventive-maintenance schedules", status: "planned" }, { label: "Inspections and DVIR workflow", status: "planned" }, { label: "Work orders and approvals", status: "planned" }, { label: "Downtime and availability tracking", status: "planned" }] },
+                { name: "Cost and compliance", checks: [{ label: "Total cost of ownership", status: "planned" }, { label: "Cost centers and budgets", status: "planned" }, { label: "Fuel and tire tracking", status: "planned" }, { label: "Registration, insurance, and compliance", status: "planned" }, { label: "Commercial reporting", status: "planned" }] },
+                { name: "Dispatch and integrations", checks: [{ label: "GPS and telematics foundation", status: "planned" }, { label: "Routing and dispatch", status: "planned" }, { label: "Shop and Mobile handoff", status: "planned" }, { label: "Accounting and API connections", status: "planned" }] },
+                { name: "Deployment validation", checks: [{ label: "Commercial tenant isolation", status: "planned", critical: true }, { label: "Enterprise permissions", status: "planned", critical: true }, { label: "Fleet-data migration validation", status: "planned" }, { label: "Commercial field pilot", status: "planned", critical: true }, { label: "Automated and scale testing", status: "planned", critical: true }] }
             ] }
         ],
         attention: [
@@ -62,7 +69,7 @@
     const flattenChecks = (module) => module.stages.flatMap((stage) => stage.checks);
     const completedChecks = (checks) => checks.filter((check) => check.status === "complete").length;
     const completionPercent = (checks) => checks.length ? Math.round((completedChecks(checks) / checks.length) * 100) : 0;
-    const moduleState = (progress) => progress === 100 ? "live" : progress >= 75 ? "working" : "partial";
+    const moduleState = (progress, roadmap) => roadmap ? "planned" : progress === 100 ? "live" : progress >= 75 ? "working" : "partial";
 
     function stageMarkup(stage) {
         const done = completedChecks(stage.checks);
@@ -76,8 +83,11 @@
     }
 
     function renderProject() {
-        const allChecks = project.modules.flatMap(flattenChecks);
-        const allStages = project.modules.flatMap((module) => module.stages);
+        const activeModules = project.modules.filter((module) => !module.roadmap);
+        const roadmapModules = project.modules.filter((module) => module.roadmap);
+        const allChecks = activeModules.flatMap(flattenChecks);
+        const allStages = activeModules.flatMap((module) => module.stages);
+        const roadmapStages = roadmapModules.flatMap((module) => module.stages);
         const checksDone = completedChecks(allChecks);
         const stagesDone = allStages.filter((stage) => completionPercent(stage.checks) === 100).length;
         const openChecks = allChecks.length - checksDone;
@@ -86,7 +96,7 @@
         byId("metric-readiness").textContent = `${overallProgress}%`;
         byId("metric-readiness-detail").textContent = `${checksDone} of ${allChecks.length} checks complete`;
         byId("metric-modules").textContent = String(project.modules.length);
-        byId("metric-modules-detail").textContent = `${stagesDone} of ${allStages.length} deployment stages complete`;
+        byId("metric-modules-detail").textContent = `${stagesDone} of ${allStages.length} active stages complete · ${roadmapStages.length} planned`;
         byId("metric-protected").textContent = String(project.protectedPages);
         byId("metric-protected-detail").textContent = `${project.pages - project.protectedPages} require review or are public auth pages`;
         byId("metric-open-checks").textContent = String(openChecks);
@@ -98,19 +108,19 @@
             <div class="attention-item ${item.state}"><span class="attention-icon" aria-hidden="true"></span>
                 <div><strong>${item.title}</strong><small>${item.detail}</small></div><span class="state-label">${labelForState(item.state)}</span></div>`).join("");
 
-        byId("deployment-summary").innerHTML = `<div><span>Overall product completion</span><strong>${overallProgress}%</strong></div><div class="progress-track" role="progressbar" aria-label="Overall product completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${overallProgress}"><span style="width:${overallProgress}%"></span></div><small>${checksDone} complete · ${openChecks} open · ${blockers} launch blockers · reviewed September 22, 2026</small>`;
+        byId("deployment-summary").innerHTML = `<div><span>Active-release completion</span><strong>${overallProgress}%</strong></div><div class="progress-track" role="progressbar" aria-label="Active-release completion" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${overallProgress}"><span style="width:${overallProgress}%"></span></div><small>${checksDone} complete · ${openChecks} open · ${blockers} launch blockers · future Commercial Fleet scope tracked separately · reviewed September 22, 2026</small>`;
 
         byId("module-grid").innerHTML = project.modules.map((module, index) => {
             const checks = flattenChecks(module);
             const done = completedChecks(checks);
             const progress = completionPercent(checks);
             const blockers = checks.filter((check) => check.critical && check.status !== "complete").length;
-            const state = moduleState(progress);
+            const state = moduleState(progress, module.roadmap);
             return `<article class="module-card"><div class="module-card-top"><span class="module-index">${String(index + 1).padStart(2, "0")}</span><span class="status-chip ${state}">${labelForState(state)}</span></div>
                 <h3>${module.name}</h3><p>${module.description}</p>
                 <div class="module-progress"><div><span>Deployment readiness</span><strong>${progress}%</strong></div><div class="progress-track" role="progressbar" aria-label="${module.name} deployment readiness" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${progress}"><span style="width:${progress}%"></span></div></div>
-                <div class="module-metrics"><span><b>${module.stages.length}</b> stages</span><span><b>${done}/${checks.length}</b> checks</span><span><b>${blockers}</b> blockers</span></div>
-                <div class="stage-list">${module.stages.map(stageMarkup).join("")}</div><a href="${rootPrefix}${module.href}">Open module →</a></article>`;
+                <div class="module-metrics"><span><b>${module.stages.length}</b> stages</span><span><b>${done}/${checks.length}</b> checks</span><span><b>${blockers}</b> blockers</span>${module.scope ? `<span><b>${module.scope}</b> scope</span>` : ""}</div>
+                <div class="stage-list">${module.stages.map(stageMarkup).join("")}</div>${module.href ? `<a href="${rootPrefix}${module.href}">Open module →</a>` : '<span class="roadmap-label">Planned module · no production workspace yet</span>'}</article>`;
         }).join("");
 
         byId("backlog-list").innerHTML = project.backlog.map((item) => `<li><div><strong>${item.title}</strong><small>${item.detail}</small></div><span class="status-chip ${item.state}">${labelForState(item.state)}</span></li>`).join("");
