@@ -2041,6 +2041,7 @@ startCustomerRepairOrderButton.addEventListener(
         }
 
         newRepairOrderForm.reset();
+        newPriorityInput.value = (await window.trackRightShopBehavior).default_ro_priority;
 
         newCustomerInput.value =
             selectedCustomer.name;
