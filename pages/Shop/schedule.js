@@ -100,6 +100,8 @@ const appointments = [
 
 // Approved team requests are loaded from Supabase by schedule-calendar-events.js.
 const calendarEvents = [];
+let shopBehavior = { ...window.trackRightShopBehaviorDefaults };
+window.trackRightShopBehavior.then(function (settings) { shopBehavior = settings; });
 
 
 let selectedAppointmentId = null;
@@ -538,7 +540,9 @@ document.getElementById(
     "new-appointment-button"
 ).addEventListener(
     "click",
-    function () {
+    async function () {
+
+        shopBehavior = await window.trackRightShopBehavior;
 
         selectedAppointmentId = null;
 
@@ -548,6 +552,8 @@ document.getElementById(
             "appointmentDate"
         ).value =
             scheduleDate.value;
+
+        document.getElementById("appointmentType").value = shopBehavior.default_appointment_type;
 
         document.querySelector(
             ".appointment-form-header h2"
@@ -637,6 +643,16 @@ document.getElementById(
             document.getElementById(
                 "appointmentStartTime"
             ).value;
+
+        if (!selectedAppointmentId && date && startTime && shopBehavior.scheduling_lead_hours > 0) {
+            const earliest = new Date(Date.now() + shopBehavior.scheduling_lead_hours * 3600000);
+            const requested = new Date(`${date}T${startTime}:00`);
+            if (requested < earliest) {
+                document.getElementById("appointmentMessage").textContent =
+                    `This shop requires ${shopBehavior.scheduling_lead_hours} hours of scheduling notice.`;
+                return;
+            }
+        }
 
 
         if (
@@ -840,6 +856,13 @@ scheduleDate.addEventListener(
     "change",
     renderSchedule
 );
+
+document.getElementById("appointmentStartTime").addEventListener("change", function () {
+    if (!this.value || selectedAppointmentId) return;
+    const parts=this.value.split(":").map(Number);
+    const endMinutes=parts[0]*60+parts[1]+Number(shopBehavior.default_appointment_duration_minutes || 60);
+    document.getElementById("appointmentEndTime").value=`${String(Math.floor((endMinutes/60)%24)).padStart(2,"0")}:${String(endMinutes%60).padStart(2,"0")}`;
+});
 
 
 function clearAppointmentForm() {

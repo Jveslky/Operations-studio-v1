@@ -504,6 +504,7 @@ newRepairOrderButton.addEventListener(
         selectedCustomerId = null;
 
         newRepairOrderForm.reset();
+        newPriorityInput.value = (await window.trackRightShopBehavior).default_ro_priority;
 
         openNewRepairOrderForm();
 
@@ -1611,6 +1612,7 @@ startCustomerRepairOrderButton?.addEventListener(
         }
 
         newRepairOrderForm.reset();
+        newPriorityInput.value = (await window.trackRightShopBehavior).default_ro_priority;
 
         customerRecordPanel.hidden = true;
         customerSearchResults.hidden = true;

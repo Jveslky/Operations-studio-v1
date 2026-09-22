@@ -123,6 +123,10 @@ shop-scoped calendar entry with an office reminder in the same database
 transaction. Request-submission notifications use the shared Shop notification
 menu and can be enabled or disabled by an owner or admin.
 
+Run `supabase/shop-behavior-settings.sql` for shop-wide workflow defaults.
+Behavior settings apply to new appointments, repair orders, invoices, and
+approved time-away requests without rewriting existing records.
+
 ## Personal Fleet beta setup
 
 1. Run `supabase/personal-fleet-beta.sql` after the shop authentication migration.

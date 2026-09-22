@@ -131,7 +131,22 @@
                     </div>
                     <div id="shop-request-list" class="shop-request-list"></div>
                 </section>
-                <section class="settings-card settings-placeholder" id="behavior"><h2>Behavior</h2><p>Lead times, workflow defaults, reminders, and other shop operating preferences will live here.</p></section>
+                <section class="settings-card" id="behavior">
+                    <div class="settings-section-heading"><div><p class="settings-kicker">Behavior</p><h2>Workflow defaults</h2></div><span class="settings-scope-label">Shop-wide</span></div>
+                    <p class="field-help profile-intro">Set practical defaults for new appointments, repair orders, invoices, and approved time-away requests. Existing records are never rewritten.</p>
+                    <form id="shop-behavior-form">
+                        <div class="settings-form-grid">
+                            <label>Minimum scheduling notice<input id="behavior-scheduling-lead" type="number" min="0" max="8760" step="1" required><span class="field-help">Hours before an appointment may begin. Use 0 for no restriction.</span></label>
+                            <label>Default appointment duration<select id="behavior-appointment-duration"><option value="30">30 minutes</option><option value="60">1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours</option><option value="180">3 hours</option><option value="240">4 hours</option><option value="480">8 hours</option></select></label>
+                            <label>Default appointment type<select id="behavior-appointment-type"><option value="Shop">Shop</option><option value="Mobile">Mobile</option><option value="Pickup">Pickup</option><option value="Dropoff">Dropoff</option></select></label>
+                            <label>Default repair-order priority<select id="behavior-ro-priority"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></label>
+                            <label>Default invoice terms<input id="behavior-invoice-terms" type="number" min="0" max="365" step="1" required><span class="field-help">Days from invoice creation to the default due date.</span></label>
+                            <label>Time-away reminder lead<input id="behavior-request-reminder" type="number" min="0" max="8760" step="1" required><span class="field-help">Hours before approved time away to remind the office.</span></label>
+                            <label class="settings-checkbox settings-full-width"><input id="behavior-auto-calendar" type="checkbox"><span>Add approved dated time-away requests to the calendar by default</span></label>
+                        </div>
+                        <div class="settings-actions"><button id="save-shop-behavior" type="submit">Save Behavior</button><p id="shop-behavior-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                    </form>
+                </section>
                 <section class="settings-card settings-placeholder" id="appearance"><h2>Appearance</h2><p>Shop-wide colors and personal dashboard layout preferences are planned.</p></section>
                 <section class="settings-card settings-placeholder" id="linked-accounts"><h2>Linked Accounts</h2><p>Reserved for future accounting and service connections.</p></section>
                 <section class="settings-card settings-placeholder" id="data-management"><h2>Data Management</h2><p>Existing Export and Import behavior remains available from the shared settings drawer while this section is expanded.</p></section>
@@ -179,5 +194,5 @@
             </div>
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="shop-settings.js"></script><script src="team-documents-settings.js"></script><script src="shop-requests-settings.js"></script><script src="inspection-settings.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="../../js/shop-behavior.js"></script><script src="shop-settings.js"></script><script src="team-documents-settings.js"></script><script src="shop-requests-settings.js"></script><script src="shop-behavior-settings.js"></script><script src="inspection-settings.js"></script>
 </body></html>

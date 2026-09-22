@@ -286,16 +286,17 @@ function populateRepairOrderDropdown() {
    FORM OPEN / CLOSE
 ========================= */
 
-function openInvoiceForm() {
+async function openInvoiceForm() {
     createInvoiceForm.reset();
 
     populateRepairOrderDropdown();
 
+    const behavior = await window.trackRightShopBehavior;
     const defaultDueDate =
         new Date();
 
     defaultDueDate.setDate(
-        defaultDueDate.getDate() + 30
+        defaultDueDate.getDate() + behavior.default_invoice_terms_days
     );
 
     invoiceDueDateInput.value =
