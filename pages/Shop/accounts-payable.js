@@ -150,7 +150,7 @@
     });
 
     window.trackRightAuthReady.then(function (authContext) {
-        context = authContext; canWrite = ["owner", "admin", "service_writer"].includes(context.role);
+        context = authContext; canWrite = window.trackRightCan("expenses.write");
         byId("scan-bill-button").hidden = !canWrite; byId("add-bill-button").hidden = !canWrite;
         return loadBills();
     }).catch((error) => setMessage(`Accounts Payable could not load: ${error.message}`, "error"));
