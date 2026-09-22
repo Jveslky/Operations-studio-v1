@@ -1,6 +1,9 @@
 -- Shop-scoped team requests, office review, and approved calendar entries.
 -- Additive only; existing schedule and repair-order data is not modified.
 
+alter table public.shops add column if not exists request_notifications_enabled boolean not null default true;
+grant update(request_notifications_enabled) on public.shops to authenticated;
+
 create table if not exists public.shop_requests (
     id uuid primary key default gen_random_uuid(),
     shop_id uuid not null references public.shops(id) on delete cascade,
@@ -40,6 +43,29 @@ create table if not exists public.shop_calendar_events (
 create index if not exists shop_requests_shop_status_idx on public.shop_requests(shop_id,status,created_at desc);
 create index if not exists shop_requests_requester_idx on public.shop_requests(requested_by,created_at desc);
 create index if not exists shop_calendar_events_shop_dates_idx on public.shop_calendar_events(shop_id,starts_on,ends_on);
+
+create or replace function public.create_shop_request_notification()
+returns trigger language plpgsql security definer set search_path=public as $$
+declare
+    enabled boolean;
+    requester_email text;
+    type_label text;
+begin
+    select coalesce(shops.request_notifications_enabled,true) into enabled from public.shops where id=new.shop_id;
+    if enabled is false then return new; end if;
+    select email::text into requester_email from auth.users where id=new.requested_by;
+    type_label := case new.request_type when 'pto' then 'PTO' when 'medical' then 'medical absence' else 'general' end;
+    insert into public.shop_notifications(shop_id,notification_type,source_id,title,message,severity)
+    values(new.shop_id,'team_request_submitted',new.id,'New ' || type_label || ' request',
+        coalesce(requester_email,'A team member') || ' submitted “' || new.title || '” for office review.','attention')
+    on conflict(shop_id,notification_type,source_id) do nothing;
+    return new;
+end;
+$$;
+
+drop trigger if exists notify_shop_request_submission on public.shop_requests;
+create trigger notify_shop_request_submission after insert on public.shop_requests
+for each row execute function public.create_shop_request_notification();
 
 alter table public.shop_requests enable row level security;
 alter table public.shop_calendar_events enable row level security;
