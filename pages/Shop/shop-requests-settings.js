@@ -19,7 +19,7 @@
     let members = new Map();
     let behavior = { ...window.trackRightShopBehaviorDefaults };
 
-    function isOffice() { return ["owner", "admin", "service_writer"].includes(context?.role); }
+    function isOffice() { return Boolean(window.trackRightCan?.("requests.review")); }
     function setMessage(text, state) { message.textContent = text; message.className = `settings-message${state ? ` ${state}` : ""}`; }
     function formatDate(value) { if (!value) return "No date required"; const p=String(value).slice(0,10).split("-").map(Number); return new Date(p[0],p[1]-1,p[2]).toLocaleDateString(); }
     function requestType(value) { return { pto:"PTO", medical:"Medical absence", general:"General" }[value] || value; }

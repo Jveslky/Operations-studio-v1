@@ -205,8 +205,11 @@
         context = authContext;
         $("export-data-csv").disabled = false;
         $("export-full-backup").disabled = false;
-        const canImport = ["owner", "admin"].includes(context.role);
+        const canImport = window.trackRightCan("data.import");
         $("shop-backup-file").disabled = !canImport;
+        const canExport = window.trackRightCan("data.export");
+        $("export-data-csv").disabled = !canExport;
+        $("export-full-backup").disabled = !canExport;
         if (!canImport) status("data-import-message",
             "Owner or admin access is required to import backups.", "error");
     }).catch((error) => status("data-export-message",

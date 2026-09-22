@@ -25,7 +25,7 @@
         message.className = `settings-message${state ? ` ${state}` : ""}`;
     }
 
-    function canManage() { return ["owner", "admin"].includes(context?.role); }
+    function canManage() { return Boolean(window.trackRightCan?.("team_documents.manage")); }
     function dateOnly(value) { return value ? String(value).slice(0, 10) : ""; }
     function formatDate(value) {
         if (!value) return "No expiration";
@@ -86,7 +86,7 @@
 
     async function loadMembers() {
         if (!canManage()) return;
-        const result = await client.rpc("list_my_shop_members");
+        const result = await client.rpc("list_shop_request_members");
         if (result.error) throw result.error;
         (result.data || []).filter((item) => item.is_active).forEach((item) => {
             members.set(String(item.user_id), item);
