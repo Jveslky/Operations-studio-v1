@@ -127,6 +127,10 @@ Run `supabase/shop-behavior-settings.sql` for shop-wide workflow defaults.
 Behavior settings apply to new appointments, repair orders, invoices, and
 approved time-away requests without rewriting existing records.
 
+Run `supabase/shop-appearance-settings.sql` for shop-wide color schemes and
+per-user Shop dashboard order/density. Shop themes are owner/admin controlled;
+each active member controls only their own dashboard layout.
+
 ## Personal Fleet beta setup
 
 1. Run `supabase/personal-fleet-beta.sql` after the shop authentication migration.
