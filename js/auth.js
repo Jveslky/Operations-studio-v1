@@ -7,10 +7,10 @@
     const requiredFeature = document.documentElement.dataset.feature || "";
     const rolePermissions = {
         owner: ["*"],
-        admin: ["customers.write", "repair_orders.write", "invoices.write", "expenses.write", "users.manage"],
-        service_writer: ["customers.write", "repair_orders.write", "invoices.write"],
-        technician: ["customers.read", "repair_orders.read", "repair_orders.update_work"],
-        read_only: ["customers.read", "repair_orders.read", "invoices.read", "expenses.read"]
+        admin: ["customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "repair_orders.update_work", "invoices.read", "invoices.write", "expenses.read", "expenses.write", "schedule.manage", "inspections.work", "requests.review", "team_documents.manage", "data.export", "data.import", "settings.manage", "users.manage"],
+        service_writer: ["customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "invoices.read", "invoices.write", "expenses.read", "expenses.write", "schedule.manage", "inspections.work", "requests.review", "data.export"],
+        technician: ["customers.read", "repair_orders.read", "repair_orders.update_work", "inspections.work"],
+        read_only: ["customers.read", "repair_orders.read", "invoices.read", "expenses.read", "data.export"]
     };
 
     document.body.style.visibility = "hidden";
@@ -110,7 +110,7 @@
 
         let { data: membership, error: membershipError } = await client
             .from("shop_members")
-            .select("shop_id, role, shops(id, name)")
+            .select("*, shops(id, name)")
             .eq("user_id", user.id)
             .eq("is_active", true)
             .limit(1)
@@ -124,7 +124,7 @@
             if (!bootstrapError) {
                 const retry = await client
                     .from("shop_members")
-                    .select("shop_id, role, shops(id, name)")
+                    .select("*, shops(id, name)")
                     .eq("user_id", user.id)
                     .eq("is_active", true)
                     .limit(1)
@@ -157,6 +157,9 @@
 
         window.trackRightAuth = context;
         window.trackRightCan = function (permission) {
+            if (context.role === "owner") return true;
+            const override = context.membership?.permission_overrides?.[permission];
+            if (typeof override === "boolean") return override;
             const allowed = rolePermissions[context.role] || [];
             return allowed.includes("*") || allowed.includes(permission);
         };
