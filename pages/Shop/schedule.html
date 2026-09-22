@@ -108,7 +108,11 @@
             </div>
 
 
-            <div class="ap-summary-card">
+            <button class="ap-summary-card ap-summary-card-button"
+                    id="scheduledSummaryCard"
+                    type="button"
+                    aria-controls="upcomingSchedule"
+                    aria-label="View upcoming scheduled appointments">
 
                 <span>Scheduled</span>
 
@@ -116,7 +120,9 @@
                     0
                 </strong>
 
-            </div>
+                <small>View upcoming →</small>
+
+            </button>
 
 
             <div class="ap-summary-card">
@@ -192,6 +198,43 @@
 
             <div id="appointmentList"
                  class="appointment-list">
+            </div>
+
+        </section>
+
+
+        <!-- UPCOMING SCHEDULE -->
+
+        <section class="upcoming-schedule"
+                 id="upcomingSchedule">
+
+            <div class="upcoming-schedule-header">
+
+                <div>
+                    <span class="schedule-directory-label">
+                        Active Schedule
+                    </span>
+
+                    <h2>Upcoming appointments</h2>
+
+                    <p id="upcomingScheduleSummary">
+                        Scheduled work for the next 14 days.
+                    </p>
+                </div>
+
+                <div class="upcoming-range-controls"
+                     role="group"
+                     aria-label="Upcoming schedule range">
+                    <button type="button" data-upcoming-days="7">7 Days</button>
+                    <button type="button" data-upcoming-days="14" class="active" aria-pressed="true">14 Days</button>
+                    <button type="button" data-upcoming-days="30">30 Days</button>
+                </div>
+
+            </div>
+
+            <div id="upcomingAppointmentList"
+                 class="upcoming-appointment-list"
+                 aria-live="polite">
             </div>
 
         </section>

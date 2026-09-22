@@ -132,12 +132,41 @@ body {
 }
 
 .ap-summary-card {
+    display: block;
+    width: 100%;
+    text-align: left;
     padding: 18px 20px;
     background: #ffffff;
     border: 1px solid #cbd4d7;
     border-top: 4px solid #69b2bd;
     border-radius: 10px;
     box-shadow: 0 3px 9px rgba(37, 42, 48, 0.06);
+}
+
+.ap-summary-card-button {
+    font: inherit;
+    cursor: pointer;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.ap-summary-card-button:hover,
+.ap-summary-card-button:focus-visible {
+    border-color: #db6128;
+    box-shadow: 0 6px 16px rgba(37, 42, 48, 0.11);
+    transform: translateY(-1px);
+}
+
+.ap-summary-card-button:focus-visible {
+    outline: 3px solid rgba(105, 178, 189, 0.28);
+    outline-offset: 2px;
+}
+
+.ap-summary-card-button small {
+    display: block;
+    margin-top: 8px;
+    color: #db6128;
+    font-size: 11px;
+    font-weight: 800;
 }
 
     .ap-summary-card span {
@@ -618,6 +647,151 @@ body {
 }
 .appointment-card.calendar-request-event { border-left-color: #db6128; cursor: default; }
 
+/* =========================
+   UPCOMING SCHEDULE
+========================= */
+
+.upcoming-schedule {
+    margin-top: 24px;
+    padding: 20px;
+    scroll-margin-top: 88px;
+    background: #ffffff;
+    border: 1px solid #cbd4d7;
+    border-top: 4px solid #db6128;
+    border-radius: 10px;
+    box-shadow: 0 3px 9px rgba(37, 42, 48, 0.06);
+}
+
+.upcoming-schedule-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px;
+    margin-bottom: 18px;
+}
+
+.upcoming-schedule-header h2 {
+    margin: 4px 0;
+    font-size: 22px;
+}
+
+.upcoming-schedule-header p {
+    margin: 0;
+    color: #68757a;
+    font-size: 13px;
+}
+
+.upcoming-range-controls {
+    display: flex;
+    gap: 6px;
+    padding: 4px;
+    background: #eef1f2;
+    border-radius: 8px;
+}
+
+.upcoming-range-controls button {
+    min-height: 34px;
+    padding: 7px 11px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: #59656a;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.upcoming-range-controls button.active {
+    background: #252a30;
+    color: #ffffff;
+}
+
+.upcoming-appointment-list,
+.upcoming-day-items {
+    display: grid;
+    gap: 10px;
+}
+
+.upcoming-day-group + .upcoming-day-group {
+    margin-top: 18px;
+}
+
+.upcoming-day-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    padding-bottom: 7px;
+    border-bottom: 1px solid #dce2e4;
+}
+
+.upcoming-day-heading strong {
+    font-size: 13px;
+}
+
+.upcoming-day-heading span {
+    color: #68757a;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.upcoming-appointment-card {
+    display: grid;
+    grid-template-columns: 105px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 15px;
+    background: #f8fafb;
+    border: 1px solid #d1dade;
+    border-left: 4px solid #69b2bd;
+    border-radius: 8px;
+}
+
+.upcoming-appointment-card[role="button"] {
+    cursor: pointer;
+}
+
+.upcoming-appointment-card[role="button"]:hover,
+.upcoming-appointment-card[role="button"]:focus-visible {
+    border-color: #db6128;
+    outline: none;
+}
+
+.upcoming-appointment-card.calendar-request-event {
+    border-left-color: #db6128;
+}
+
+.upcoming-time strong,
+.upcoming-time span,
+.upcoming-main strong,
+.upcoming-main span,
+.upcoming-side small {
+    display: block;
+}
+
+.upcoming-time strong,
+.upcoming-main strong {
+    font-size: 13px;
+}
+
+.upcoming-time span,
+.upcoming-main span,
+.upcoming-side small {
+    margin-top: 3px;
+    color: #68757a;
+    font-size: 11px;
+}
+
+.upcoming-main p {
+    margin: 6px 0 0;
+    color: #465258;
+    font-size: 12px;
+}
+
+.upcoming-side {
+    text-align: right;
+}
+
 .appointment-time {
     padding-right: 16px;
     border-right: 1px solid #d1dade;
@@ -887,6 +1061,11 @@ body {
         grid-column: 2;
         justify-self: start;
     }
+
+    .upcoming-schedule-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
 }
 
 
@@ -918,6 +1097,22 @@ body {
 
     .appointment-status {
         grid-column: auto;
+    }
+
+    .upcoming-range-controls {
+        width: 100%;
+    }
+
+    .upcoming-range-controls button {
+        flex: 1;
+    }
+
+    .upcoming-appointment-card {
+        grid-template-columns: 1fr;
+    }
+
+    .upcoming-side {
+        text-align: left;
     }
 }
 
