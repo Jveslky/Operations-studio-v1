@@ -1,3 +1,38 @@
+.settings-menu-button {
+    display: flex;
+    flex: 0 0 36px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+}
+.settings-menu-button:hover,
+.settings-menu-button:focus-visible {
+    background: rgba(255,255,255,.09);
+    outline: 2px solid #db6128;
+    outline-offset: 2px;
+}
+.settings-menu-button span {
+    display: block;
+    width: 18px;
+    height: 2px;
+    border-radius: 2px;
+    background: #43d3e6;
+}
+.settings-sidebar-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(10,14,17,.48);
+}
+.settings-sidebar-overlay[hidden] { display: none; }
 .settings-sidebar {
     position: fixed;
     top: 0;
@@ -10,6 +45,7 @@
     transition: transform 0.2s ease;
     z-index: 1000;
     box-shadow: 4px 0 16px rgba(0, 0, 0, 0.2);
+    overflow-y: auto;
 }
 
     .settings-sidebar.open {
@@ -26,6 +62,7 @@
 
     .settings-sidebar-header h2 {
         margin: 0;
+        color: #ea5b1b;
     }
 
     .settings-sidebar-header button {
@@ -50,7 +87,7 @@
         width: 100%;
         padding: 10px 12px;
         background: transparent;
-        color: white;
+        color: #43d3e6;
         border: none;
         border-radius: 6px;
         text-align: left;
@@ -58,10 +95,13 @@
         cursor: pointer;
     }
 
-        .settings-sidebar-nav a:hover,
+    .settings-sidebar-nav a:hover,
+    .settings-sidebar-nav a:focus-visible,
         .settings-sidebar-nav button:hover,
         .settings-sidebar-nav label:hover {
             background: rgba(255, 255, 255, 0.08);
+            color: white;
+            outline: 2px solid #ea5b1b;
         }
 
 .data-management-menu {
