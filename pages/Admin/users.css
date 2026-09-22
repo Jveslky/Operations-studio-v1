@@ -1,5 +1,5 @@
 .users-page {
-    width: min(920px, calc(100% - 40px));
+    width: min(1080px, calc(100% - 40px));
     margin: 40px auto;
 }
 
@@ -67,6 +67,16 @@
     background: #f7f4f1;
     border-radius: 7px;
 }
+.user-row.permission-editor { grid-template-columns: 1fr; gap: 14px; }
+.user-summary { display: grid; grid-template-columns: minmax(220px, 1fr) 180px 110px auto; gap: 12px; align-items: center; }
+.user-summary select { min-height: 39px; padding: 7px 9px; border: 1px solid #b8ada3; border-radius: 6px; background: #fff; font: inherit; text-transform: capitalize; }
+.user-permissions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px 14px; padding-top: 13px; border-top: 1px solid #d9d1c9; }
+.permission-choice { display: flex; align-items: center; gap: 8px; font-size: .86rem; font-weight: 650; }
+.permission-choice input { width: 17px; height: 17px; accent-color: #db6128; }
+.user-actions { display: flex; justify-content: flex-end; gap: 8px; }
+.user-actions button { min-height: 36px; padding: 7px 12px; border: 1px solid #b8ada3; border-radius: 6px; background: #fff; cursor: pointer; font-weight: 750; }
+.user-actions .save-access { border-color: #db6128; background: #db6128; color: #fff; }
+.owner-note { color: #665f58; font-size: .84rem; }
 
 .user-role { text-transform: capitalize; }
 .user-status { color: #24703a; }
@@ -81,5 +91,5 @@
 @media (max-width: 700px) {
     .invite-form,
     .personal-invite-form,
-    .user-row { grid-template-columns: 1fr; }
+    .user-row, .user-summary, .user-permissions { grid-template-columns: 1fr; }
 }
