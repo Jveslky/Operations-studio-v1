@@ -138,6 +138,11 @@ only missing records; existing cloud records are not silently overwritten.
 Private Storage documents, photos, and videos are not included in the JSON
 data backup.
 
+Run `supabase/shop-user-permissions.sql` for role presets with per-user
+overrides. Owners retain full protected access. Accounts payable, private team
+documents, request review, backup restore, invitations, and membership changes
+enforce effective permissions in Supabase rather than relying on hidden UI.
+
 ## Personal Fleet beta setup
 
 1. Run `supabase/personal-fleet-beta.sql` after the shop authentication migration.
