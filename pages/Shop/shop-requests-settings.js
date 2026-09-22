@@ -17,6 +17,7 @@
     let context = null;
     let requests = [];
     let members = new Map();
+    let behavior = { ...window.trackRightShopBehaviorDefaults };
 
     function isOffice() { return ["owner", "admin", "service_writer"].includes(context?.role); }
     function setMessage(text, state) { message.textContent = text; message.className = `settings-message${state ? ` ${state}` : ""}`; }
@@ -59,7 +60,11 @@
         const notes=document.createElement("textarea"); notes.rows=2; notes.maxLength=2000; notes.placeholder="Office review notes (optional)"; notes.value=item.reviewer_notes || "";
         const reminder=document.createElement("input"); reminder.type="datetime-local"; reminder.title="Office reminder";
         const calendarLabel=document.createElement("label"); calendarLabel.className="settings-checkbox";
-        const calendar=document.createElement("input"); calendar.type="checkbox"; calendar.checked=item.request_type !== "general"; calendar.disabled=!item.starts_on;
+        const calendar=document.createElement("input"); calendar.type="checkbox"; calendar.checked=item.request_type !== "general" && behavior.auto_add_approved_time_off !== false; calendar.disabled=!item.starts_on;
+        if (item.starts_on && Number(behavior.request_reminder_lead_hours) >= 0) {
+            const reminderTime=new Date(`${item.starts_on}T08:00:00`); reminderTime.setHours(reminderTime.getHours()-Number(behavior.request_reminder_lead_hours));
+            const local=new Date(reminderTime.getTime()-reminderTime.getTimezoneOffset()*60000); reminder.value=local.toISOString().slice(0,16);
+        }
         calendarLabel.append(calendar, document.createTextNode("Add approved request to calendar"));
         const actions=document.createElement("div"); actions.className="request-review-actions";
         const approve=document.createElement("button"); approve.type="button"; approve.className="approve-request"; approve.textContent="Approve";
@@ -118,5 +123,5 @@
         saveNotificationPreference.disabled=false;
         setMessage(result.error ? `Preference could not be saved: ${result.error.message}` : "Request notification preference saved.", result.error ? "error" : "success");
     });
-    window.trackRightAuthReady.then(async (authContext) => { context=authContext; updateDateRequirement(); await loadMembers(); await loadNotificationPreference(); await loadRequests(); }).catch((error) => setMessage(`Requests could not load: ${error.message}`,"error"));
+    window.trackRightAuthReady.then(async (authContext) => { context=authContext; behavior=await window.trackRightShopBehavior; updateDateRequirement(); await loadMembers(); await loadNotificationPreference(); await loadRequests(); }).catch((error) => setMessage(`Requests could not load: ${error.message}`,"error"));
 })();
