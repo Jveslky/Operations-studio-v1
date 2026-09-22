@@ -78,7 +78,33 @@
                         <div class="settings-actions"><button id="save-customer-tax" type="submit">Save Customer Tax Setting</button><p id="customer-tax-message" class="settings-message" role="status" aria-live="polite"></p></div>
                     </form>
                 </section>
-                <section class="settings-card settings-placeholder" id="team-documents"><h2>Team Documents</h2><p>Licenses, certifications, insurance, employment documents, and expiration reminders are planned.</p></section>
+                <section class="settings-card" id="team-documents">
+                    <div class="settings-section-heading"><div><p class="settings-kicker">Team Documents</p><h2>Credentials and personnel files</h2></div><span class="settings-scope-label">Permission controlled</span></div>
+                    <p class="field-help profile-intro">Owners and admins manage private team records. A team member can view only documents explicitly shared with them.</p>
+                    <form id="team-document-form">
+                        <div class="settings-form-grid">
+                            <label>Team member<select id="team-document-member" required><option value="">Select a team member</option></select></label>
+                            <label>Document type<select id="team-document-type" required><option value="license">License</option><option value="certification">Certification</option><option value="insurance">Insurance</option><option value="employment">Employment document</option><option value="other">Other</option></select></label>
+                            <label class="settings-full-width">Title<input id="team-document-title" maxlength="160" required placeholder="CDL, ASE certification, insurance card…"></label>
+                            <label>Issuer<input id="team-document-issuer" maxlength="160"></label>
+                            <label>Document number<input id="team-document-number" maxlength="120"></label>
+                            <label>Issued date<input id="team-document-issued" type="date"></label>
+                            <label>Expiration date<input id="team-document-expires" type="date"></label>
+                            <label>Reminder lead time<select id="team-document-reminder"><option value="0">On expiration date</option><option value="7">7 days</option><option value="30" selected>30 days</option><option value="60">60 days</option><option value="90">90 days</option><option value="180">6 months</option></select></label>
+                            <label class="settings-full-width">Private document<input id="team-document-file" type="file" required accept=".pdf,.jpg,.jpeg,.png,.heic,.heif,.doc,.docx,application/pdf,image/jpeg,image/png,image/heic,image/heif,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><span class="field-help">PDF, JPG, PNG, HEIC, DOC, or DOCX · 20 MB maximum</span></label>
+                            <label class="settings-checkbox settings-full-width"><input id="team-document-visible" type="checkbox"><span>Allow this team member to view the document</span></label>
+                        </div>
+                        <div class="settings-actions"><button id="save-team-document" type="submit">Upload Team Document</button><p id="team-document-message" class="settings-message" role="status" aria-live="polite"></p></div>
+                    </form>
+                    <hr class="settings-divider">
+                    <div class="settings-section-heading"><div><p class="settings-kicker">Expiration review</p><h2>Document register</h2></div><label class="document-archive-filter"><input id="show-archived-documents" type="checkbox"> Show archived</label></div>
+                    <div class="document-summary-grid" aria-label="Team document expiration summary">
+                        <article><span>Current</span><strong id="team-documents-current">0</strong></article>
+                        <article><span>Reminder Due</span><strong id="team-documents-due">0</strong></article>
+                        <article><span>Expired</span><strong id="team-documents-expired">0</strong></article>
+                    </div>
+                    <div id="team-document-list" class="team-document-list"></div>
+                </section>
                 <section class="settings-card settings-placeholder" id="requests"><h2>Requests</h2><p>PTO, medical absence, general requests, office review, and calendar approval are planned.</p></section>
                 <section class="settings-card settings-placeholder" id="behavior"><h2>Behavior</h2><p>Lead times, workflow defaults, reminders, and other shop operating preferences will live here.</p></section>
                 <section class="settings-card settings-placeholder" id="appearance"><h2>Appearance</h2><p>Shop-wide colors and personal dashboard layout preferences are planned.</p></section>
@@ -128,5 +154,5 @@
             </div>
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="shop-settings.js"></script><script src="inspection-settings.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="shop-settings.js"></script><script src="team-documents-settings.js"></script><script src="inspection-settings.js"></script>
 </body></html>
