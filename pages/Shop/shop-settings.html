@@ -108,6 +108,10 @@
                 <section class="settings-card" id="requests">
                     <div class="settings-section-heading"><div><p class="settings-kicker">Requests</p><h2>Time away and team requests</h2></div><span class="settings-scope-label">Team workflow</span></div>
                     <p class="field-help profile-intro">Team members can submit requests here. Owners, admins, and service writers review them and may add approved time away to the shop calendar.</p>
+                    <div id="request-notification-preference" class="request-notification-preference" hidden>
+                        <label class="settings-checkbox"><input id="request-notifications-enabled" type="checkbox" checked><span>Notify office accounts when a team member submits a request</span></label>
+                        <button id="save-request-notifications" type="button" class="secondary-settings-button">Save Notification Preference</button>
+                    </div>
                     <form id="shop-request-form">
                         <div class="settings-form-grid">
                             <label>Request type<select id="shop-request-type" required><option value="pto">PTO</option><option value="medical">Doctor / medical absence</option><option value="general">General request</option></select></label>
