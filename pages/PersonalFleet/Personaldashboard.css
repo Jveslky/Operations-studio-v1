@@ -375,3 +375,31 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+.phone-shortcut-help {
+    margin-top: 18px;
+    border: 1px solid rgba(64, 102, 109, .35);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, .68);
+    color: #202833;
+}
+
+.phone-shortcut-help summary {
+    cursor: pointer;
+    padding: 13px 16px;
+    color: #ad4315;
+    font-weight: 800;
+}
+
+.phone-shortcut-help summary:focus-visible {
+    outline: 3px solid #ad4315;
+    outline-offset: 2px;
+}
+
+.phone-shortcut-steps {
+    padding: 0 16px 15px;
+}
+
+.phone-shortcut-steps p + p {
+    margin-top: 9px;
+}
