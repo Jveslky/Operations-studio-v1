@@ -101,15 +101,18 @@ Track Right uses Supabase Auth with shop-scoped membership and roles.
 1. Run `supabase/auth-and-membership.sql` in the Supabase SQL editor.
 2. In Supabase Authentication URL Configuration, set the production Site URL.
 3. Add the exact production URLs for `login.html`, `reset-password.html`, and
-   `accept-invite.html` to the allowed redirect URLs. For GitHub Pages, the
+   `accept-invite.html`, and `shop-beta-invite.html` to the allowed redirect URLs. For GitHub Pages, the
    password-recovery redirect is
    `https://jveslky.github.io/Operations-studio-v1/reset-password.html`.
 4. Keep the publishable/anon key in `js/supabase-client.js`. Never put a
    service-role key or a user password in browser code.
 
-The first signup creates a shop owner. Owners and admins can open **Users** in
-the header, create an invitation link, and assign an employee role. All app
-pages require a valid session and an active `shop_members` record.
+Run `supabase/shop-beta-invitations.sql` to make new Shop workspaces
+invitation-only. A platform owner creates an email-specific link from
+**Development Home → Shop beta invites**; accepting it creates an isolated shop
+and its initial owner in one transaction. Shop owners and admins can then open
+**Users** to invite employees into that existing shop. All app pages require a
+valid session and an active `shop_members` record.
 
 For private employee licenses, certifications, insurance, and employment
 records, run `supabase/team-documents.sql`. Team-document files use a private
