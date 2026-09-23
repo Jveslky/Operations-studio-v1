@@ -12,6 +12,7 @@ const repairOrders = [];
 
 let selectedCustomerId = null;
 let unitLoadRequestId = 0;
+let technicianOptionsLoaded = false;
 
 
 /* =========================
@@ -498,6 +499,47 @@ function openNewRepairOrderForm() {
     }, 250);
 }
 
+async function populateTechnicianOptions() {
+    if (technicianOptionsLoaded) {
+        return;
+    }
+
+    const technicianOptions =
+        document.getElementById("technician-options");
+
+    try {
+        await window.trackRightAuthReady;
+
+        const { data, error } =
+            await supabaseClient.rpc(
+                "list_shop_schedule_members"
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        technicianOptions.innerHTML = "";
+
+        (data || []).forEach(function (member) {
+            if (!member.email) {
+                return;
+            }
+
+            const option = document.createElement("option");
+            option.value = member.email;
+            technicianOptions.appendChild(option);
+        });
+
+        technicianOptionsLoaded = true;
+    } catch (error) {
+        console.error(
+            "Could not load active technicians:",
+            error
+        );
+    }
+}
+
 newRepairOrderButton.addEventListener(
     "click",
     async function () {
@@ -508,7 +550,10 @@ newRepairOrderButton.addEventListener(
 
         openNewRepairOrderForm();
 
-        await populateCustomerDropdown();
+        await Promise.all([
+            populateCustomerDropdown(),
+            populateTechnicianOptions()
+        ]);
     }
 );
 
@@ -682,8 +727,7 @@ if (addCustomerForm) {
     addCustomerForm?.addEventListener(
         "submit",
         function (event) {
-            // keep the existing submit code here
-        event.preventDefault();
+            event.preventDefault();
 
         const customerName =
             document
@@ -901,13 +945,6 @@ if (customerSearchInput) {
 
             renderCustomerSearchResults(searchText);
         }
-    );
-}
-
-if (closeCustomerSearchButton) {
-    closeCustomerSearchButton?.addEventListener(
-        "click",
-        closeCustomerSearch
     );
 }
 
