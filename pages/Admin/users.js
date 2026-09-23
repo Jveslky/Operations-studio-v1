@@ -9,6 +9,7 @@
     const linkInput = document.getElementById("invite-link");
     const roles = ["admin", "service_writer", "technician", "read_only"];
     const permissions = [
+        ["expenses.read", "View accounts payable"],
         ["expenses.write", "Manage accounts payable"],
         ["requests.review", "Review team requests"],
         ["team_documents.manage", "Manage private team documents"],
