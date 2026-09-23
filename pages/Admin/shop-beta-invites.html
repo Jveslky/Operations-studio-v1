@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en" data-login-path="../../login.html" data-workspace="platform">
+<head>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Beta Invitations | Track Right</title>
+    <link rel="stylesheet" href="../../css/base.css"><link rel="stylesheet" href="users.css">
+</head>
+<body>
+<main class="users-page">
+    <header class="users-header"><div><h1>Shop beta</h1><div>Create independent Shop workspaces for feedback accounts.</div></div><a href="development-dashboard.html">Development Home</a></header>
+    <section class="users-panel">
+        <h2>Create Shop-owner invitation</h2>
+        <p>The email-specific, single-use link creates a new shop and makes the invited user its owner. It does not add them to Del-Mobile.</p>
+        <form id="shop-beta-invite-form" class="invite-form personal-invite-form">
+            <input name="shopName" type="text" placeholder="Shop name" required>
+            <input name="email" type="email" placeholder="owner@example.com" required>
+            <button type="submit">Create invite</button>
+        </form>
+        <div id="invite-result" class="invite-result" hidden><input id="invite-link" readonly aria-label="Shop beta invitation link"><button id="copy-invite" type="button">Copy</button><a id="open-invite" href="#" target="_blank" rel="noreferrer">Open</a></div>
+        <div id="users-message" class="users-message" role="status" aria-live="polite"></div>
+    </section>
+    <section class="users-panel">
+        <div class="users-header-inline"><div><h2>Invitations</h2><p>Accepted invitations remain as the account-creation audit record.</p></div><button id="refresh-invites" type="button">Refresh</button></div>
+        <div id="shop-beta-invites-list" class="invitation-board">
+            <section class="invitation-column sent"><header><div><span>Awaiting response</span><h3>Sent</h3></div><strong id="sent-invitations-count">0</strong></header><div id="sent-invitations-list" class="invitation-column-list"></div></section>
+            <section class="invitation-column accepted"><header><div><span>Shop created</span><h3>Accepted</h3></div><strong id="accepted-invitations-count">0</strong></header><div id="accepted-invitations-list" class="invitation-column-list"></div></section>
+            <section class="invitation-column revoked"><header><div><span>Closed links</span><h3>Revoked</h3></div><strong id="revoked-invitations-count">0</strong></header><div id="revoked-invitations-list" class="invitation-column-list"></div></section>
+        </div>
+    </section>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="shop-beta-invites.js"></script>
+</body></html>
