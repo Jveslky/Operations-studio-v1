@@ -7,6 +7,11 @@
     const linkInput = document.getElementById("invite-link");
     const openInvite = document.getElementById("open-invite");
     const list = document.getElementById("personal-invites-list");
+    const columns = {
+        Sent: { list: document.getElementById("sent-invitations-list"), count: document.getElementById("sent-invitations-count") },
+        Accepted: { list: document.getElementById("accepted-invitations-list"), count: document.getElementById("accepted-invitations-count") },
+        Revoked: { list: document.getElementById("revoked-invitations-list"), count: document.getElementById("revoked-invitations-count") }
+    };
 
     function escapeHtml(value) {
         return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;")
@@ -22,16 +27,39 @@
         if (invitation.accepted_at) return "Accepted";
         if (invitation.revoked_at) return "Revoked";
         if (invitation.expires_at && new Date(invitation.expires_at) <= new Date()) return "Expired";
-        return "Ready";
+        return "Sent";
+    }
+
+    function invitationColumn(state) {
+        return state === "Accepted" ? "Accepted" : state === "Sent" ? "Sent" : "Revoked";
+    }
+
+    function invitationCard(invitation, state) {
+        const statusDate = state === "Accepted" ? invitation.accepted_at : state === "Revoked" ? invitation.revoked_at : null;
+        const dateLabel = statusDate ? new Date(statusDate).toLocaleDateString() : "";
+        return `<article class="invitation-card">
+            <div class="invitation-card-heading"><strong>${escapeHtml(invitation.account_name)}</strong><span class="invitation-state ${state.toLowerCase()}">${escapeHtml(state)}</span></div>
+            <small>${escapeHtml(invitation.email)}</small>
+            <div class="invitation-card-meta"><span>${escapeHtml(invitation.unit_limit)} units</span><span>Full beta</span>${dateLabel ? `<span>${escapeHtml(dateLabel)}</span>` : ""}</div>
+            ${state === "Sent" ? `<button class="revoke-invite" type="button" data-id="${escapeHtml(invitation.id)}">Revoke invitation</button>` : ""}
+        </article>`;
     }
 
     async function loadInvitations() {
         const { data, error } = await client.rpc("list_personal_fleet_invitations");
         if (error) { showMessage(error.message, "error"); return; }
-        list.innerHTML = data?.length ? data.map((invitation) => {
+        const groups = { Sent: [], Accepted: [], Revoked: [] };
+        (data || []).forEach((invitation) => {
             const state = invitationState(invitation);
-            return `<article class="user-row invite-row"><div><strong>${escapeHtml(invitation.account_name)}</strong><small>${escapeHtml(invitation.email)}</small></div><span class="user-role">${escapeHtml(invitation.unit_limit)} units · Full beta</span><span class="user-status">${state}</span>${state === "Ready" ? `<button class="revoke-invite" type="button" data-id="${escapeHtml(invitation.id)}">Revoke</button>` : ""}</article>`;
-        }).join("") : '<p>No Personal Fleet invitations yet.</p>';
+            groups[invitationColumn(state)].push({ invitation, state });
+        });
+        Object.entries(columns).forEach(([name, column]) => {
+            const items = groups[name];
+            column.count.textContent = String(items.length);
+            column.list.innerHTML = items.length
+                ? items.map(({ invitation, state }) => invitationCard(invitation, state)).join("")
+                : `<div class="invitation-empty">No ${name.toLowerCase()} invitations.</div>`;
+        });
     }
 
     form.addEventListener("submit", async function (event) {

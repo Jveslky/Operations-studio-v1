@@ -30,7 +30,20 @@
         </section>
         <section class="users-panel">
             <div class="users-header-inline"><div><h2>Invitations</h2><p>Accepted links remain visible as an audit record.</p></div><button id="refresh-invites" type="button">Refresh</button></div>
-            <div id="personal-invites-list" class="users-list"></div>
+            <div id="personal-invites-list" class="invitation-board">
+                <section class="invitation-column sent" aria-labelledby="sent-invitations-heading">
+                    <header><div><span>Awaiting response</span><h3 id="sent-invitations-heading">Sent</h3></div><strong id="sent-invitations-count">0</strong></header>
+                    <div id="sent-invitations-list" class="invitation-column-list"></div>
+                </section>
+                <section class="invitation-column accepted" aria-labelledby="accepted-invitations-heading">
+                    <header><div><span>Account created</span><h3 id="accepted-invitations-heading">Accepted</h3></div><strong id="accepted-invitations-count">0</strong></header>
+                    <div id="accepted-invitations-list" class="invitation-column-list"></div>
+                </section>
+                <section class="invitation-column revoked" aria-labelledby="revoked-invitations-heading">
+                    <header><div><span>Closed links</span><h3 id="revoked-invitations-heading">Revoked</h3></div><strong id="revoked-invitations-count">0</strong></header>
+                    <div id="revoked-invitations-list" class="invitation-column-list"></div>
+                </section>
+            </div>
         </section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
