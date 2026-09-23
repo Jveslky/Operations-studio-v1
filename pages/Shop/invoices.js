@@ -2,10 +2,9 @@
    CONFIGURATION
 ========================= */
 
-const INVOICE_STORAGE_KEY =
-    "track-right-invoices";
-
 const supabaseClient = window.trackRightSupabase;
+const invoices = [];
+const repairOrders = [];
 
 
 /* =========================
@@ -126,42 +125,8 @@ let customerUnitRequestId = 0;
    STORAGE HELPERS
 ========================= */
 
-function safelyParseStoredValue(key) {
-    const storedValue =
-        localStorage.getItem(key);
-
-    if (!storedValue) {
-        return null;
-    }
-
-    try {
-        return JSON.parse(storedValue);
-    } catch (error) {
-        console.error(
-            `Could not read ${key}:`,
-            error
-        );
-
-        return null;
-    }
-}
-
 function getInvoices() {
-    const invoices =
-        safelyParseStoredValue(
-            INVOICE_STORAGE_KEY
-        );
-
-    return Array.isArray(invoices)
-        ? invoices
-        : [];
-}
-
-function saveInvoices(invoices) {
-    localStorage.setItem(
-        INVOICE_STORAGE_KEY,
-        JSON.stringify(invoices)
-    );
+    return invoices;
 }
 
 function escapeHtml(value) {
@@ -195,72 +160,13 @@ function formatCurrency(value) {
 ========================= */
 
 function getAllRepairOrders() {
-    const repairOrders = [];
-
-    for (
-        let index = 0;
-        index < localStorage.length;
-        index++
-    ) {
-        const key =
-            localStorage.key(index);
-
-        if (
-            !key ||
-            !/^repair-order-\d+$/.test(key)
-        ) {
-            continue;
-        }
-
-        const order =
-            safelyParseStoredValue(key);
-
-        if (
-            order &&
-            order.id &&
-            order.archived !== true
-        ) {
-            repairOrders.push(order);
-        }
-    }
-
-    return repairOrders.sort(
+    return repairOrders.filter(order => order.archived !== true).sort(
         function (firstOrder, secondOrder) {
             return (
                 Number(secondOrder.id) -
                 Number(firstOrder.id)
             );
         }
-    );
-}
-
-function getRepairOrderTotal(order) {
-    const estimateTotal =
-        Number(order.estimateTotal);
-
-    if (Number.isFinite(estimateTotal)) {
-        return estimateTotal;
-    }
-
-    const invoiceTotal =
-        Number(order.invoiceTotal);
-
-    if (Number.isFinite(invoiceTotal)) {
-        return invoiceTotal;
-    }
-
-    const laborHours =
-        Number(order.laborHours) || 0;
-
-    const laborRate =
-        Number(order.laborRate) || 0;
-
-    const partsTotal =
-        Number(order.partsTotal) || 0;
-
-    return (
-        laborHours * laborRate +
-        partsTotal
     );
 }
 
@@ -646,7 +552,6 @@ createInvoiceForm.addEventListener(
         let context;
         let shopTax;
         let customerTax = null;
-        let savedInvoiceIds = [];
 
         try {
             context = currentShopContext ||
@@ -662,15 +567,6 @@ createInvoiceForm.addEventListener(
                 .single();
             if (shopResult.error) throw shopResult.error;
             shopTax = shopResult.data;
-
-            const snapshotResult = await supabaseClient
-                .from("shop_invoice_tax_snapshots")
-                .select("invoice_id")
-                .eq("shop_id", context.shopId);
-            if (snapshotResult.error) throw snapshotResult.error;
-            savedInvoiceIds = snapshotResult.data.map(function (snapshot) {
-                return Number(snapshot.invoice_id);
-            }).filter(Number.isFinite);
 
             if (selectedCustomerId) {
                 const customerResult = await supabaseClient
@@ -706,30 +602,12 @@ createInvoiceForm.addEventListener(
             : 0;
         const taxAmount = Math.round(taxableBase * (taxRate / 100) * 100) / 100;
 
-        const invoices =
-            getInvoices();
-
-        const invoiceNumber =
-            String(
-                Math.max(
-                    ...invoices.map(
-                        function (invoice) {
-                            return Number(
-                                invoice.id
-                            );
-                        }
-                    ).filter(Number.isFinite),
-                    ...savedInvoiceIds,
-                    1000
-                ) + 1
-            );
-
         const invoice = {
-            id:
-                invoiceNumber,
-
             repairOrderId:
                 isOneOff ? "" : selectedRepairOrder.id,
+
+            repairOrderRecordId:
+                isOneOff ? null : selectedRepairOrder.recordId,
 
             sourceType:
                 isOneOff ? "one-off" : "repair-order",
@@ -801,36 +679,16 @@ createInvoiceForm.addEventListener(
                 null
         };
 
-        const snapshotInsert = await supabaseClient
-            .from("shop_invoice_tax_snapshots")
-            .insert({
-                shop_id: context.shopId,
-                invoice_id: invoiceNumber,
-                customer_id: selectedCustomerId ? String(selectedCustomerId) : null,
-                taxable: taxable,
-                tax_rate: taxRate,
-                subtotal: subtotal,
-                tax_amount: taxAmount,
-                total: subtotal + taxAmount,
-                customer_tax_status: taxStatus,
-                exemption_reason: invoice.taxSnapshot.exemptionReason,
-                exemption_certificate_number: invoice.taxSnapshot.exemptionCertificateNumber,
-                captured_at: invoice.taxSnapshot.capturedAt
-            });
-
-        if (snapshotInsert.error) {
-            console.error("Could not preserve invoice tax snapshot:", snapshotInsert.error);
+        try {
+            const savedInvoice = await window.trackRightInvoices.create(invoice);
+            invoices.unshift(savedInvoice);
+            closeInvoiceForm();
+            renderInvoices();
+        } catch (error) {
+            console.error("Could not create invoice:", error);
             invoiceCreateMessage.textContent =
-                `Invoice was not created because its tax snapshot could not be saved: ${snapshotInsert.error.message}`;
-            return;
+                `Invoice was not created: ${error.message}`;
         }
-
-        invoices.push(invoice);
-
-        saveInvoices(invoices);
-
-        closeInvoiceForm();
-        renderInvoices();
     }
 );
 
@@ -990,7 +848,7 @@ function createInvoiceCard(invoice) {
     return card;
 }
 
-function updateInvoiceStatus(
+async function updateInvoiceStatus(
     invoiceId,
     newStatus
 ) {
@@ -1020,8 +878,14 @@ function updateInvoiceStatus(
             new Date().toISOString();
     }
 
-    saveInvoices(invoices);
-    renderInvoices();
+    try {
+        const savedInvoice = await window.trackRightInvoices.update(invoice);
+        Object.assign(invoice, savedInvoice);
+        renderInvoices();
+    } catch (error) {
+        console.error("Could not update invoice:", error);
+        alert(error?.message || "Could not update this invoice.");
+    }
 }
 
 function renderInvoices() {
@@ -1148,73 +1012,6 @@ invoiceStatusFilter.addEventListener(
    INITIAL LOAD
 ========================= */
 
-function syncInvoicesFromRepairOrders() {
-    const invoices = getInvoices();
-
-    let didChange = false;
-
-    invoices.forEach(function (invoice) {
-        if (invoice.status === "Paid") {
-            return;
-        }
-
-        const repairOrder =
-            safelyParseStoredValue(
-                `repair-order-${invoice.repairOrderId}`
-            );
-
-        if (!repairOrder) {
-            return;
-        }
-
-        // New invoices keep their financial snapshot fixed. Legacy invoices
-        // did not have a snapshot, so retain their prior draft-sync behavior.
-        if (!invoice.taxSnapshot) {
-            const updatedTotal = getRepairOrderTotal(repairOrder);
-            if (Number(invoice.total) !== Number(updatedTotal)) {
-                invoice.total = updatedTotal;
-                didChange = true;
-            }
-        }
-
-        if (
-            invoice.customer !==
-            repairOrder.customer
-        ) {
-            invoice.customer =
-                repairOrder.customer || "";
-
-            didChange = true;
-        }
-
-        if (
-            invoice.unit !==
-            repairOrder.unit
-        ) {
-            invoice.unit =
-                repairOrder.unit || "";
-
-            didChange = true;
-        }
-
-        if (
-            invoice.complaint !==
-            repairOrder.complaint
-        ) {
-            invoice.complaint =
-                repairOrder.complaint || "";
-
-            didChange = true;
-        }
-    });
-
-    if (didChange) {
-        saveInvoices(invoices);
-    }
-
-    return invoices;
-}
-
 invoiceList.addEventListener(
     "click",
     function (event) {
@@ -1253,15 +1050,28 @@ invoiceList.addEventListener(
     }
 );
 
-renderInvoices();
-syncInvoicesFromRepairOrders();
+async function initializeInvoices() {
+    try {
+        await Promise.all([
+            window.trackRightInvoices.migrateBrowserInvoices(),
+            window.trackRightRepairOrders.migrateBrowserOrders()
+        ]);
+        const [cloudInvoices, cloudOrders] = await Promise.all([
+            window.trackRightInvoices.list(),
+            window.trackRightRepairOrders.list()
+        ]);
+        invoices.splice(0, invoices.length, ...cloudInvoices);
+        repairOrders.splice(0, repairOrders.length, ...cloudOrders);
+        renderInvoices();
+    } catch (error) {
+        console.error("Could not load invoices:", error);
+        invoiceList.innerHTML = `<p class="invoice-empty">Invoices could not be loaded. Refresh or sign in again.</p>`;
+        return;
+    }
 
-const requestedRepairOrderId =
-    new URLSearchParams(window.location.search)
-        .get("repairOrderId");
-
-if (requestedRepairOrderId) {
-    openInvoiceForm().then(function () {
+    const requestedRepairOrderId = new URLSearchParams(window.location.search).get("repairOrderId");
+    if (requestedRepairOrderId) {
+        openInvoiceForm().then(function () {
         const matchingOption = Array.from(
             invoiceRepairOrderInput.options
         ).some(function (option) {
@@ -1275,5 +1085,8 @@ if (requestedRepairOrderId) {
             invoiceCreateMessage.textContent =
                 "That repair order is already invoiced or is no longer available.";
         }
-    });
+        });
+    }
 }
+
+initializeInvoices();
