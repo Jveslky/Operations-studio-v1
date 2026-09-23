@@ -487,6 +487,11 @@ textarea {
     margin: 0;
 }
 
+.estimate-card input[type="number"]::placeholder {
+    color: #8a949a;
+    opacity: 0.72;
+}
+
 .estimate-tax-toggle {
     display: flex !important;
     align-items: flex-start;

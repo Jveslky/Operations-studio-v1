@@ -251,6 +251,15 @@ if (!repairOrder) {
             : 0;
     }
 
+    function setEstimateNumberValue(input, value) {
+        const number = Number(value);
+
+        input.value =
+            Number.isFinite(number) && number !== 0
+                ? String(number)
+                : "";
+    }
+
     function calculateEstimateTotal() {
         const laborHours =
             getNumberValue(estimateLaborHoursInput);
@@ -412,26 +421,38 @@ if (!repairOrder) {
             repairOrder.additionalWorkPerformed || "";
     }
 
-    estimateLaborHoursInput.value =
-        repairOrder.estimateLaborHours ?? 0;
+    setEstimateNumberValue(
+        estimateLaborHoursInput,
+        repairOrder.estimateLaborHours
+    );
 
-    estimateLaborRateInput.value =
-        repairOrder.estimateLaborRate ?? 0;
+    setEstimateNumberValue(
+        estimateLaborRateInput,
+        repairOrder.estimateLaborRate
+    );
 
-    estimatePartsTotalInput.value =
-        repairOrder.estimatePartsTotal ?? 0;
+    setEstimateNumberValue(
+        estimatePartsTotalInput,
+        repairOrder.estimatePartsTotal
+    );
 
-    estimateOtherChargesInput.value =
-        repairOrder.estimateOtherCharges ?? 0;
+    setEstimateNumberValue(
+        estimateOtherChargesInput,
+        repairOrder.estimateOtherCharges
+    );
 
-    estimateShopSuppliesInput.value =
-        repairOrder.estimateShopSupplies ?? 0;
+    setEstimateNumberValue(
+        estimateShopSuppliesInput,
+        repairOrder.estimateShopSupplies
+    );
 
     estimateShopSuppliesTaxableInput.checked =
         repairOrder.estimateShopSuppliesTaxable !== false;
 
-    estimateEnvironmentalFeeInput.value =
-        repairOrder.estimateEnvironmentalFee ?? 0;
+    setEstimateNumberValue(
+        estimateEnvironmentalFeeInput,
+        repairOrder.estimateEnvironmentalFee
+    );
 
     estimateEnvironmentalFeeTaxableInput.checked =
         repairOrder.estimateEnvironmentalFeeTaxable === true;
@@ -442,8 +463,10 @@ if (!repairOrder) {
     estimateMiscFeeTaxableInput.checked =
         repairOrder.estimateMiscFeeTaxable !== false;
 
-    estimateDiscountInput.value =
-        repairOrder.estimateDiscount ?? 0;
+    setEstimateNumberValue(
+        estimateDiscountInput,
+        repairOrder.estimateDiscount
+    );
 
     estimateApprovalStatusInput.value =
         repairOrder.estimateApprovalStatus || "Draft";
