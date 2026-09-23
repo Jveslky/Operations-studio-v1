@@ -3,13 +3,6 @@
 ========================= */
 
 
-const INVOICE_STORAGE_KEY =
-    "track-right-invoices";
-
-const ACCOUNTS_PAYABLE_STORAGE_KEY =
-    "track-right-accounts-payable";
-
-
 /* =========================
    PAGE ELEMENTS
 ========================= */
@@ -58,95 +51,6 @@ const invoiceActivity =
     document.getElementById(
         "invoice-activity"
     );
-
-/* =========================
-   STORAGE
-========================= */
-
-function safelyParseStoredValue(key) {
-    const storedValue =
-        localStorage.getItem(key);
-
-    if (!storedValue) {
-        return null;
-    }
-
-    try {
-        return JSON.parse(storedValue);
-    } catch (error) {
-        console.error(
-            `Could not read ${key}:`,
-            error
-        );
-
-        return null;
-    }
-}
-
-
-function getRepairOrders() {
-    const orders = [];
-
-    for (
-        let index = 0;
-        index < localStorage.length;
-        index++
-    ) {
-        const key =
-            localStorage.key(index);
-
-        if (
-            !key ||
-            !/^repair-order-\d+$/.test(key)
-        ) {
-            continue;
-        }
-
-        const order =
-            safelyParseStoredValue(key);
-
-        if (
-            order &&
-            order.id &&
-            order.archived !== true
-        ) {
-            orders.push(order);
-        }
-    }
-
-    return orders.sort(
-        function (firstOrder, secondOrder) {
-            return (
-                Number(secondOrder.id) -
-                Number(firstOrder.id)
-            );
-        }
-    );
-}
-
-
-function getInvoices() {
-    const invoices =
-        safelyParseStoredValue(
-            INVOICE_STORAGE_KEY
-        );
-
-    return Array.isArray(invoices)
-        ? invoices
-        : [];
-}
-
-function getAccountsPayable() {
-    const bills =
-        safelyParseStoredValue(
-            ACCOUNTS_PAYABLE_STORAGE_KEY
-        );
-
-    return Array.isArray(bills)
-        ? bills
-        : [];
-}
-
 
 function formatCurrency(value) {
     return (Number(value) || 0).toLocaleString(
@@ -536,35 +440,42 @@ function renderInvoiceActivity(invoices) {
 ========================= */
 
 async function renderShopDashboard() {
-    const repairOrders =
-        getRepairOrders();
-
-    const invoices =
-        getInvoices();
-
-    let bills = getAccountsPayable();
-
     try {
         const context = await window.trackRightAuthReady;
-        const result = await window.trackRightSupabase.from("shop_accounts_payable").select("total,status").eq("shop_id", context.shopId);
-        if (!result.error) bills = result.data;
+        await window.trackRightRepairOrders.migrateBrowserOrders();
+        await window.trackRightInvoices.migrateBrowserInvoices();
+
+        const [repairOrders, invoices, billsResult] = await Promise.all([
+            window.trackRightRepairOrders.list(),
+            window.trackRightInvoices.list(),
+            window.trackRightSupabase
+                .from("shop_accounts_payable")
+                .select("total,status")
+                .eq("shop_id", context.shopId)
+        ]);
+
+        if (billsResult.error) {
+            throw billsResult.error;
+        }
+
+        const activeRepairOrders = repairOrders.filter(function (order) {
+            return order.archived !== true;
+        });
+
+        renderKpis(activeRepairOrders, invoices, billsResult.data || []);
+        renderRepairOrderActivity(activeRepairOrders);
+        renderInvoiceActivity(invoices);
     } catch (error) {
-        console.warn("Accounts Payable totals could not be refreshed.", error);
+        console.error("Shop dashboard could not be refreshed.", error);
+        repairOrderActivity.innerHTML = `
+            <strong>Dashboard data is unavailable</strong>
+            <p>Refresh the page or sign in again.</p>
+        `;
+        invoiceActivity.innerHTML = `
+            <strong>Dashboard data is unavailable</strong>
+            <p>No browser-only fallback was used.</p>
+        `;
     }
-
-    renderKpis(
-        repairOrders,
-        invoices,
-        bills
-    );
-
-    renderRepairOrderActivity(
-        repairOrders
-    );
-
-    renderInvoiceActivity(
-        invoices
-    );
 }
 
 renderShopDashboard();
