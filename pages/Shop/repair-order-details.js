@@ -46,9 +46,6 @@ if (!repairOrder) {
     const closeButton =
         document.querySelector("#close-button");
 
-    const archiveButton =
-        document.querySelector("#archive-button");
-
     const statusDisplay =
         document.querySelector("#status-display");
 
@@ -492,7 +489,6 @@ if (!repairOrder) {
     });
 
     saveButton.hidden = !canWriteRepairOrder && !canUpdateWork;
-    archiveButton.hidden = !canWriteRepairOrder;
     createInvoiceButton.hidden = !window.trackRightCan("invoices.write");
     sendEstimateButton.hidden = !canWriteRepairOrder;
 
@@ -682,34 +678,6 @@ if (!repairOrder) {
     );
          
 
-    /* =========================
-ARCHIVE REPAIR ORDER
-
-======================== */
-
-    archiveButton.addEventListener("click", async function () {
-        const shouldArchive = confirm(
-            "Archive this repair order?"
-        );
-
-        if (!shouldArchive) {
-            return;
-        }
-
-        repairOrder.archived = true;
-
-        archiveButton.disabled = true;
-
-        try {
-            repairOrder = await window.trackRightRepairOrders.update(repairOrder);
-            window.location.href = "./repair-orders.html";
-        } catch (error) {
-            console.error("Could not archive repair order:", error);
-            alert(error?.message || "Could not archive this repair order. Please retry.");
-            archiveButton.disabled = false;
-        }
-
-    });
     printEstimateButton.addEventListener(
         "click",
         function () {
