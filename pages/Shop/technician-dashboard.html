@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en" data-login-path="../../login.html">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Technician Workspace | Track Right</title>
+    <link rel="stylesheet" href="../../css/base.css">
+    <link rel="stylesheet" href="../../css/layout.css">
+    <link rel="stylesheet" href="shop-dashboard.css">
+    <link rel="stylesheet" href="technician-dashboard.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="app-header-inner">
+            <a class="app-brand" href="../../index.html">Track Right</a>
+            <nav class="app-nav" aria-label="Technician navigation">
+                <a href="technician-dashboard.html" class="active">Dashboard</a>
+                <a href="repair-orders.html">Repair Orders</a>
+            </nav>
+        </div>
+    </header>
+
+    <main class="shop-dashboard technician-dashboard">
+        <section class="shop-dashboard-intro">
+            <div><p class="dashboard-eyebrow">TECHNICIAN WORKSPACE</p><h1>My Workday</h1><p>Assigned work, authorization status, schedule, requests, and credentials.</p></div>
+        </section>
+
+        <section class="shop-kpi-grid technician-kpi-grid" aria-label="Technician work summary">
+            <article class="shop-kpi-card"><span id="tech-open-orders" class="shop-kpi-value">0</span><span class="shop-kpi-label">Assigned Open ROs</span></article>
+            <article class="shop-kpi-card"><span id="tech-waiting-approval" class="shop-kpi-value">0</span><span class="shop-kpi-label">Waiting Authorization</span></article>
+            <article class="shop-kpi-card"><span id="tech-today-count" class="shop-kpi-value">0</span><span class="shop-kpi-label">Scheduled Today</span></article>
+            <article class="shop-kpi-card"><span id="tech-cert-alerts" class="shop-kpi-value">0</span><span class="shop-kpi-label">Credential Alerts</span></article>
+        </section>
+
+        <section class="technician-grid">
+            <article class="technician-card">
+                <header><div><p class="panel-eyebrow">WORK</p><h2>Assigned Repair Orders</h2></div><a href="repair-orders.html">Open board</a></header>
+                <div id="tech-ro-list" class="technician-list"><p>Loading assigned work…</p></div>
+            </article>
+            <article class="technician-card">
+                <header><div><p class="panel-eyebrow">SCHEDULE</p><h2>My Upcoming Schedule</h2></div><span class="read-only-label">Read only</span></header>
+                <div id="tech-schedule-list" class="technician-list"><p>Loading schedule…</p></div>
+            </article>
+        </section>
+
+        <section class="technician-grid technician-lower-grid">
+            <article class="technician-card">
+                <header><div><p class="panel-eyebrow">REQUESTS</p><h2>Submit a Request</h2></div></header>
+                <form id="tech-request-form" class="technician-form">
+                    <label>Request type<select id="tech-request-type"><option value="pto">PTO</option><option value="medical">Medical absence</option><option value="general">General request</option></select></label>
+                    <label>Title<input id="tech-request-title" type="text" maxlength="160" required></label>
+                    <div class="technician-form-row request-date-fields"><label>Start date<input id="tech-request-start" type="date" required></label><label>End date<input id="tech-request-end" type="date" required></label></div>
+                    <label>Details<textarea id="tech-request-details" rows="3" maxlength="4000"></textarea></label>
+                    <div class="technician-actions"><button id="tech-request-submit" type="submit">Submit Request</button><p id="tech-request-message" role="status" aria-live="polite"></p></div>
+                </form>
+                <h3 class="technician-subheading">My requests</h3>
+                <div id="tech-request-list" class="technician-list"><p>Loading requests…</p></div>
+            </article>
+
+            <article class="technician-card">
+                <header><div><p class="panel-eyebrow">CREDENTIALS</p><h2>Certifications &amp; Documents</h2></div><span class="read-only-label">Read only</span></header>
+                <p class="technician-help">Only documents explicitly shared with your account are shown.</p>
+                <div id="tech-document-list" class="technician-list"><p>Loading credentials…</p></div>
+            </article>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../js/supabase-client.js"></script>
+    <script src="../../js/auth.js"></script>
+    <script src="../../js/shop-appearance.js"></script>
+    <script src="shop-repair-orders-data.js"></script>
+    <script src="technician-dashboard.js"></script>
+</body>
+</html>
