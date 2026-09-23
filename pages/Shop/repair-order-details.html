@@ -329,18 +329,85 @@
                            placeholder="0.00">
                 </label>
 
-                <label>
-                    Other Charges
+            </div>
 
-                    <input id="estimate-other-charges"
-                           class="detail-input"
-                           type="number"
-                           min="0"
-                           step="0.01"
-                           placeholder="0.00">
-                </label>
-
+            <div class="estimate-fees-section">
+                <div class="estimate-fees-heading">
+                    <div>
+                        <h3>Fees &amp; Adjustments</h3>
+                        <p>Itemize additional charges and control which fees enter the taxable base.</p>
+                    </div>
                 </div>
+
+                <div class="estimate-fees-grid">
+                    <label class="estimate-fee-card">
+                        <span>Shop Supplies</span>
+                        <input id="estimate-shop-supplies"
+                               class="detail-input"
+                               type="number"
+                               min="0"
+                               step="0.01"
+                               placeholder="0.00">
+                        <span class="estimate-tax-toggle">
+                            <input id="estimate-shop-supplies-taxable"
+                                   type="checkbox"
+                                   checked>
+                            Taxable when customer is taxable
+                        </span>
+                    </label>
+
+                    <label class="estimate-fee-card">
+                        <span>Environmental / Disposal</span>
+                        <input id="estimate-environmental-fee"
+                               class="detail-input"
+                               type="number"
+                               min="0"
+                               step="0.01"
+                               placeholder="0.00">
+                        <span class="estimate-tax-toggle">
+                            <input id="estimate-environmental-fee-taxable"
+                                   type="checkbox">
+                            Taxable when customer is taxable
+                        </span>
+                    </label>
+
+                    <div class="estimate-fee-card">
+                        <label>
+                            <span>Miscellaneous Fee Label</span>
+                            <input id="estimate-misc-fee-label"
+                                   class="detail-input"
+                                   type="text"
+                                   placeholder="Miscellaneous fee">
+                        </label>
+                        <label>
+                            <span>Amount</span>
+                            <input id="estimate-other-charges"
+                                   class="detail-input"
+                                   type="number"
+                                   min="0"
+                                   step="0.01"
+                                   placeholder="0.00">
+                        </label>
+                        <label class="estimate-tax-toggle">
+                            <input id="estimate-misc-fee-taxable"
+                                   type="checkbox"
+                                   checked>
+                            Taxable when customer is taxable
+                        </label>
+                    </div>
+
+                    <label class="estimate-fee-card estimate-discount-card">
+                        <span>Discount</span>
+                        <input id="estimate-discount"
+                               class="detail-input"
+                               type="number"
+                               min="0"
+                               step="0.01"
+                               placeholder="0.00">
+                        <small>Reduces the estimate total and taxable charges first.</small>
+                    </label>
+                </div>
+            </div>
 
 
                 <div class="estimate-total-row">
