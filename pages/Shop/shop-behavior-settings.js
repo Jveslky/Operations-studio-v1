@@ -15,7 +15,7 @@
     };
     let context=null;
     function status(text,state){message.textContent=text;message.className=`settings-message${state?` ${state}`:""}`;}
-    function fill(settings){Object.entries(fields).forEach(([key,input])=>{if(input.type==="checkbox")input.checked=settings[key]!==false;else input.value=settings[key];});}
+    function fill(settings){Object.entries(fields).forEach(([key,input])=>{if(input.type==="checkbox")input.checked=settings[key]!==false;else if(input.type==="number")input.value=Number(settings[key])===0?"":settings[key];else input.value=settings[key];});}
     function editable(value){Array.from(form.elements).forEach((element)=>element.disabled=!value);}
     form.addEventListener("submit",async function(event){
         event.preventDefault(); save.disabled=true; status("Saving shop behavior…","");
