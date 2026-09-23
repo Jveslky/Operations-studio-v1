@@ -198,6 +198,25 @@
         });
     }
 
+    function normalizeWebsite(value) {
+        const entered = value.trim();
+        if (!entered) return null;
+
+        const candidate = /^[a-z][a-z\d+.-]*:\/\//i.test(entered)
+            ? entered
+            : `https://${entered}`;
+        let url;
+        try {
+            url = new URL(candidate);
+        } catch (error) {
+            throw new Error("Enter a valid website, such as example.com.");
+        }
+        if (!["http:", "https:"].includes(url.protocol) || !url.hostname) {
+            throw new Error("Enter a valid http or https website.");
+        }
+        return url.href;
+    }
+
     async function loadProfile() {
         context = await window.trackRightAuthReady;
         if (!context?.shopId) return;
@@ -247,6 +266,14 @@
                 ? (input.value === "" ? null : Number(input.value))
                 : (input.value.trim() || null);
         });
+        try {
+            profile.website = normalizeWebsite(fields.website.value);
+        } catch (error) {
+            setMessage(error.message, "error");
+            fields.website.focus();
+            saveButton.disabled = false;
+            return;
+        }
         profile.name = fields.name.value.trim();
         profile.timezone = timezoneSelect.value;
         profile.updated_at = new Date().toISOString();
