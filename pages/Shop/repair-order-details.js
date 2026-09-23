@@ -4,29 +4,22 @@
    FIND REPAIR ORDER
 ========================= */
 
+(async function initializeRepairOrderDetails() {
+
 const params =
     new URLSearchParams(window.location.search);
 
 const repairOrderId =
     params.get("id");
 
-const storageKey =
-    `repair-order-${repairOrderId}`;
-
-let savedRepairOrder = null;
+let repairOrder = null;
 
 try {
-    savedRepairOrder = JSON.parse(
-        localStorage.getItem(storageKey)
-    );
+    await window.trackRightRepairOrders.migrateBrowserOrders();
+    repairOrder = await window.trackRightRepairOrders.get(repairOrderId);
 } catch (error) {
-    console.error(
-        "Could not read saved repair order:",
-        error
-    );
+    console.error("Could not load repair order:", error);
 }
-
-const repairOrder = savedRepairOrder;
 
 
 /* =========================
@@ -535,7 +528,8 @@ if (!repairOrder) {
        SAVE REPAIR ORDER
     ========================= */
 
-    saveButton.addEventListener("click", function () {
+    saveButton.addEventListener("click", async function () {
+        saveButton.disabled = true;
         repairOrder.customer =
             repairOrder.customer || "";
 
@@ -642,15 +636,15 @@ if (!repairOrder) {
         }
 
 
-        localStorage.setItem(
-            storageKey,
-            JSON.stringify(repairOrder)
-        );
-
-        setTimeout(() => {
-            window.location.href =
-                "./repair-orders.html";
-        }, 500);
+        try {
+            repairOrder = await window.trackRightRepairOrders.update(repairOrder);
+            hasUnsavedChanges = false;
+            window.location.href = "./repair-orders.html";
+        } catch (error) {
+            console.error("Could not save repair order:", error);
+            alert(error?.message || "Could not save this repair order. Please retry.");
+            saveButton.disabled = false;
+        }
     });
 
 
@@ -710,7 +704,7 @@ ARCHIVE REPAIR ORDER
 
 ======================== */
 
-    archiveButton.addEventListener("click", function () {
+    archiveButton.addEventListener("click", async function () {
         const shouldArchive = confirm(
             "Archive this repair order?"
         );
@@ -721,13 +715,16 @@ ARCHIVE REPAIR ORDER
 
         repairOrder.archived = true;
 
-        localStorage.setItem(
-            storageKey,
-            JSON.stringify(repairOrder)
-        );
+        archiveButton.disabled = true;
 
-        window.location.href =
-            "./repair-orders.html";
+        try {
+            repairOrder = await window.trackRightRepairOrders.update(repairOrder);
+            window.location.href = "./repair-orders.html";
+        } catch (error) {
+            console.error("Could not archive repair order:", error);
+            alert(error?.message || "Could not archive this repair order. Please retry.");
+            archiveButton.disabled = false;
+        }
 
     });
     printEstimateButton.addEventListener(
@@ -737,23 +734,24 @@ ARCHIVE REPAIR ORDER
         }
     );
 
-    function getEstimateCustomer() {
-        let customers = [];
-
-        try {
-            customers = JSON.parse(
-                localStorage.getItem("track-right-customers")
-            ) || [];
-        } catch (error) {
-            console.error(
-                "Could not read customer records:",
-                error
-            );
+    async function getEstimateCustomer() {
+        if (!repairOrder.customerId) {
+            return null;
         }
 
-        return customers.find(function (customer) {
-            return customer.id === repairOrder.customerId;
-        }) || null;
+        const authContext = await window.trackRightAuthReady;
+        const { data, error } = await window.trackRightSupabase
+            .from("Customers")
+            .select("id,name,email,phone")
+            .eq("shop_id", authContext.shopId)
+            .eq("id", repairOrder.customerId)
+            .maybeSingle();
+
+        if (error) {
+            throw error;
+        }
+
+        return data;
     }
 
     function getEstimateMessage() {
@@ -776,8 +774,8 @@ ARCHIVE REPAIR ORDER
             `Please contact us with approval or any questions.`
         ].join("\n");
     }
-    function openSendEstimateModal() {
-        const customer = getEstimateCustomer();
+    async function openSendEstimateModal() {
+        const customer = await getEstimateCustomer();
 
         const estimateTotal =
             calculateEstimateTotal().toLocaleString(
@@ -847,32 +845,21 @@ ARCHIVE REPAIR ORDER
         }
     );
 
-    function markEstimateAsSent() {
+    async function markEstimateAsSent() {
         estimateApprovalStatusInput.value = "Sent";
 
         estimateStatusDisplay.textContent = "Sent";
         estimateStatusDisplay.className =
             "estimate-status estimate-sent";
 
-        const savedRepairOrder =
-            JSON.parse(
-                localStorage.getItem(
-                    `repair-order-${repairOrder.id}`
-                )
-            ) || {};
-
-        savedRepairOrder.estimateApprovalStatus = "Sent";
-
-        localStorage.setItem(
-            `repair-order-${repairOrder.id}`,
-            JSON.stringify(savedRepairOrder)
-        );
+        repairOrder.estimateApprovalStatus = "Sent";
+        repairOrder = await window.trackRightRepairOrders.update(repairOrder);
     }
 
     emailEstimateButton.addEventListener(
         "click",
-        function () {
-            const customer = getEstimateCustomer();
+        async function () {
+        const customer = await getEstimateCustomer();
 
             if (!customer || !customer.email) {
                 alert(
@@ -888,7 +875,7 @@ ARCHIVE REPAIR ORDER
             const message =
                 sendPreviewMessage.value;
 
-            markEstimateAsSent();
+            await markEstimateAsSent();
             closeSendEstimateModal();
 
             window.location.href =
@@ -900,8 +887,8 @@ ARCHIVE REPAIR ORDER
 
     textEstimateButton.addEventListener(
         "click",
-        function () {
-            const customer = getEstimateCustomer();
+        async function () {
+            const customer = await getEstimateCustomer();
 
             if (!customer || !customer.phone) {
                 alert(
@@ -914,7 +901,7 @@ ARCHIVE REPAIR ORDER
             const message =
                 sendPreviewMessage.value;
 
-            markEstimateAsSent();
+            await markEstimateAsSent();
             closeSendEstimateModal();
 
             window.location.href =
@@ -923,3 +910,4 @@ ARCHIVE REPAIR ORDER
         }
     );
 }
+}());
