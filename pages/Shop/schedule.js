@@ -295,7 +295,7 @@ function renderUpcomingSchedule() {
                 const endDateLabel = appointment.endDate && appointment.endDate !== appointment.date ? ` through ${formatScheduleDate(appointment.endDate)}` : "";
                 const editable = !appointment.readOnly && canManageSchedule;
                 return `<article class="upcoming-appointment-card ${appointment.readOnly ? "calendar-request-event" : editable ? "" : "appointment-read-only"}" ${editable ? `data-appointment-id="${escapeHtml(appointment.id)}" tabindex="0" role="button"` : ""}>
-                    <div class="upcoming-time"><strong>${appointment.allDay ? "All day" : formatTime(appointment.startTime)}</strong><span>${appointment.allDay ? endDateLabel : formatTime(appointment.endTime)}</span></div>
+                    <div class="upcoming-time"><strong>${appointment.allDay ? "All day" : formatTime(appointment.startTime)}</strong><span>${appointment.allDay ? endDateLabel : formatAppointmentEnd(appointment)}</span></div>
                     <div class="upcoming-main"><div><strong>${escapeHtml(appointment.customer)}</strong><span>${escapeHtml(appointment.unit || "No unit selected")}</span></div><p>${escapeHtml(appointment.description || "No work description")}</p></div>
                     <div class="upcoming-side"><span class="appointment-status">${escapeHtml(appointment.status)}</span><small>${escapeHtml(appointment.technician || "Unassigned")}</small></div>
                 </article>`;
@@ -428,9 +428,7 @@ function renderSchedule() {
                     </strong>
 
                             <span>
-                                ${appointment.allDay ? "" : formatTime(
-                    appointment.endTime
-                )}
+                                ${appointment.allDay ? "" : formatAppointmentEnd(appointment)}
                     </span>
 
                 </div>
@@ -566,6 +564,12 @@ function formatTime(
         }
     );
 
+}
+
+function formatAppointmentEnd(appointment) {
+    if (!appointment?.endTime) return "";
+    const crossesMidnight = appointment.startTime && appointment.endTime < appointment.startTime;
+    return `${formatTime(appointment.endTime)}${crossesMidnight ? " (+1 day)" : ""}`;
 }
 
 
