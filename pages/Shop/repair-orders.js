@@ -204,14 +204,7 @@ function safelyParseStoredValue(key) {
 ========================= */
 
 function getCurrentRepairOrder(order) {
-    const savedOrder =
-        safelyParseStoredValue(
-            `repair-order-${order.id}`
-        );
-
-    return savedOrder
-        ? { ...order, ...savedOrder }
-        : order;
+    return order;
 }
 
 function getCustomerUnitById(customerId, unitId) {
@@ -238,74 +231,7 @@ function getAllRepairOrders() {
         );
     });
 
-    for (
-        let index = 0;
-        index < localStorage.length;
-        index++
-    ) {
-        const key = localStorage.key(index);
-
-        if (
-            !key ||
-            !/^repair-order-\d+$/.test(key)
-        ) {
-            continue;
-        }
-
-        const storedOrder =
-            safelyParseStoredValue(key);
-
-        if (
-            storedOrder &&
-            storedOrder.id
-        ) {
-            allRepairOrders.set(
-                String(storedOrder.id),
-                storedOrder
-            );
-        }
-    }
-
     return allRepairOrders;
-}
-
-function getNextRepairOrderId() {
-    const repairOrderIds = [];
-
-    repairOrders.forEach(function (order) {
-        const orderId = Number(order.id);
-
-        if (Number.isFinite(orderId)) {
-            repairOrderIds.push(orderId);
-        }
-    });
-
-    for (
-        let index = 0;
-        index < localStorage.length;
-        index++
-    ) {
-        const key = localStorage.key(index);
-
-        if (
-            !key ||
-            !/^repair-order-\d+$/.test(key)
-        ) {
-            continue;
-        }
-
-        const storedId = Number(
-            key.replace("repair-order-", "")
-        );
-
-        if (Number.isFinite(storedId)) {
-            repairOrderIds.push(storedId);
-        }
-    }
-
-    return String(
-        Math.max(...repairOrderIds, 1000) + 1
-    );
 }
 
 function getOrderSection(status) {
@@ -572,8 +498,12 @@ cancelNewRepairOrderButton.addEventListener(
 
 newRepairOrderForm.addEventListener(
     "submit",
-    function (event) {
+    async function (event) {
         event.preventDefault();
+        const submitButton = newRepairOrderForm.querySelector('[type="submit"]');
+        submitButton.disabled = true;
+        newRoDataMessage.textContent = "Saving repair order…";
+        newRoDataMessage.classList.remove("error");
 
         const selectedUnitOption =
             newUnitInput.options[
@@ -586,8 +516,6 @@ newRepairOrderForm.addEventListener(
             ];
 
         const newRepairOrder = {
-            id: getNextRepairOrderId(),
-
             customerId:
                 selectedCustomerId || "",
 
@@ -628,12 +556,17 @@ newRepairOrderForm.addEventListener(
             appMode: appMode
         };
 
-        localStorage.setItem(
-            `repair-order-${newRepairOrder.id}`,
-            JSON.stringify(newRepairOrder)
-        );
-
-        window.location.reload();
+        try {
+            const savedOrder = await window.trackRightRepairOrders.create(newRepairOrder);
+            repairOrders.unshift(savedOrder);
+            window.location.href = `./repair-order-details.html?id=${encodeURIComponent(savedOrder.id)}`;
+        } catch (error) {
+            console.error("Could not create repair order:", error);
+            newRoDataMessage.textContent =
+                error?.message || "Could not save this repair order. Please retry.";
+            newRoDataMessage.classList.add("error");
+            submitButton.disabled = false;
+        }
     }
 );
 
@@ -1689,4 +1622,22 @@ startCustomerRepairOrderButton?.addEventListener(
 ========================= */
 
 
-renderRepairOrders();
+async function initializeRepairOrders() {
+    try {
+        await window.trackRightRepairOrders.migrateBrowserOrders();
+        const cloudOrders = await window.trackRightRepairOrders.list();
+        repairOrders.splice(0, repairOrders.length, ...cloudOrders);
+        renderRepairOrders();
+    } catch (error) {
+        console.error("Could not load repair orders:", error);
+        attentionOrders.innerHTML = `
+            <p class="empty-section-message">
+                Repair orders could not be loaded. Refresh the page or sign in again.
+            </p>
+        `;
+        inProgressOrders.innerHTML = "";
+        completeOrders.innerHTML = "";
+    }
+}
+
+initializeRepairOrders();
