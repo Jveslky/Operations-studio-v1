@@ -183,15 +183,14 @@ if (!repairOrder) {
         if (!alreadyExists) {
             const option = document.createElement("option");
             option.value = value;
+            option.textContent = value;
             list.appendChild(option);
         }
     }
 
     async function loadTechnicianOptions() {
-        const technicianList =
-            document.getElementById("technician-options");
-        const additionalTechnicianList =
-            document.getElementById("additional-technician-options");
+        const technicianList = technicianSelect;
+        const additionalTechnicianList = additionalTechnicianSelect;
 
         addTechnicianOption(
             technicianList,
@@ -227,6 +226,8 @@ if (!repairOrder) {
                     technicianName
                 );
             });
+            technicianSelect.value = repairOrder.technician || "Unassigned";
+            additionalTechnicianSelect.value = repairOrder.additionalTechnician || "";
         } catch (error) {
             console.error(
                 "Could not load active technicians:",
