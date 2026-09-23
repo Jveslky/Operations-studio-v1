@@ -332,36 +332,6 @@ if (!repairOrder) {
         renderEstimateStatus
     );
 
-    const INVOICE_STORAGE_KEY =
-        "track-right-invoices";
-
-    function getInvoices() {
-        const storedInvoices =
-            localStorage.getItem(
-                INVOICE_STORAGE_KEY
-            );
-
-        if (!storedInvoices) {
-            return [];
-        }
-
-        try {
-            const invoices =
-                JSON.parse(storedInvoices);
-
-            return Array.isArray(invoices)
-                ? invoices
-                : [];
-        } catch (error) {
-            console.error(
-                "Could not read invoices:",
-                error
-            );
-
-            return [];
-        }
-    }
-
     /* =========================
        DISPLAY ORDER DATA
     ========================= */
@@ -503,6 +473,27 @@ if (!repairOrder) {
         estimateApprovalStatusInput,
         estimateNotesInput
     ];
+
+    const canWriteRepairOrder = window.trackRightCan("repair_orders.write");
+    const canUpdateWork = window.trackRightCan("repair_orders.update_work");
+    const workFields = new Set([
+        statusSelect,
+        technicianNotesInput,
+        laborHoursInput,
+        additionalWorkInput
+    ]);
+
+    editableFields.forEach(function (field) {
+        if (!field) return;
+        field.disabled = canWriteRepairOrder
+            ? false
+            : !(canUpdateWork && workFields.has(field));
+    });
+
+    saveButton.hidden = !canWriteRepairOrder && !canUpdateWork;
+    archiveButton.hidden = !canWriteRepairOrder;
+    createInvoiceButton.hidden = !window.trackRightCan("invoices.write");
+    sendEstimateButton.hidden = !canWriteRepairOrder;
 
     editableFields.forEach(field => {
         if (!field) {
@@ -670,31 +661,22 @@ if (!repairOrder) {
 
     createInvoiceButton?.addEventListener(
         "click",
-        function () {
-            const invoices = getInvoices();
-
-            const existingInvoice =
-                invoices.find(
-                    function (invoice) {
-                        return (
-                            String(
-                                invoice.repairOrderId
-                            ) ===
-                            String(
-                                repairOrder.id
-                            )
-                        );
-                    }
-                );
-            if (existingInvoice) {
-                window.location.href =
-                    `invoice-details.html?id=${existingInvoice.id}`;
-
-                return;
+        async function () {
+            createInvoiceButton.disabled = true;
+            try {
+                const invoices = await window.trackRightInvoices.list();
+                const existingInvoice = invoices.find(function (invoice) {
+                    return invoice.repairOrderRecordId === repairOrder.recordId ||
+                        String(invoice.repairOrderId) === String(repairOrder.id);
+                });
+                window.location.href = existingInvoice
+                    ? `invoice-details.html?id=${encodeURIComponent(existingInvoice.id)}`
+                    : `invoices.html?repairOrderId=${encodeURIComponent(repairOrder.id)}`;
+            } catch (error) {
+                console.error("Could not check repair-order invoice:", error);
+                alert(error?.message || "Could not open invoicing. Please retry.");
+                createInvoiceButton.disabled = false;
             }
-
-            window.location.href =
-                `invoices.html?repairOrderId=${encodeURIComponent(repairOrder.id)}`;
         }
     );
          
