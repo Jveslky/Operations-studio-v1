@@ -126,7 +126,7 @@ button {
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
-    #close-button:hover:hover {
+    #close-button:hover {
         background: #565f67;
         transform: translateY(-1px);
     }
@@ -142,7 +142,7 @@ button {
 }
 
     #close-button:active,
-    #save-button:active:active {
+    #save-button:active {
         transform: translateY(0);
         box-shadow: none;
     }
@@ -1023,13 +1023,13 @@ textarea {
 }
 
 #close-button:hover,
-#save-button:hover:hover {
+#save-button:hover {
     transform: translateY(-1px);
     box-shadow: 0 5px 10px rgba(37, 42, 48, 0.22);
 }
 
 #close-button:active,
-#save-button:active:active {
+#save-button:active {
     transform: translateY(0);
     box-shadow: 0 2px 5px rgba(37, 42, 48, 0.12);
 }
