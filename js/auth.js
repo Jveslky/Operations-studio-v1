@@ -8,8 +8,8 @@
     const rolePermissions = {
         owner: ["*"],
         admin: ["customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "repair_orders.update_work", "invoices.read", "invoices.write", "expenses.read", "expenses.write", "schedule.manage", "inspections.work", "requests.review", "team_documents.manage", "data.export", "data.import", "settings.manage", "users.manage"],
-        service_writer: ["customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "invoices.read", "invoices.write", "expenses.read", "expenses.write", "schedule.manage", "inspections.work", "requests.review", "data.export"],
-        technician: ["customers.read", "repair_orders.read", "repair_orders.update_work", "inspections.work"],
+        service_writer: ["customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "invoices.read", "invoices.write", "schedule.manage", "inspections.work", "requests.review", "data.export"],
+        technician: ["repair_orders.read", "repair_orders.update_work", "inspections.work"],
         read_only: ["customers.read", "repair_orders.read", "invoices.read", "expenses.read", "data.export"]
     };
 
@@ -163,11 +163,56 @@
             const allowed = rolePermissions[context.role] || [];
             return allowed.includes("*") || allowed.includes(permission);
         };
+        if (!applyShopPageAccess(context)) return null;
         document.documentElement.dataset.authReady = "true";
-        addShopSettingsMenu();
+        if (window.trackRightCan("settings.manage")) addShopSettingsMenu();
         addAccountControls(context);
         document.body.style.visibility = "visible";
         return context;
+    }
+
+    function applyShopPageAccess(context) {
+        const page = window.location.pathname.split("/").pop().toLowerCase();
+        const rootPath = loginPath.replace(/login\.html(?:\?.*)?$/, "");
+        const dashboard = context.role === "technician"
+            ? `${rootPath}pages/Shop/technician-dashboard.html`
+            : `${rootPath}pages/Shop/shop-dashboard.html`;
+        const canUseAccountsPayable = window.trackRightCan("expenses.read") || window.trackRightCan("expenses.write");
+        if (page === "accounts-payable.html" && !canUseAccountsPayable) {
+            window.location.replace(dashboard);
+            return false;
+        }
+        if (page === "shop-settings.html" && !window.trackRightCan("settings.manage")) {
+            window.location.replace(dashboard);
+            return false;
+        }
+
+        document.querySelectorAll(".app-nav a").forEach(function (link) {
+            const linkedPage = new URL(link.href, window.location.href).pathname.split("/").pop().toLowerCase();
+            if (linkedPage === "accounts-payable.html" && !canUseAccountsPayable) link.remove();
+        });
+        if (context.role !== "technician") return true;
+
+        const technicianPages = new Set([
+            "technician-dashboard.html",
+            "repair-orders.html",
+            "repair-order-details.html"
+        ]);
+        if (!technicianPages.has(page)) {
+            window.location.replace(dashboard);
+            return false;
+        }
+
+        document.querySelectorAll(".app-nav a").forEach(function (link) {
+            const linkedPage = new URL(link.href, window.location.href).pathname.split("/").pop().toLowerCase();
+            if (linkedPage === "shop-dashboard.html") {
+                link.href = dashboard;
+                link.textContent = "Dashboard";
+                return;
+            }
+            if (linkedPage !== "repair-orders.html") link.remove();
+        });
+        return true;
     }
 
     function addShopSettingsMenu() {
@@ -290,7 +335,9 @@
             if (window.trackRightCan("users.manage")) {
                 addLink("Users", `${rootPath}pages/Admin/users.html`);
             }
-            addLink("Shop Settings", `${rootPath}pages/Shop/shop-settings.html`);
+            if (window.trackRightCan("settings.manage")) {
+                addLink("Shop Settings", `${rootPath}pages/Shop/shop-settings.html`);
+            }
         }
 
         const divider = document.createElement("div");
