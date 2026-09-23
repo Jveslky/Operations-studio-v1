@@ -430,8 +430,7 @@ async function populateTechnicianOptions() {
         return;
     }
 
-    const technicianOptions =
-        document.getElementById("technician-options");
+    const technicianOptions = newTechnicianInput;
 
     try {
         await window.trackRightAuthReady;
@@ -445,7 +444,7 @@ async function populateTechnicianOptions() {
             throw error;
         }
 
-        technicianOptions.innerHTML = "";
+        technicianOptions.innerHTML = '<option value="Unassigned">Unassigned</option>';
 
         (data || []).forEach(function (member) {
             if (!member.email) {
@@ -454,6 +453,7 @@ async function populateTechnicianOptions() {
 
             const option = document.createElement("option");
             option.value = member.email;
+            option.textContent = member.email;
             technicianOptions.appendChild(option);
         });
 
