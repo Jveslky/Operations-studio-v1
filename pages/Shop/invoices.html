@@ -104,7 +104,8 @@
                    placeholder="Search invoices"
                    aria-label="Search invoices">
 
-            <select id="invoice-status-filter">
+            <select id="invoice-status-filter"
+                    class="invoice-select">
                 <option value="All">
                     All Statuses
                 </option>
@@ -144,23 +145,73 @@
                 </button>
             </div>
 
-            <label>
-                Repair Order
+            <div class="invoice-form-grid">
+                <label>
+                    Invoice Type
 
-                <select id="invoice-repair-order"
-                        required>
+                    <select id="invoice-source-type"
+                            class="invoice-select">
+                        <option value="repair-order">From Repair Order</option>
+                        <option value="one-off">One-off Invoice</option>
+                    </select>
+                </label>
+
+                <label id="invoice-repair-order-field">
+                    Repair Order
+
+                    <select id="invoice-repair-order"
+                            class="invoice-select">
                     <option value="">
                         Select a repair order
                     </option>
-                </select>
-            </label>
+                    </select>
+                </label>
 
-            <label>
-                Due Date
+                <label id="invoice-customer-field" hidden>
+                    Customer
 
-                <input id="invoice-due-date"
-                       type="date"
-                       required>
+                    <select id="invoice-customer"
+                            class="invoice-select">
+                        <option value="">Select a customer</option>
+                    </select>
+                </label>
+
+                <label id="invoice-unit-field" hidden>
+                    Unit <span class="optional-label">Optional</span>
+
+                    <select id="invoice-unit"
+                            class="invoice-select"
+                            disabled>
+                        <option value="">Select a customer first</option>
+                    </select>
+                </label>
+
+                <label>
+                    Due Date
+
+                    <input id="invoice-due-date"
+                           type="date"
+                           required>
+                </label>
+
+                <label id="invoice-subtotal-field" hidden>
+                    Subtotal
+
+                    <input id="invoice-subtotal-input"
+                           type="number"
+                           min="0"
+                           step="0.01"
+                           inputmode="decimal"
+                           placeholder="0.00">
+                </label>
+            </div>
+
+            <label id="invoice-description-field" hidden>
+                Work Description
+
+                <textarea id="invoice-description"
+                          rows="4"
+                          placeholder="Describe the work, parts, service, or charge"></textarea>
             </label>
 
             <label>
