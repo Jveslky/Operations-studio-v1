@@ -228,7 +228,14 @@ function getInvoiceCustomer() {
         !currentInvoice ||
         !currentInvoice.customerId
     ) {
-        return null;
+        if (!currentInvoice) {
+            return null;
+        }
+
+        return {
+            email: currentInvoice.customerEmail || "",
+            phone: currentInvoice.customerPhone || ""
+        };
     }
 
     return getCustomers().find(
@@ -240,7 +247,10 @@ function getInvoiceCustomer() {
                 )
             );
         }
-    ) || null;
+    ) || {
+        email: currentInvoice.customerEmail || "",
+        phone: currentInvoice.customerPhone || ""
+    };
 }
 
 /* =========================
@@ -378,12 +388,20 @@ function renderInvoice() {
     invoiceRepairOrder.textContent =
         currentInvoice.repairOrderId
             ? `RO #${currentInvoice.repairOrderId}`
-            : "—";
+            : "One-off invoice";
 
     invoiceRepairOrder.href =
         currentInvoice.repairOrderId
             ? `repair-order-details.html?id=${currentInvoice.repairOrderId}`
             : "#";
+
+    if (currentInvoice.repairOrderId) {
+        invoiceRepairOrder.removeAttribute("aria-disabled");
+        invoiceRepairOrder.tabIndex = 0;
+    } else {
+        invoiceRepairOrder.setAttribute("aria-disabled", "true");
+        invoiceRepairOrder.tabIndex = -1;
+    }
 
     invoiceCreatedDate.textContent =
         formatDate(
