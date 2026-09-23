@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Join Shop beta | Track Right</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+<body class="auth-page">
+    <main class="auth-shell">
+        <div class="auth-brand">Track Right</div>
+        <section class="auth-card">
+            <p class="auth-kicker">SHOP BETA</p>
+            <h1>Open your shop</h1>
+            <p id="invite-summary">Checking your invitation…</p>
+            <form id="shop-beta-signup-form" class="auth-form" hidden>
+                <label>Your name<input name="fullName" type="text" autocomplete="name" required></label>
+                <label>Shop Name<input name="shopName" type="text" maxlength="120" autocomplete="organization" required></label>
+                <label>Email<input name="email" type="email" autocomplete="email" readonly required></label>
+                <label>Password<input name="password" type="password" autocomplete="new-password" minlength="8" required></label>
+                <button class="auth-primary" type="submit">Create account and open shop</button>
+            </form>
+            <div id="existing-account-link" class="auth-links" hidden><a href="login.html">Already have a Track Right login? Sign in</a></div>
+            <button id="accept-shop-beta-invite" class="auth-primary" type="button" hidden>Accept invitation</button>
+            <div id="auth-message" class="auth-message" role="status" aria-live="polite"></div>
+        </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase-client.js"></script>
+    <script src="js/shop-beta-invite.js"></script>
+</body>
+</html>
