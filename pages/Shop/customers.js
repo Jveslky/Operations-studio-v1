@@ -682,14 +682,7 @@ async function renderCustomerDirectory() {
 ========================= */
 
 function getCurrentRepairOrder(order) {
-    const savedOrder =
-        safelyParseStoredValue(
-            `repair-order-${order.id}`
-        );
-
-    return savedOrder
-        ? { ...order, ...savedOrder }
-        : order;
+    return order;
 }
 
 function getAllRepairOrders() {
@@ -704,95 +697,9 @@ function getAllRepairOrders() {
         }
     );
 
-    for (
-        let index = 0;
-        index < localStorage.length;
-        index++
-    ) {
-        const key =
-            localStorage.key(index);
-
-        if (
-            !key ||
-            !/^repair-order-\d+$/.test(key)
-        ) {
-            continue;
-        }
-
-        const storedOrder =
-            safelyParseStoredValue(key);
-
-        if (
-            storedOrder &&
-            storedOrder.id
-        ) {
-            allRepairOrders.set(
-                String(storedOrder.id),
-                storedOrder
-            );
-        }
-    }
-
     return allRepairOrders;
 }
-
-function getNextRepairOrderId() {
-    const repairOrderIds = [];
-
-    repairOrders.forEach(
-        function (order) {
-            const orderId =
-                Number(order.id);
-
-            if (
-                Number.isFinite(orderId)
-            ) {
-                repairOrderIds.push(
-                    orderId
-                );
-            }
-        }
-    );
-
-    for (
-        let index = 0;
-        index < localStorage.length;
-        index++
-    ) {
-        const key =
-            localStorage.key(index);
-
-        if (
-            !key ||
-            !/^repair-order-\d+$/.test(key)
-        ) {
-            continue;
-        }
-
-        const storedId =
-            Number(
-                key.replace(
-                    "repair-order-",
-                    ""
-                )
-            );
-
-        if (
-            Number.isFinite(storedId)
-        ) {
-            repairOrderIds.push(
-                storedId
-            );
-        }
-    }
-
-    return String(
-        Math.max(
-            ...repairOrderIds,
-            1000
-        ) + 1
-    );
-}/* =========================
+/* =========================
    ADD / EDIT CUSTOMER
 ========================= */
 
@@ -2065,8 +1972,10 @@ cancelNewRepairOrderButton.addEventListener(
 
 newRepairOrderForm.addEventListener(
     "submit",
-    function (event) {
+    async function (event) {
         event.preventDefault();
+        const submitButton = newRepairOrderForm.querySelector('[type="submit"]');
+        submitButton.disabled = true;
 
         const selectedUnitOption =
             newUnitInput.options[
@@ -2074,9 +1983,6 @@ newRepairOrderForm.addEventListener(
             ];
 
         const newRepairOrder = {
-            id:
-                getNextRepairOrderId(),
-
             customerId:
                 selectedCustomerId || "",
 
@@ -2134,16 +2040,28 @@ newRepairOrderForm.addEventListener(
                 appMode
         };
 
-        localStorage.setItem(
-            `repair-order-${newRepairOrder.id}`,
-            JSON.stringify(
-                newRepairOrder
-            )
-        );
-
-        window.location.href =
-            `repair-order-details.html?id=${newRepairOrder.id}`;
+        try {
+            const savedOrder = await window.trackRightRepairOrders.create(newRepairOrder);
+            window.location.href =
+                `repair-order-details.html?id=${encodeURIComponent(savedOrder.id)}`;
+        } catch (error) {
+            console.error("Could not create repair order:", error);
+            alert(error?.message || "Could not save this repair order. Please retry.");
+            submitButton.disabled = false;
+        }
     }
 );
 
-renderCustomerDirectory();
+async function initializeCustomerDirectory() {
+    try {
+        await window.trackRightRepairOrders.migrateBrowserOrders();
+        const cloudOrders = await window.trackRightRepairOrders.list();
+        repairOrders.splice(0, repairOrders.length, ...cloudOrders);
+    } catch (error) {
+        console.error("Could not load repair-order history:", error);
+    }
+
+    await renderCustomerDirectory();
+}
+
+initializeCustomerDirectory();
