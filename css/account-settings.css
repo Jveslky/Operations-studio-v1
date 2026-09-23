@@ -77,6 +77,7 @@
 .shop-settings-nav a { padding: 10px 12px; border-left: 3px solid transparent; border-radius: 7px; color: #c7d0d4; text-decoration: none; font-size: .9rem; font-weight: 750; }
 .shop-settings-nav a:hover, .shop-settings-nav a:focus-visible, .shop-settings-nav a.active { border-left-color: #db6128; background: #343a40; color: #fff; outline: none; }
 .shop-settings-content { min-width: 0; }
+.shop-settings-content > .settings-card[hidden] { display: none; }
 .settings-card { scroll-margin-top: 92px; }
 .settings-scope-label { padding: 6px 9px; border-radius: 20px; background: #e4f0f2; color: #356d78; font-size: .72rem; font-weight: 900; text-transform: uppercase; }
 .profile-intro { margin: 0 0 20px; }
