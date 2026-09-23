@@ -8,9 +8,8 @@ const appMode = "shop";
 
 
 
-const INVOICE_STORAGE_KEY = "track-right-invoices";
-
 const repairOrders = [];
+const customerInvoices = [];
 
 let selectedCustomerId = null;
 let editingCustomerId = null;
@@ -304,25 +303,6 @@ const customerArTotal =
    GENERAL HELPERS
 ========================= */
 
-function safelyParseStoredValue(key) {
-    const storedValue =
-        localStorage.getItem(key);
-
-    if (!storedValue) {
-        return null;
-    }
-
-    try {
-        return JSON.parse(storedValue);
-    } catch (error) {
-        console.error(
-            `Could not read ${key}:`,
-            error
-        );
-
-        return null;
-    }
-}
 
 function escapeHtml(value) {
     return String(value ?? "")
@@ -343,14 +323,7 @@ function escapeHtml(value) {
 
 
 function getInvoices() {
-    const invoices =
-        safelyParseStoredValue(
-            INVOICE_STORAGE_KEY
-        );
-
-    return Array.isArray(invoices)
-        ? invoices
-        : [];
+    return customerInvoices;
 }
 
 function formatCurrency(value) {
@@ -431,26 +404,41 @@ async function renderCustomerDirectory() {
         return false;
     }
 
-    const {
-        data: customersData,
-        error
-    } = await supabaseClient
-        .from("Customers")
-        .select("*")
-        .eq("shop_id", shopId)
-        .eq("archived", false)
-        .order("name");
+    const [customerResult, unitResult] = await Promise.all([
+        supabaseClient.from("Customers").select("*")
+            .eq("shop_id", shopId).eq("archived", false).order("name"),
+        supabaseClient.from("customer_units").select("*")
+            .eq("shop_id", shopId).eq("archived", false).order("created_at")
+    ]);
 
-    if (error) {
+    if (customerResult.error || unitResult.error) {
+        const error = customerResult.error || unitResult.error;
         console.error(
-            "Could not load customers:",
+            "Could not load customer directory:",
             error
         );
+        customerDirectoryList.innerHTML = `
+            <p class="customer-directory-empty">
+                Could not load customer records: ${escapeHtml(error.message)}
+            </p>
+        `;
         return false;
     }
 
+    const unitsByCustomer = new Map();
+    (unitResult.data || []).forEach(function (unit) {
+        const key = String(unit.customer_id);
+        if (!unitsByCustomer.has(key)) unitsByCustomer.set(key, []);
+        unitsByCustomer.get(key).push({
+            id: unit.id, year: unit.year, make: unit.make, model: unit.model,
+            serial: unit.serial, engineMake: unit.engine_make,
+            engineModel: unit.engine_model, fuelType: unit.fuel_type,
+            displacement: unit.displacement, archived: unit.archived
+        });
+    });
+
     const customers =
-        customersData.map(function (customer) {
+        (customerResult.data || []).map(function (customer) {
             return {
                 id: customer.id,
                 name: customer.name,
@@ -462,9 +450,7 @@ async function renderCustomerDirectory() {
                 createdAt: customer.created_at,
                 updatedAt: customer.updated_at,
 
-                // Temporary compatibility
-                // until units move to Supabase too
-                units: []
+                units: unitsByCustomer.get(String(customer.id)) || []
             };
         });
 
@@ -2055,10 +2041,15 @@ newRepairOrderForm.addEventListener(
 async function initializeCustomerDirectory() {
     try {
         await window.trackRightRepairOrders.migrateBrowserOrders();
-        const cloudOrders = await window.trackRightRepairOrders.list();
+        await window.trackRightInvoices.migrateBrowserInvoices();
+        const [cloudOrders, cloudInvoices] = await Promise.all([
+            window.trackRightRepairOrders.list(),
+            window.trackRightInvoices.list()
+        ]);
         repairOrders.splice(0, repairOrders.length, ...cloudOrders);
+        customerInvoices.splice(0, customerInvoices.length, ...cloudInvoices);
     } catch (error) {
-        console.error("Could not load repair-order history:", error);
+        console.error("Could not load customer financial history:", error);
     }
 
     await renderCustomerDirectory();
