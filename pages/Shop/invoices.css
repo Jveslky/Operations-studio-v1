@@ -177,6 +177,157 @@ body {
         font: inherit;
     }
 
+.invoice-select {
+    appearance: none;
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 42px 10px 13px;
+    border: 1px solid #9fa9b5;
+    border-radius: 8px;
+    background-color: #f8fafb;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 20 20'%3E%3Cpath fill='none' stroke='%23db6128' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m5 7 5 5 5-5'/%3E%3C/svg%3E");
+    background-position: right 13px center;
+    background-repeat: no-repeat;
+    color: #27313b;
+    font: inherit;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.invoice-select:hover {
+    border-color: #db6128;
+    background-color: #ffffff;
+}
+
+.invoice-select:focus {
+    outline: 3px solid rgba(233, 101, 37, 0.17);
+    border-color: #e96525;
+}
+
+.invoice-select:disabled {
+    border-color: #d2d8de;
+    background-color: #edf0f3;
+    color: #7b8490;
+    cursor: not-allowed;
+}
+
+
+/* =========================
+   CREATE INVOICE FORM
+========================= */
+
+.create-invoice-form {
+    display: grid;
+    gap: 18px;
+    margin-top: 22px;
+    padding: 24px;
+    border: 1px solid #cbd2d9;
+    border-left: 4px solid #db6128;
+    border-radius: 11px;
+    background: #ffffff;
+    box-shadow: 0 12px 28px rgba(31, 41, 51, 0.1);
+}
+
+.create-invoice-form[hidden] {
+    display: none;
+}
+
+.create-invoice-form [hidden] {
+    display: none;
+}
+
+.invoice-form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.invoice-form-header h2 {
+    margin: 0;
+}
+
+#close-invoice-form {
+    width: 38px;
+    height: 38px;
+    border: 1px solid #cbd2d9;
+    border-radius: 7px;
+    background: #f4f6f8;
+    color: #344054;
+    font-size: 1.45rem;
+    cursor: pointer;
+}
+
+.invoice-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+
+.create-invoice-form label {
+    display: grid;
+    gap: 7px;
+    color: #344054;
+    font-size: 0.88rem;
+    font-weight: 800;
+}
+
+.create-invoice-form input,
+.create-invoice-form textarea {
+    width: 100%;
+    min-height: 44px;
+    padding: 10px 13px;
+    border: 1px solid #9fa9b5;
+    border-radius: 8px;
+    background: #f8fafb;
+    color: #27313b;
+    font: inherit;
+}
+
+.create-invoice-form textarea {
+    min-height: 104px;
+    resize: vertical;
+}
+
+.create-invoice-form input:focus,
+.create-invoice-form textarea:focus {
+    outline: 3px solid rgba(233, 101, 37, 0.17);
+    border-color: #e96525;
+    background: #ffffff;
+}
+
+.optional-label {
+    color: #7b8490;
+    font-size: 0.76rem;
+    font-weight: 600;
+}
+
+.invoice-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.invoice-form-actions button {
+    min-height: 42px;
+    padding: 9px 17px;
+    border: 1px solid #aeb6bf;
+    border-radius: 7px;
+    background: #ffffff;
+    color: #344054;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.invoice-form-actions button[type="submit"] {
+    border-color: #c95622;
+    background: #db6128;
+    color: #ffffff;
+}
+
     .invoice-toolbar input,
     .invoice-filters input {
         flex: 1;
@@ -412,6 +563,10 @@ body {
     .invoice-page-header {
         align-items: stretch;
         flex-direction: column;
+    }
+
+    .invoice-form-grid {
+        grid-template-columns: 1fr;
     }
 
         .invoice-toolbar select,
