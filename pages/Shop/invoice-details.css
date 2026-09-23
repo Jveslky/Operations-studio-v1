@@ -249,6 +249,11 @@ body {
         color: #175cd3;
     }
 
+    .invoice-information-grid a[aria-disabled="true"] {
+        color: #667085;
+        pointer-events: none;
+    }
+
         .invoice-information-grid a:hover {
             text-decoration: underline;
         }
