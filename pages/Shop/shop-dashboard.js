@@ -42,6 +42,11 @@ const netPosition =
         "net-position"
     );
 
+const financeSection =
+    document.getElementById(
+        "shop-finance-section"
+    );
+
 const repairOrderActivity =
     document.getElementById(
         "repair-order-activity"
@@ -442,16 +447,26 @@ function renderInvoiceActivity(invoices) {
 async function renderShopDashboard() {
     try {
         const context = await window.trackRightAuthReady;
+        if (context.role === "service_writer") {
+            document.getElementById("shop-dashboard-title").textContent = "Service Writer Workspace";
+            document.getElementById("shop-dashboard-description").textContent =
+                "Manage intake, scheduling, approvals, repair-order flow, and customer billing.";
+        }
         await window.trackRightRepairOrders.migrateBrowserOrders();
         await window.trackRightInvoices.migrateBrowserInvoices();
+
+        const canViewFinancialSnapshot = ["owner", "admin"].includes(context.role);
+        financeSection.hidden = !canViewFinancialSnapshot;
 
         const [repairOrders, invoices, billsResult] = await Promise.all([
             window.trackRightRepairOrders.list(),
             window.trackRightInvoices.list(),
-            window.trackRightSupabase
-                .from("shop_accounts_payable")
-                .select("total,status")
-                .eq("shop_id", context.shopId)
+            canViewFinancialSnapshot
+                ? window.trackRightSupabase
+                    .from("shop_accounts_payable")
+                    .select("total,status")
+                    .eq("shop_id", context.shopId)
+                : Promise.resolve({ data: [], error: null })
         ]);
 
         if (billsResult.error) {
