@@ -37,7 +37,7 @@
                             <label class="settings-full-width">Shop name<input id="shop-profile-name" name="name" type="text" minlength="2" maxlength="120" required></label>
                             <label>Business email<input id="shop-profile-email" name="business_email" type="email" autocomplete="email"></label>
                             <label>Business phone<input id="shop-profile-phone" name="business_phone" type="tel" autocomplete="tel"></label>
-                            <label class="settings-full-width">Website<input id="shop-profile-website" name="website" type="url" placeholder="https://"></label>
+                            <label class="settings-full-width">Website<input id="shop-profile-website" name="website" type="text" inputmode="url" autocomplete="url" placeholder="example.com"><span class="field-help">You can enter example.com or a full https:// address.</span></label>
                             <label class="settings-full-width">Address line 1<input id="shop-profile-address-1" name="address_line_1" type="text" autocomplete="address-line1"></label>
                             <label class="settings-full-width">Address line 2<input id="shop-profile-address-2" name="address_line_2" type="text" autocomplete="address-line2"></label>
                             <label>City<input id="shop-profile-city" name="city" type="text" autocomplete="address-level2"></label>
@@ -136,12 +136,12 @@
                     <p class="field-help profile-intro">Set practical defaults for new appointments, repair orders, invoices, and approved time-away requests. Existing records are never rewritten.</p>
                     <form id="shop-behavior-form">
                         <div class="settings-form-grid">
-                            <label>Minimum scheduling notice<input id="behavior-scheduling-lead" type="number" min="0" max="8760" step="1" required><span class="field-help">Hours before an appointment may begin. Use 0 for no restriction.</span></label>
+                            <label>Minimum scheduling notice<input id="behavior-scheduling-lead" type="number" min="0" max="8760" step="1" placeholder="0"><span class="field-help">Hours before an appointment may begin. Use 0 for no restriction.</span></label>
                             <label>Default appointment duration<select id="behavior-appointment-duration"><option value="30">30 minutes</option><option value="60">1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours</option><option value="180">3 hours</option><option value="240">4 hours</option><option value="480">8 hours</option></select></label>
                             <label>Default appointment type<select id="behavior-appointment-type"><option value="Shop">Shop</option><option value="Mobile">Mobile</option><option value="Pickup">Pickup</option><option value="Dropoff">Dropoff</option></select></label>
                             <label>Default repair-order priority<select id="behavior-ro-priority"><option value="Low">Low</option><option value="Medium">Medium</option><option value="High">High</option></select></label>
-                            <label>Default invoice terms<input id="behavior-invoice-terms" type="number" min="0" max="365" step="1" required><span class="field-help">Days from invoice creation to the default due date.</span></label>
-                            <label>Time-away reminder lead<input id="behavior-request-reminder" type="number" min="0" max="8760" step="1" required><span class="field-help">Hours before approved time away to remind the office.</span></label>
+                            <label>Default invoice terms<input id="behavior-invoice-terms" type="number" min="0" max="365" step="1" placeholder="0"><span class="field-help">Days from invoice creation to the default due date.</span></label>
+                            <label>Time-away reminder lead<input id="behavior-request-reminder" type="number" min="0" max="8760" step="1" placeholder="0"><span class="field-help">Hours before approved time away to remind the office.</span></label>
                             <label class="settings-checkbox settings-full-width"><input id="behavior-auto-calendar" type="checkbox"><span>Add approved dated time-away requests to the calendar by default</span></label>
                         </div>
                         <div class="settings-actions"><button id="save-shop-behavior" type="submit">Save Behavior</button><p id="shop-behavior-message" class="settings-message" role="status" aria-live="polite"></p></div>
