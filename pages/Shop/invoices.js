@@ -264,6 +264,52 @@ function getRepairOrderTotal(order) {
     );
 }
 
+function getRepairOrderFinancials(order) {
+    const laborHours = Number(order.estimateLaborHours) || 0;
+    const laborRate = Number(order.estimateLaborRate) || 0;
+    const laborTotal = laborHours * laborRate;
+    const partsTotal = Number(order.estimatePartsTotal) || 0;
+    const shopSupplies = Number(order.estimateShopSupplies) || 0;
+    const environmentalFee = Number(order.estimateEnvironmentalFee) || 0;
+    const miscellaneousFee = Number(order.estimateOtherCharges) || 0;
+    const discount = Number(order.estimateDiscount) || 0;
+    const grossSubtotal =
+        laborTotal +
+        partsTotal +
+        shopSupplies +
+        environmentalFee +
+        miscellaneousFee;
+    const subtotal = Math.max(0, grossSubtotal - discount);
+    const taxableBeforeDiscount =
+        laborTotal +
+        partsTotal +
+        (order.estimateShopSuppliesTaxable === false ? 0 : shopSupplies) +
+        (order.estimateEnvironmentalFeeTaxable === true ? environmentalFee : 0) +
+        (order.estimateMiscFeeTaxable === false ? 0 : miscellaneousFee);
+
+    return {
+        laborHours,
+        laborRate,
+        laborTotal,
+        partsTotal,
+        shopSupplies,
+        shopSuppliesTaxable:
+            order.estimateShopSuppliesTaxable !== false,
+        environmentalFee,
+        environmentalFeeTaxable:
+            order.estimateEnvironmentalFeeTaxable === true,
+        miscellaneousFee,
+        miscellaneousFeeLabel:
+            order.estimateMiscFeeLabel || "Miscellaneous fee",
+        miscellaneousFeeTaxable:
+            order.estimateMiscFeeTaxable !== false,
+        discount,
+        grossSubtotal,
+        subtotal,
+        taxableBase: Math.max(0, taxableBeforeDiscount - discount)
+    };
+}
+
 
 /* =========================
    REPAIR ORDER DROPDOWN
@@ -647,10 +693,18 @@ createInvoiceForm.addEventListener(
         const taxable = taxStatus === "taxable" ||
             (taxStatus === "inherit" && shopTax.default_taxable === true);
         const taxRate = taxable ? Number(shopTax.default_tax_rate || 0) : 0;
+        const repairOrderFinancials = isOneOff
+            ? null
+            : getRepairOrderFinancials(selectedRepairOrder);
         const subtotal = isOneOff
             ? oneOffSubtotal
-            : getRepairOrderTotal(selectedRepairOrder);
-        const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
+            : repairOrderFinancials.subtotal;
+        const taxableBase = taxable
+            ? isOneOff
+                ? subtotal
+                : repairOrderFinancials.taxableBase
+            : 0;
+        const taxAmount = Math.round(taxableBase * (taxRate / 100) * 100) / 100;
 
         const invoices =
             getInvoices();
@@ -720,11 +774,14 @@ createInvoiceForm.addEventListener(
             taxSnapshot: {
                 taxable: taxable,
                 rate: taxRate,
+                taxableBase: taxableBase,
                 customerTaxStatus: taxStatus,
                 exemptionReason: taxable ? null : (customerTax?.exemption_reason || null),
                 exemptionCertificateNumber: taxable ? null : (customerTax?.exemption_certificate_number || null),
                 capturedAt: new Date().toISOString()
             },
+
+            feeSnapshot: repairOrderFinancials,
 
             status:
                 "Draft",
@@ -1197,5 +1254,26 @@ invoiceList.addEventListener(
 );
 
 renderInvoices();
-const invoices =
-    syncInvoicesFromRepairOrders();
+syncInvoicesFromRepairOrders();
+
+const requestedRepairOrderId =
+    new URLSearchParams(window.location.search)
+        .get("repairOrderId");
+
+if (requestedRepairOrderId) {
+    openInvoiceForm().then(function () {
+        const matchingOption = Array.from(
+            invoiceRepairOrderInput.options
+        ).some(function (option) {
+            return option.value === requestedRepairOrderId;
+        });
+
+        if (matchingOption) {
+            invoiceRepairOrderInput.value =
+                requestedRepairOrderId;
+        } else {
+            invoiceCreateMessage.textContent =
+                "That repair order is already invoiced or is no longer available.";
+        }
+    });
+}
