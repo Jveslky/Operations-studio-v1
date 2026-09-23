@@ -434,6 +434,89 @@ textarea {
         margin-top: 7px;
     }
 
+.estimate-fees-section {
+    margin: 0 20px;
+    padding: 17px 0;
+    border-top: 1px solid #d4dddf;
+}
+
+.estimate-fees-heading {
+    margin-bottom: 13px;
+}
+
+.estimate-fees-heading h3 {
+    margin: 0 0 4px;
+    color: #30383d;
+    font-size: 0.95rem;
+}
+
+.estimate-fees-heading p {
+    margin: 0;
+    color: #68757a;
+    font-size: 0.78rem;
+}
+
+.estimate-fees-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.estimate-fee-card {
+    display: grid;
+    align-content: start;
+    gap: 8px;
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid #cbd5d8;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.72);
+    color: #30383d;
+    font-size: 0.78rem;
+    font-weight: 800;
+}
+
+.estimate-fee-card label {
+    display: grid;
+    gap: 6px;
+}
+
+.estimate-fee-card .detail-input {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+.estimate-tax-toggle {
+    display: flex !important;
+    align-items: flex-start;
+    gap: 7px !important;
+    color: #59666c;
+    font-size: 0.7rem;
+    font-weight: 700;
+    line-height: 1.35;
+}
+
+.estimate-tax-toggle input {
+    flex: 0 0 auto;
+    width: 15px;
+    height: 15px;
+    margin: 1px 0 0;
+    accent-color: #db6128;
+}
+
+.estimate-discount-card {
+    border-color: #d5c6b9;
+    background: #fff9f3;
+}
+
+.estimate-discount-card small {
+    color: #78695f;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
 
 /* TOTAL */
 
@@ -488,6 +571,10 @@ textarea {
         grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 
+    .estimate-fees-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
     .estimate-bottom-grid {
         grid-template-columns: 1fr;
     }
@@ -499,6 +586,10 @@ textarea {
     }
 
     .estimate-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .estimate-fees-grid {
         grid-template-columns: 1fr;
     }
 
