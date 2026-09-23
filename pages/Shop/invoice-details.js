@@ -72,6 +72,12 @@ const invoiceNotes =
         "invoice-notes"
     );
 
+const invoiceBreakdownSection =
+    document.getElementById("invoice-breakdown-section");
+
+const invoiceBreakdownList =
+    document.getElementById("invoice-breakdown-list");
+
 const invoiceTotal =
     document.getElementById(
         "invoice-total"
@@ -324,6 +330,80 @@ function getInvoiceDisplayStatus(invoice) {
     return invoice.status || "Draft";
 }
 
+function renderInvoiceBreakdown(invoice) {
+    const fees = invoice.feeSnapshot;
+
+    invoiceBreakdownList.innerHTML = "";
+
+    if (!fees) {
+        invoiceBreakdownSection.hidden = true;
+        return;
+    }
+
+    const rows = [
+        {
+            label: fees.laborHours
+                ? `Labor (${fees.laborHours} hrs × ${formatCurrency(fees.laborRate)})`
+                : "Labor",
+            amount: fees.laborTotal,
+            taxable: true
+        },
+        { label: "Parts", amount: fees.partsTotal, taxable: true },
+        {
+            label: "Shop supplies",
+            amount: fees.shopSupplies,
+            taxable: fees.shopSuppliesTaxable
+        },
+        {
+            label: "Environmental / disposal",
+            amount: fees.environmentalFee,
+            taxable: fees.environmentalFeeTaxable
+        },
+        {
+            label: fees.miscellaneousFeeLabel || "Miscellaneous fee",
+            amount: fees.miscellaneousFee,
+            taxable: fees.miscellaneousFeeTaxable
+        },
+        {
+            label: "Discount",
+            amount: -(Number(fees.discount) || 0),
+            discount: true
+        }
+    ].filter(function (row) {
+        return Number(row.amount) !== 0;
+    });
+
+    rows.forEach(function (row) {
+        const item = document.createElement("div");
+        item.className = "invoice-breakdown-row";
+
+        const description = document.createElement("span");
+        description.textContent = row.label;
+
+        if (
+            !row.discount &&
+            invoice.taxSnapshot?.taxable
+        ) {
+            const taxNote = document.createElement("small");
+            taxNote.textContent = row.taxable
+                ? "Taxable"
+                : "Non-taxable";
+            description.appendChild(taxNote);
+        }
+
+        const amount = document.createElement("strong");
+        amount.textContent = formatCurrency(row.amount);
+        if (row.discount) {
+            amount.className = "invoice-discount-amount";
+        }
+
+        item.append(description, amount);
+        invoiceBreakdownList.appendChild(item);
+    });
+
+    invoiceBreakdownSection.hidden = rows.length === 0;
+}
+
 
 /* =========================
    CURRENT INVOICE
@@ -425,6 +505,8 @@ function renderInvoice() {
     invoiceNotes.textContent =
         currentInvoice.notes ||
         "No invoice notes entered.";
+
+    renderInvoiceBreakdown(currentInvoice);
 
     invoiceSubtotal.textContent = formatCurrency(
         currentInvoice.subtotal ?? currentInvoice.total

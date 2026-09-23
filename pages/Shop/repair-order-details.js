@@ -105,6 +105,27 @@ if (!repairOrder) {
     const estimateOtherChargesInput =
         document.getElementById("estimate-other-charges");
 
+    const estimateShopSuppliesInput =
+        document.getElementById("estimate-shop-supplies");
+
+    const estimateShopSuppliesTaxableInput =
+        document.getElementById("estimate-shop-supplies-taxable");
+
+    const estimateEnvironmentalFeeInput =
+        document.getElementById("estimate-environmental-fee");
+
+    const estimateEnvironmentalFeeTaxableInput =
+        document.getElementById("estimate-environmental-fee-taxable");
+
+    const estimateMiscFeeLabelInput =
+        document.getElementById("estimate-misc-fee-label");
+
+    const estimateMiscFeeTaxableInput =
+        document.getElementById("estimate-misc-fee-taxable");
+
+    const estimateDiscountInput =
+        document.getElementById("estimate-discount");
+
     const estimateTotalDisplay =
         document.getElementById("estimate-total");
 
@@ -243,19 +264,33 @@ if (!repairOrder) {
         const otherCharges =
             getNumberValue(estimateOtherChargesInput);
 
+        const shopSupplies =
+            getNumberValue(estimateShopSuppliesInput);
+
+        const environmentalFee =
+            getNumberValue(estimateEnvironmentalFeeInput);
+
+        const discount =
+            getNumberValue(estimateDiscountInput);
+
         const laborTotal =
             laborHours * laborRate;
 
         return (
             laborTotal +
             partsTotal +
-            otherCharges
+            shopSupplies +
+            environmentalFee +
+            otherCharges -
+            discount
         );
     }
 
     function renderEstimateTotal() {
-        const total =
-            calculateEstimateTotal();
+        const total = Math.max(
+            0,
+            calculateEstimateTotal()
+        );
 
         estimateTotalDisplay.textContent =
             total.toLocaleString("en-US", {
@@ -279,7 +314,10 @@ if (!repairOrder) {
         estimateLaborHoursInput,
         estimateLaborRateInput,
         estimatePartsTotalInput,
-        estimateOtherChargesInput
+        estimateShopSuppliesInput,
+        estimateEnvironmentalFeeInput,
+        estimateOtherChargesInput,
+        estimateDiscountInput
     ].forEach(function (input) {
         input.addEventListener(
             "input",
@@ -320,52 +358,6 @@ if (!repairOrder) {
 
             return [];
         }
-    }
-
-    function saveInvoices(invoices) {
-        localStorage.setItem(
-            INVOICE_STORAGE_KEY,
-            JSON.stringify(invoices)
-        );
-    }
-
-    function getNextInvoiceId(invoices) {
-        const invoiceIds =
-            invoices
-                .map(function (invoice) {
-                    return Number(invoice.id);
-                })
-                .filter(Number.isFinite);
-
-        return String(
-            Math.max(
-                ...invoiceIds,
-                1000
-            ) + 1
-        );
-    }
-
-    function getInvoiceTotal(order) {
-        const estimateTotal =
-            Number(order.estimateTotal);
-
-        if (Number.isFinite(estimateTotal)) {
-            return estimateTotal;
-        }
-
-        const laborHours =
-            Number(order.laborHours) || 0;
-
-        const laborRate =
-            Number(order.laborRate) || 0;
-
-        const partsTotal =
-            Number(order.partsTotal) || 0;
-
-        return (
-            laborHours * laborRate +
-            partsTotal
-        );
     }
 
     /* =========================
@@ -432,6 +424,27 @@ if (!repairOrder) {
     estimateOtherChargesInput.value =
         repairOrder.estimateOtherCharges ?? 0;
 
+    estimateShopSuppliesInput.value =
+        repairOrder.estimateShopSupplies ?? 0;
+
+    estimateShopSuppliesTaxableInput.checked =
+        repairOrder.estimateShopSuppliesTaxable !== false;
+
+    estimateEnvironmentalFeeInput.value =
+        repairOrder.estimateEnvironmentalFee ?? 0;
+
+    estimateEnvironmentalFeeTaxableInput.checked =
+        repairOrder.estimateEnvironmentalFeeTaxable === true;
+
+    estimateMiscFeeLabelInput.value =
+        repairOrder.estimateMiscFeeLabel || "";
+
+    estimateMiscFeeTaxableInput.checked =
+        repairOrder.estimateMiscFeeTaxable !== false;
+
+    estimateDiscountInput.value =
+        repairOrder.estimateDiscount ?? 0;
+
     estimateApprovalStatusInput.value =
         repairOrder.estimateApprovalStatus || "Draft";
 
@@ -463,7 +476,14 @@ if (!repairOrder) {
         estimateLaborHoursInput,
         estimateLaborRateInput,
         estimatePartsTotalInput,
+        estimateShopSuppliesInput,
+        estimateShopSuppliesTaxableInput,
+        estimateEnvironmentalFeeInput,
+        estimateEnvironmentalFeeTaxableInput,
         estimateOtherChargesInput,
+        estimateMiscFeeLabelInput,
+        estimateMiscFeeTaxableInput,
+        estimateDiscountInput,
         estimateApprovalStatusInput,
         estimateNotesInput
     ];
@@ -547,8 +567,29 @@ if (!repairOrder) {
         repairOrder.estimateOtherCharges =
             getNumberValue(estimateOtherChargesInput);
 
+        repairOrder.estimateShopSupplies =
+            getNumberValue(estimateShopSuppliesInput);
+
+        repairOrder.estimateShopSuppliesTaxable =
+            estimateShopSuppliesTaxableInput.checked;
+
+        repairOrder.estimateEnvironmentalFee =
+            getNumberValue(estimateEnvironmentalFeeInput);
+
+        repairOrder.estimateEnvironmentalFeeTaxable =
+            estimateEnvironmentalFeeTaxableInput.checked;
+
+        repairOrder.estimateMiscFeeLabel =
+            estimateMiscFeeLabelInput.value.trim();
+
+        repairOrder.estimateMiscFeeTaxable =
+            estimateMiscFeeTaxableInput.checked;
+
+        repairOrder.estimateDiscount =
+            getNumberValue(estimateDiscountInput);
+
         repairOrder.estimateTotal =
-            calculateEstimateTotal();
+            Math.max(0, calculateEstimateTotal());
 
         repairOrder.estimateApprovalStatus =
             estimateApprovalStatusInput.value;
@@ -635,66 +676,8 @@ if (!repairOrder) {
                 return;
             }
 
-            const createdDate =
-                new Date();
-
-            const dueDate =
-                new Date(createdDate);
-
-            dueDate.setDate(
-                dueDate.getDate() + 30
-            );
-
-            const invoice = {
-                id:
-                    getNextInvoiceId(invoices),
-
-                repairOrderId:
-                    repairOrder.id,
-
-                customerId:
-                    repairOrder.customerId || "",
-
-                customer:
-                    repairOrder.customer || "",
-
-                unitId:
-                    repairOrder.unitId || "",
-
-                unit:
-                    repairOrder.unit || "",
-
-                complaint:
-                    repairOrder.complaint || "",
-
-                total:
-                    getInvoiceTotal(
-                        repairOrder
-                    ),
-
-                status: "Draft",
-                sentAt: null,
-
-                createdAt:
-                    createdDate.toISOString(),
-
-                dueDate:
-                    dueDate
-                        .toISOString()
-                        .slice(0, 10),
-
-                paidAt:
-                    null,
-
-                notes:
-                    ""
-            };
-
-            invoices.push(invoice);
-            saveInvoices(invoices);
-
             window.location.href =
-                `invoice-details.html?id=${invoice.id}`;
+                `invoices.html?repairOrderId=${encodeURIComponent(repairOrder.id)}`;
         }
     );
          
