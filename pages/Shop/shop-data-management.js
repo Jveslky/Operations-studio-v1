@@ -4,6 +4,8 @@
     const configs = {
         customers: { table: "Customers", date: "created_at" },
         units: { table: "customer_units", date: "created_at" },
+        repair_orders: { table: "shop_repair_orders", date: "created_at" },
+        invoices: { table: "shop_invoices", date: "created_at" },
         accounts_payable: { table: "shop_accounts_payable", date: "created_at" },
         requests: { table: "shop_requests", date: "created_at" },
         calendar: { table: "shop_calendar_events", date: "created_at" }
