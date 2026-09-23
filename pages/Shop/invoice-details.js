@@ -2,11 +2,7 @@
    CONFIGURATION
 ========================= */
 
-const INVOICE_STORAGE_KEY =
-    "track-right-invoices";
-
-const CUSTOMER_STORAGE_KEY =
-    "track-right-customers";
+const invoices = [];
 
 /* =========================
    PAGE ELEMENTS
@@ -164,69 +160,8 @@ const markPaidButton =
    STORAGE HELPERS
 ========================= */
 
-function safelyParseStoredValue(key) {
-    const storedValue =
-        localStorage.getItem(key);
-
-    if (!storedValue) {
-        return null;
-    }
-
-    try {
-        return JSON.parse(storedValue);
-    } catch (error) {
-        console.error(
-            `Could not read ${key}:`,
-            error
-        );
-
-        return null;
-    }
-}
-
 function getInvoices() {
-    const invoices =
-        safelyParseStoredValue(
-            INVOICE_STORAGE_KEY
-        );
-
-    return Array.isArray(invoices)
-        ? invoices
-        : [];
-}
-
-function saveInvoices(invoices) {
-    localStorage.setItem(
-        INVOICE_STORAGE_KEY,
-        JSON.stringify(invoices)
-    );
-}
-
-function getCustomers() {
-    const savedCustomers =
-        localStorage.getItem(
-            CUSTOMER_STORAGE_KEY
-        );
-
-    if (!savedCustomers) {
-        return [];
-    }
-
-    try {
-        const customers =
-            JSON.parse(savedCustomers);
-
-        return Array.isArray(customers)
-            ? customers
-            : [];
-    } catch (error) {
-        console.error(
-            "Unable to load customers:",
-            error
-        );
-
-        return [];
-    }
+    return invoices;
 }
 
 function getInvoiceCustomer() {
@@ -244,16 +179,7 @@ function getInvoiceCustomer() {
         };
     }
 
-    return getCustomers().find(
-        function (customer) {
-            return (
-                String(customer.id) ===
-                String(
-                    currentInvoice.customerId
-                )
-            );
-        }
-    ) || {
+    return {
         email: currentInvoice.customerEmail || "",
         phone: currentInvoice.customerPhone || ""
     };
@@ -428,7 +354,10 @@ function findCurrentInvoice() {
                     String(invoiceId)
                 );
             }
-        ) || null;
+    ) || {
+        email: currentInvoice.customerEmail || "",
+        phone: currentInvoice.customerPhone || ""
+    };
 }
 
 
@@ -535,7 +464,7 @@ function renderInvoice() {
    STATUS UPDATES
 ========================= */
 
-function updateCurrentInvoiceStatus(
+async function updateCurrentInvoiceStatus(
     newStatus
 ) {
     const invoices = getInvoices();
@@ -569,9 +498,15 @@ function updateCurrentInvoiceStatus(
             new Date().toISOString();
     }
 
-    saveInvoices(invoices);
-
-    renderInvoice();
+    try {
+        const savedInvoice = await window.trackRightInvoices.update(invoice);
+        Object.assign(invoice, savedInvoice);
+        renderInvoice();
+    } catch (error) {
+        console.error("Could not update invoice:", error);
+        alert(error?.message || "Could not update this invoice.");
+        throw error;
+    }
 }
 
 sendInvoiceButton.addEventListener(
@@ -629,7 +564,7 @@ cancelSendInvoiceButton.addEventListener(
 
 emailInvoiceButton.addEventListener(
     "click",
-    function () {
+    async function () {
         if (!currentInvoice) {
             return;
         }
@@ -650,7 +585,7 @@ emailInvoiceButton.addEventListener(
         const message =
             sendInvoiceMessage.value.trim();
 
-        updateCurrentInvoiceStatus(
+        await updateCurrentInvoiceStatus(
             "Sent"
         );
 
@@ -665,7 +600,7 @@ emailInvoiceButton.addEventListener(
 
 textInvoiceButton.addEventListener(
     "click",
-    function () {
+    async function () {
         if (!currentInvoice) {
             return;
         }
@@ -683,7 +618,7 @@ textInvoiceButton.addEventListener(
         const message =
             sendInvoiceMessage.value.trim();
 
-        updateCurrentInvoiceStatus(
+        await updateCurrentInvoiceStatus(
             "Sent"
         );
 
@@ -697,8 +632,8 @@ textInvoiceButton.addEventListener(
 
 markPaidButton.addEventListener(
     "click",
-    function () {
-        updateCurrentInvoiceStatus(
+    async function () {
+        await updateCurrentInvoiceStatus(
             "Paid"
         );
     }
@@ -716,4 +651,18 @@ printInvoiceButton.addEventListener(
    INITIAL LOAD
 ========================= */
 
-renderInvoice();
+async function initializeInvoiceDetails() {
+    try {
+        await window.trackRightInvoices.migrateBrowserInvoices();
+        const cloudInvoices = await window.trackRightInvoices.list();
+        invoices.splice(0, invoices.length, ...cloudInvoices);
+        renderInvoice();
+    } catch (error) {
+        console.error("Could not load invoice:", error);
+        invoiceDocument.hidden = true;
+        invoiceError.textContent = "Invoice could not be loaded. Refresh or sign in again.";
+        invoiceError.hidden = false;
+    }
+}
+
+initializeInvoiceDetails();
