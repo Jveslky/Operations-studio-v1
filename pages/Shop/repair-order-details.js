@@ -1,41 +1,5 @@
 
 
-const repairOrders = [
-    {
-        id: "1042",
-        customer: "ABC Construction",
-        unit: "Unit 24",
-        status: "Open",
-        priority: "High",
-        technician: "Mike",
-        complaint: "Hydraulic leak at boom cylinder",
-        partsNeeded: "Boom seal kit\nHydraulic fluid",
-        customerNotes:
-            "Customer reports leak worsens during heavy operation.",
-        technicianNotes:
-            "Verified leak at boom. Recommend resealing cylinder and retest.",
-        laborHours: 2.5,
-        additionalTechnician: "",
-        additionalWorkPerformed: ""
-    },
-    {
-        id: "1043",
-        customer: "Example Customer",
-        unit: "Unit 12",
-        status: "In Progress",
-        priority: "Medium",
-        technician: "Unassigned",
-        complaint: "Example complaint for repair order 1043",
-        partsNeeded: "",
-        customerNotes: "",
-        technicianNotes: "",
-        laborHours: 0,
-        additionalTechnician: "",
-        additionalWorkPerformed: ""
-    }
-];
-
-
 /* =========================
    FIND REPAIR ORDER
 ========================= */
@@ -62,14 +26,7 @@ try {
     );
 }
 
-const sampleRepairOrder =
-    repairOrders.find(
-        order => order.id === repairOrderId
-    );
-
-const repairOrder =
-    savedRepairOrder ||
-    sampleRepairOrder;
+const repairOrder = savedRepairOrder;
 
 
 /* =========================
@@ -81,7 +38,13 @@ const detailPage =
 
 if (!repairOrder) {
     detailPage.innerHTML = `
-        <h1>Repair order not found</h1>
+        <section class="detail-card">
+            <h1>Repair order not found</h1>
+            <p>This repair order does not exist or is no longer available.</p>
+            <a class="secondary-btn" href="./repair-orders.html">
+                Back to Repair Orders
+            </a>
+        </section>
     `;
 } else {
     const saveButton =
@@ -89,9 +52,6 @@ if (!repairOrder) {
 
     const closeButton =
         document.querySelector("#close-button");
-
-    const saveMessage =
-        document.querySelector("#save-message");
 
     const archiveButton =
         document.querySelector("#archive-button");
@@ -195,10 +155,71 @@ if (!repairOrder) {
         document.getElementById(
             "create-invoice-button"
         );
-    console.log(
-        "Create invoice button loaded:",
-        createInvoiceButton
-    );
+
+    function addTechnicianOption(list, value) {
+        if (!list || !value) {
+            return;
+        }
+
+        const alreadyExists =
+            Array.from(list.options).some(function (option) {
+                return option.value === value;
+            });
+
+        if (!alreadyExists) {
+            const option = document.createElement("option");
+            option.value = value;
+            list.appendChild(option);
+        }
+    }
+
+    async function loadTechnicianOptions() {
+        const technicianList =
+            document.getElementById("technician-options");
+        const additionalTechnicianList =
+            document.getElementById("additional-technician-options");
+
+        addTechnicianOption(
+            technicianList,
+            repairOrder.technician
+        );
+        addTechnicianOption(
+            additionalTechnicianList,
+            repairOrder.additionalTechnician
+        );
+
+        try {
+            await window.trackRightAuthReady;
+
+            const { data, error } =
+                await window.trackRightSupabase.rpc(
+                    "list_shop_schedule_members"
+                );
+
+            if (error) {
+                throw error;
+            }
+
+            (data || []).forEach(function (member) {
+                const technicianName =
+                    member.email || "";
+
+                addTechnicianOption(
+                    technicianList,
+                    technicianName
+                );
+                addTechnicianOption(
+                    additionalTechnicianList,
+                    technicianName
+                );
+            });
+        } catch (error) {
+            console.error(
+                "Could not load active technicians:",
+                error
+            );
+        }
+    }
 
 
     function getNumberValue(input) {
@@ -419,6 +440,7 @@ if (!repairOrder) {
 
     renderEstimateTotal();
     renderEstimateStatus();
+    loadTechnicianOptions();
 
 
     /* =========================
@@ -592,10 +614,6 @@ if (!repairOrder) {
         "click",
         function () {
             const invoices = getInvoices();
-           
-
-            console.log("Existing invoices:", invoices);
-            console.log("Repair order:", repairOrder);
 
             const existingInvoice =
                 invoices.find(
@@ -611,23 +629,11 @@ if (!repairOrder) {
                     }
                 );
             if (existingInvoice) {
-                console.log(
-                    "Invoice object:",
-                    existingInvoice
-                );
-
                 window.location.href =
                     `invoice-details.html?id=${existingInvoice.id}`;
 
                 return;
             }
-
-            console.log(
-                "CREATE INVOICE BUTTON:",
-                createInvoiceButton
-            );
-
-        
 
             const createdDate =
                 new Date();
@@ -684,26 +690,13 @@ if (!repairOrder) {
                     ""
             };
 
-        
-
             invoices.push(invoice);
             saveInvoices(invoices);
 
-            console.log(
-                "Saved invoices:",
-                localStorage.getItem("track-right-invoices")
-            );
-
-          
-
-    window.location.href =
-        `invoice-details.html?id=${invoice.id}`;
+            window.location.href =
+                `invoice-details.html?id=${invoice.id}`;
         }
     );
-
-  
-    // window.location.href =
-    //     `invoices.html?invoice=${invoice.id}`;
          
 
     /* =========================
@@ -816,10 +809,6 @@ ARCHIVE REPAIR ORDER
         sendEstimateModal.hidden = true;
         sendEstimateButton.focus();
     }
-
-    console.log("sendEstimateButton:", sendEstimateButton);
-    console.log("closeSendEstimateModalButton:", closeSendEstimateModalButton);
-    console.log("sendEstimateModal:", sendEstimateModal);
 
     sendEstimateButton.addEventListener(
         "click",
