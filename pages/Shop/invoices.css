@@ -175,7 +175,18 @@ body {
         background: #ffffff;
         color: #27313b;
         font: inherit;
+        font-weight: 400;
     }
+
+#invoice-search-input {
+    flex: 1 1 320px;
+    min-width: 180px;
+}
+
+#invoice-status-filter {
+    flex: 0 0 220px;
+    width: 220px;
+}
 
 .invoice-select {
     appearance: none;
@@ -190,7 +201,7 @@ body {
     background-repeat: no-repeat;
     color: #27313b;
     font: inherit;
-    font-weight: 700;
+    font-weight: 600;
     cursor: pointer;
 }
 
@@ -284,6 +295,7 @@ body {
     background: #f8fafb;
     color: #27313b;
     font: inherit;
+    font-weight: 400;
 }
 
 .create-invoice-form textarea {
@@ -571,6 +583,7 @@ body {
 
         .invoice-toolbar select,
         .invoice-filters select {
+            flex-basis: auto;
             width: 100%;
         }
 }

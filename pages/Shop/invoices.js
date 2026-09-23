@@ -346,10 +346,7 @@ async function loadCustomerUnits(customerId) {
         throw error;
     }
 
-    setUnitDropdown(
-        data?.length ? "No unit / general charge" : "No active units",
-        false
-    );
+    setUnitDropdown("No unit — general service", false);
 
     (data || []).forEach(function (unit) {
         const option = document.createElement("option");
