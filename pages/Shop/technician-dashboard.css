@@ -1,0 +1,28 @@
+.technician-dashboard { padding-bottom: 3rem; }
+.technician-kpi-grid { margin-bottom: 1.25rem; }
+.technician-grid { display:grid; grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); gap:1rem; margin-bottom:1rem; }
+.technician-lower-grid { align-items:start; }
+.technician-card { background:var(--surface, #fff); border:1px solid rgba(59,75,82,.2); border-radius:8px; box-shadow:0 4px 14px rgba(28,39,44,.08); overflow:hidden; }
+.technician-card > header { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.1rem; border-bottom:1px solid rgba(59,75,82,.16); background:linear-gradient(90deg,rgba(226,92,32,.12),rgba(88,178,184,.09)); }
+.technician-card h2,.technician-card h3,.technician-card p { margin-top:0; }
+.technician-card header h2 { margin-bottom:0; }
+.technician-card header a { color:#bd4d1a; font-weight:700; }
+.read-only-label { padding:.25rem .55rem; border-radius:999px; background:rgba(40,61,70,.09); font-size:.72rem; font-weight:800; text-transform:uppercase; letter-spacing:.06em; }
+.technician-list { display:grid; gap:.65rem; padding:1rem 1.1rem; }
+.technician-row { display:grid; gap:.35rem; padding:.8rem; border:1px solid rgba(59,75,82,.16); border-radius:6px; background:rgba(255,255,255,.72); }
+.technician-row-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; }
+.technician-row p,.technician-row small { margin:0; color:#56636a; }
+.technician-badge { white-space:nowrap; border-radius:999px; padding:.2rem .5rem; background:#e9eef0; font-size:.72rem; font-weight:800; text-transform:uppercase; }
+.technician-badge.approved,.technician-badge.current { color:#17633c; background:#dff2e7; }
+.technician-badge.pending,.technician-badge.due { color:#8a4b00; background:#fff0d6; }
+.technician-badge.declined,.technician-badge.expired { color:#932828; background:#f9dddd; }
+.technician-form { display:grid; gap:.8rem; padding:1rem 1.1rem 0; }
+.technician-form label { display:grid; gap:.3rem; font-weight:700; }
+.technician-form input,.technician-form select,.technician-form textarea { width:100%; box-sizing:border-box; padding:.68rem; border:1px solid #a9b1b5; border-radius:5px; font:inherit; background:#fff; }
+.technician-form-row { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; }
+.technician-actions { display:flex; align-items:center; gap:.75rem; flex-wrap:wrap; }
+.technician-actions button,.technician-row button { border:0; border-radius:5px; padding:.65rem .85rem; background:#df5d24; color:#fff; font-weight:800; cursor:pointer; }
+.technician-actions p { margin:0; }
+.technician-subheading { padding:1rem 1.1rem 0; margin-bottom:0; }
+.technician-help { padding:1rem 1.1rem 0; margin-bottom:0; color:#56636a; }
+@media (max-width:800px) { .technician-grid { grid-template-columns:1fr; } .technician-form-row { grid-template-columns:1fr; } }
