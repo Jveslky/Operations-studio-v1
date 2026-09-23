@@ -264,12 +264,14 @@ body {
 ========================= */
 
 .invoice-work-section,
+.invoice-breakdown-section,
 .invoice-notes-section {
     padding: 29px 38px;
     border-bottom: 1px solid #e1e5e9;
 }
 
     .invoice-work-section h2,
+    .invoice-breakdown-section h2,
     .invoice-notes-section h2 {
         margin: 0 0 12px;
         color: #344054;
@@ -277,6 +279,49 @@ body {
         letter-spacing: 0.07em;
         text-transform: uppercase;
     }
+
+.invoice-breakdown-section[hidden] {
+    display: none;
+}
+
+.invoice-breakdown-list {
+    display: grid;
+    gap: 9px;
+}
+
+.invoice-breakdown-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 10px 0;
+    border-bottom: 1px solid #edf0f2;
+}
+
+.invoice-breakdown-row:last-child {
+    border-bottom: 0;
+}
+
+.invoice-breakdown-row > span {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    color: #475467;
+}
+
+.invoice-breakdown-row small {
+    padding: 2px 7px;
+    border-radius: 999px;
+    background: #edf0f3;
+    color: #667085;
+    font-size: 0.68rem;
+    font-weight: 800;
+}
+
+.invoice-discount-amount {
+    color: #087a4d;
+}
 
     .invoice-work-section p,
     .invoice-notes-section p {
