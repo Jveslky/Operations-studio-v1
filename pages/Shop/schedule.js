@@ -1,102 +1,7 @@
-const appointments = [
-    {
-        id: "appointment-1001",
-        customer: "ABC Transport",
-        unit: "Truck 12 - Freightliner Cascadia",
-        date: "2026-08-30",
-        startTime: "08:00",
-        endTime: "09:30",
-        technician: "Jon",
-        type: "Shop",
-        status: "Scheduled",
-        location: "Main Shop",
-        description: "Air leak diagnosis and brake inspection."
-    },
-
-    {
-        id: "appointment-1002",
-        customer: "Jones Excavating",
-        unit: "Excavator 3 - CAT 320",
-        date: "2026-08-30",
-        startTime: "10:00",
-        endTime: "12:00",
-        technician: "Jon",
-        type: "Mobile",
-        status: "Confirmed",
-        location: "North Jobsite",
-        description: "Hydraulic leak at boom cylinder."
-    },
-
-    {
-        id: "appointment-1003",
-        customer: "Smith Residence",
-        unit: "2020 Chevrolet Equinox",
-        date: "2026-08-30",
-        startTime: "13:00",
-        endTime: "14:30",
-        technician: "Mike",
-        type: "Shop",
-        status: "In Progress",
-        location: "Main Shop",
-        description: "No-start diagnosis."
-    },
-
-    {
-        id: "appointment-1004",
-        customer: "Delaware Landscape",
-        unit: "Bobcat T66",
-        date: "2026-08-30",
-        startTime: "15:00",
-        endTime: "16:00",
-        technician: "",
-        type: "Dropoff",
-        status: "Scheduled",
-        location: "Main Shop",
-        description: "Track tension inspection and service."
-    },
-
-    {
-        id: "appointment-1005",
-        customer: "ABC Transport",
-        unit: "Truck 7 - Peterbilt 389",
-        date: "2026-08-31",
-        startTime: "09:00",
-        endTime: "11:00",
-        technician: "Jon",
-        type: "Shop",
-        status: "Scheduled",
-        location: "Main Shop",
-        description: "PM service and DOT inspection."
-    },
-
-    {
-        id: "appointment-1006",
-        customer: "Jones Excavating",
-        unit: "Skid Steer 2 - Bobcat S650",
-        date: "2026-08-31",
-        startTime: "12:30",
-        endTime: "14:00",
-        technician: "Mike",
-        type: "Mobile",
-        status: "Scheduled",
-        location: "Customer Yard",
-        description: "Intermittent auxiliary hydraulic fault."
-    },
-
-    {
-        id: "appointment-1007",
-        customer: "Smith Residence",
-        unit: "2020 Chevrolet Equinox",
-        date: "2026-08-29",
-        startTime: "11:00",
-        endTime: "12:00",
-        technician: "Jon",
-        type: "Shop",
-        status: "Completed",
-        location: "Main Shop",
-        description: "Battery replacement and charging system test."
-    }
-];
+const appointments = [];
+const scheduleClient = window.trackRightSupabase;
+let scheduleContext = null;
+let canManageSchedule = false;
 
 // Approved team requests are loaded from Supabase by schedule-calendar-events.js.
 const calendarEvents = [];
@@ -126,6 +31,84 @@ const appointmentFormPanel =
 
 const upcomingAppointmentList = document.getElementById("upcomingAppointmentList");
 let upcomingRangeDays = 14;
+
+function appointmentFromRow(row) {
+    return {
+        id: row.id,
+        customer: row.customer || "",
+        unit: row.unit || "",
+        date: row.scheduled_on,
+        startTime: String(row.start_time || "").slice(0, 5),
+        endTime: String(row.end_time || "").slice(0, 5),
+        technician: row.technician || "",
+        type: row.appointment_type || "Shop",
+        status: row.status || "Scheduled",
+        location: row.location || "",
+        description: row.description || ""
+    };
+}
+
+function appointmentPayload(appointment) {
+    return {
+        customer: appointment.customer,
+        unit: appointment.unit || null,
+        scheduled_on: appointment.date,
+        start_time: appointment.startTime,
+        end_time: appointment.endTime || null,
+        technician: appointment.technician || null,
+        appointment_type: appointment.type,
+        status: appointment.status,
+        location: appointment.location || null,
+        description: appointment.description || null,
+        updated_by: scheduleContext.user.id,
+        updated_at: new Date().toISOString()
+    };
+}
+
+async function loadAppointments() {
+    appointmentList.innerHTML = '<div class="empty-state"><strong>Loading schedule…</strong></div>';
+    const { data, error } = await scheduleClient
+        .from("shop_appointments")
+        .select("*")
+        .eq("shop_id", scheduleContext.shopId)
+        .order("scheduled_on", { ascending: true })
+        .order("start_time", { ascending: true });
+    if (error) {
+        appointmentList.innerHTML = `<div class="empty-state error"><strong>Schedule could not load</strong><p>${escapeHtml(error.message)}</p></div>`;
+        upcomingAppointmentList.innerHTML = '<div class="empty-state error"><strong>Upcoming schedule unavailable</strong><p>Refresh after the database setup is complete.</p></div>';
+        return;
+    }
+    appointments.splice(0, appointments.length, ...(data || []).map(appointmentFromRow));
+    renderSchedule();
+    updateCounts();
+}
+
+function ensureTechnicianOption(value) {
+    if (!value) return;
+    const select = document.getElementById("appointmentTechnician");
+    if ([...select.options].some((option) => option.value === value)) return;
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    select.appendChild(option);
+}
+
+async function loadScheduleTechnicians() {
+    const select = document.getElementById("appointmentTechnician");
+    const { data, error } = await scheduleClient.rpc("list_shop_schedule_members");
+    if (error) {
+        select.innerHTML = '<option value="">Technicians unavailable</option>';
+        select.disabled = true;
+        return;
+    }
+    select.innerHTML = '<option value="">Unassigned</option>';
+    (data || []).forEach(function (member) {
+        const option = document.createElement("option");
+        option.value = member.email;
+        option.textContent = member.email;
+        select.appendChild(option);
+    });
+}
 
 
 function getLocalDateString(
@@ -207,6 +190,7 @@ function openAppointment(
         appointment.endTime || "";
 
 
+    ensureTechnicianOption(appointment.technician);
     document.getElementById(
         "appointmentTechnician"
     ).value =
@@ -309,7 +293,8 @@ function renderUpcomingSchedule() {
             <div class="upcoming-day-heading"><strong>${escapeHtml(formatScheduleDate(date))}</strong><span>${items.length} item${items.length === 1 ? "" : "s"}</span></div>
             <div class="upcoming-day-items">${items.map(function (appointment) {
                 const endDateLabel = appointment.endDate && appointment.endDate !== appointment.date ? ` through ${formatScheduleDate(appointment.endDate)}` : "";
-                return `<article class="upcoming-appointment-card ${appointment.readOnly ? "calendar-request-event" : ""}" ${appointment.readOnly ? "" : `data-appointment-id="${escapeHtml(appointment.id)}" tabindex="0" role="button"`}>
+                const editable = !appointment.readOnly && canManageSchedule;
+                return `<article class="upcoming-appointment-card ${appointment.readOnly ? "calendar-request-event" : editable ? "" : "appointment-read-only"}" ${editable ? `data-appointment-id="${escapeHtml(appointment.id)}" tabindex="0" role="button"` : ""}>
                     <div class="upcoming-time"><strong>${appointment.allDay ? "All day" : formatTime(appointment.startTime)}</strong><span>${appointment.allDay ? endDateLabel : formatTime(appointment.endTime)}</span></div>
                     <div class="upcoming-main"><div><strong>${escapeHtml(appointment.customer)}</strong><span>${escapeHtml(appointment.unit || "No unit selected")}</span></div><p>${escapeHtml(appointment.description || "No work description")}</p></div>
                     <div class="upcoming-side"><span class="appointment-status">${escapeHtml(appointment.status)}</span><small>${escapeHtml(appointment.technician || "Unassigned")}</small></div>
@@ -518,10 +503,12 @@ function renderSchedule() {
             `;
 
 
-            if (!appointment.readOnly) {
+            if (!appointment.readOnly && canManageSchedule) {
                 card.addEventListener("click", function () { openAppointment(appointment.id); });
-            } else {
+            } else if (appointment.readOnly) {
                 card.classList.add("calendar-request-event");
+            } else {
+                card.classList.add("appointment-read-only");
             }
 
 
@@ -616,6 +603,8 @@ document.getElementById(
     "click",
     async function () {
 
+        if (!canManageSchedule) return;
+
         shopBehavior = await window.trackRightShopBehavior;
 
         selectedAppointmentId = null;
@@ -651,55 +640,37 @@ document.getElementById(
     }
 );
 
+function closeAppointmentForm() {
+
+    selectedAppointmentId = null;
+
+    clearAppointmentForm();
+
+    appointmentFormPanel.hidden = true;
+}
 
 document.getElementById(
     "closeAppointmentButton"
 ).addEventListener(
     "click",
-    function () {
+    closeAppointmentForm
+);
 
-        appointmentFormPanel
-            .classList
-            .add(
-                "hidden"
-            );
-
-    }
-    );
-
-    function closeAppointmentForm() {
-
-        selectedAppointmentId =
-            null;
-
-        clearAppointmentForm();
-
-        appointmentFormPanel.hidden =
-            true;
-    }
-
-
-    document.getElementById(
-        "closeAppointmentButton"
-    ).addEventListener(
-        "click",
-        closeAppointmentForm
-    );
-
-
-    document.getElementById(
-        "cancelAppointmentButton"
-    ).addEventListener(
-        "click",
-        closeAppointmentForm
-    );
+document.getElementById(
+    "cancelAppointmentButton"
+).addEventListener(
+    "click",
+    closeAppointmentForm
+);
 
 
 document.getElementById(
     "saveAppointmentButton"
 ).addEventListener(
     "click",
-    function () {
+    async function () {
+
+        if (!canManageSchedule || !scheduleContext) return;
 
         const customer =
             document.getElementById(
@@ -747,9 +718,7 @@ document.getElementById(
 
         const appointment = {
 
-            id:
-                "appointment-" +
-                Date.now(),
+            id: selectedAppointmentId || null,
 
             customer:
                 customer,
@@ -798,81 +767,41 @@ document.getElementById(
         };
 
 
+        const saveButton = document.getElementById("saveAppointmentButton");
+        const appointmentMessage = document.getElementById("appointmentMessage");
+        saveButton.disabled = true;
+        appointmentMessage.textContent = "Saving appointment…";
+        let query;
         if (selectedAppointmentId) {
-
-            const existingAppointment =
-                appointments.find(
-                    function (item) {
-
-                        return item.id ===
-                            selectedAppointmentId;
-                    }
-                );
-
-
-            if (existingAppointment) {
-
-                existingAppointment.customer =
-                    appointment.customer;
-
-                existingAppointment.unit =
-                    appointment.unit;
-
-                existingAppointment.date =
-                    appointment.date;
-
-                existingAppointment.startTime =
-                    appointment.startTime;
-
-                existingAppointment.endTime =
-                    appointment.endTime;
-
-                existingAppointment.technician =
-                    appointment.technician;
-
-                existingAppointment.type =
-                    appointment.type;
-
-                existingAppointment.status =
-                    appointment.status;
-
-                existingAppointment.location =
-                    appointment.location;
-
-                existingAppointment.description =
-                    appointment.description;
-            }
-
+            query = scheduleClient.from("shop_appointments")
+                .update(appointmentPayload(appointment))
+                .eq("id", selectedAppointmentId)
+                .eq("shop_id", scheduleContext.shopId)
+                .select("*").single();
         } else {
-
-            appointments.push(
-                appointment
-            );
+            query = scheduleClient.from("shop_appointments")
+                .insert({
+                    ...appointmentPayload(appointment),
+                    shop_id: scheduleContext.shopId,
+                    created_by: scheduleContext.user.id
+                })
+                .select("*").single();
+        }
+        const { data: savedRow, error } = await query;
+        saveButton.disabled = false;
+        if (error) {
+            appointmentMessage.textContent = `Appointment could not be saved: ${error.message}`;
+            return;
         }
 
+        const savedAppointment = appointmentFromRow(savedRow);
+        const existingIndex = appointments.findIndex((item) => item.id === savedAppointment.id);
+        if (existingIndex >= 0) appointments.splice(existingIndex, 1, savedAppointment);
+        else appointments.push(savedAppointment);
 
-        scheduleDate.value =
-            appointment.date;
-
-
-        clearAppointmentForm();
-
-
-        appointmentFormPanel
-            .classList
-            .add(
-                "hidden"
-        );
-
-        selectedAppointmentId =
-            null;
-
-        appointmentFormPanel.hidden =
-            true;
-
-        scheduleDate.value =
-            appointment.date;
-
+        scheduleDate.value = savedAppointment.date;
+        selectedAppointmentId = null;
+        appointmentFormPanel.hidden = true;
         clearAppointmentForm();
 
         renderSchedule();
@@ -1116,5 +1045,15 @@ function updateCounts() {
 scheduleDate.value =
     getLocalDateString();
 
-renderSchedule();
-updateCounts();
+appointmentList.innerHTML = '<div class="empty-state"><strong>Loading schedule…</strong></div>';
+upcomingAppointmentList.innerHTML = '<div class="empty-state"><strong>Loading upcoming work…</strong></div>';
+
+window.trackRightAuthReady.then(async function (context) {
+    if (!context) return;
+    scheduleContext = context;
+    canManageSchedule = window.trackRightCan("schedule.manage");
+    document.getElementById("new-appointment-button").hidden = !canManageSchedule;
+    await Promise.all([loadScheduleTechnicians(), loadAppointments()]);
+}).catch(function (error) {
+    appointmentList.innerHTML = `<div class="empty-state error"><strong>Schedule could not initialize</strong><p>${escapeHtml(error.message)}</p></div>`;
+});

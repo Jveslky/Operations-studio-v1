@@ -646,6 +646,9 @@ body {
     border-radius: 8px;
 }
 .appointment-card.calendar-request-event { border-left-color: #db6128; cursor: default; }
+.appointment-card.appointment-read-only,
+.upcoming-appointment-card.appointment-read-only { cursor: default; }
+.empty-state.error { color: #8b302c; border-color: #d8a7a4; background: #fff5f4; }
 
 /* =========================
    UPCOMING SCHEDULE
@@ -1116,12 +1119,12 @@ body {
     }
 }
 
-.appointment-card {
+.appointment-card:not(.appointment-read-only):not(.calendar-request-event) {
     cursor: pointer;
     transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-    .appointment-card:hover {
+    .appointment-card:not(.appointment-read-only):not(.calendar-request-event):hover {
         border-color: #69b2bd;
         box-shadow: 0 4px 12px rgba(37, 42, 48, 0.10);
         transform: translateY(-1px);
