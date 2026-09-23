@@ -234,6 +234,18 @@ begin
         on conflict(id) do nothing;
         get diagnostics affected=row_count; restored:=restored+affected;
     end loop;
+    for item in select value from jsonb_array_elements(coalesce(backup#>'{cloud,repair_orders}','[]'::jsonb)) loop
+        if item->>'shop_id'<>target_shop::text then raise exception 'Repair order tenant validation failed'; end if;
+        insert into public.shop_repair_orders select * from jsonb_populate_record(null::public.shop_repair_orders,item)
+        on conflict(id) do nothing;
+        get diagnostics affected=row_count; restored:=restored+affected;
+    end loop;
+    for item in select value from jsonb_array_elements(coalesce(backup#>'{cloud,invoices}','[]'::jsonb)) loop
+        if item->>'shop_id'<>target_shop::text then raise exception 'Invoice tenant validation failed'; end if;
+        insert into public.shop_invoices select * from jsonb_populate_record(null::public.shop_invoices,item)
+        on conflict(id) do nothing;
+        get diagnostics affected=row_count; restored:=restored+affected;
+    end loop;
     for item in select value from jsonb_array_elements(coalesce(backup#>'{cloud,accounts_payable}','[]'::jsonb)) loop
         if item->>'shop_id' <> target_shop::text then raise exception 'Accounts payable tenant validation failed'; end if;
         insert into public.shop_accounts_payable select * from jsonb_populate_record(null::public.shop_accounts_payable,item)
