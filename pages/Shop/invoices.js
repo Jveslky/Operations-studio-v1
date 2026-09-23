@@ -37,6 +37,36 @@ const invoiceRepairOrderInput =
         "invoice-repair-order"
     );
 
+const invoiceSourceTypeInput =
+    document.getElementById("invoice-source-type");
+
+const invoiceRepairOrderField =
+    document.getElementById("invoice-repair-order-field");
+
+const invoiceCustomerField =
+    document.getElementById("invoice-customer-field");
+
+const invoiceCustomerInput =
+    document.getElementById("invoice-customer");
+
+const invoiceUnitField =
+    document.getElementById("invoice-unit-field");
+
+const invoiceUnitInput =
+    document.getElementById("invoice-unit");
+
+const invoiceSubtotalField =
+    document.getElementById("invoice-subtotal-field");
+
+const invoiceSubtotalInput =
+    document.getElementById("invoice-subtotal-input");
+
+const invoiceDescriptionField =
+    document.getElementById("invoice-description-field");
+
+const invoiceDescriptionInput =
+    document.getElementById("invoice-description");
+
 const invoiceDueDateInput =
     document.getElementById(
         "invoice-due-date"
@@ -86,6 +116,10 @@ const outstandingTotal =
     document.getElementById(
         "outstanding-total"
     );
+
+let currentShopContext = null;
+let availableCustomers = [];
+let customerUnitRequestId = 0;
 
 
 /* =========================
@@ -281,6 +315,131 @@ function populateRepairOrderDropdown() {
     );
 }
 
+function setUnitDropdown(message, disabled) {
+    invoiceUnitInput.innerHTML = "";
+
+    const option = document.createElement("option");
+    option.value = "";
+    option.textContent = message;
+    invoiceUnitInput.appendChild(option);
+    invoiceUnitInput.disabled = disabled;
+}
+
+async function loadInvoiceCustomers() {
+    currentShopContext =
+        await window.trackRightAuthReady;
+
+    if (!currentShopContext?.shopId) {
+        throw new Error(
+            "No active shop membership was found."
+        );
+    }
+
+    const { data, error } = await supabaseClient
+        .from("Customers")
+        .select("id, name, email, phone")
+        .eq("shop_id", currentShopContext.shopId)
+        .eq("archived", false)
+        .order("name");
+
+    if (error) {
+        throw error;
+    }
+
+    availableCustomers = data || [];
+    invoiceCustomerInput.innerHTML = "";
+
+    const initialOption = document.createElement("option");
+    initialOption.value = "";
+    initialOption.textContent = availableCustomers.length
+        ? "Select a customer"
+        : "No customers available";
+    invoiceCustomerInput.appendChild(initialOption);
+
+    availableCustomers.forEach(function (customer) {
+        const option = document.createElement("option");
+        option.value = customer.id;
+        option.textContent = customer.name;
+        invoiceCustomerInput.appendChild(option);
+    });
+
+    invoiceCustomerInput.disabled =
+        availableCustomers.length === 0;
+}
+
+async function loadCustomerUnits(customerId) {
+    const requestId = ++customerUnitRequestId;
+
+    if (!customerId) {
+        setUnitDropdown("Select a customer first", true);
+        return;
+    }
+
+    setUnitDropdown("Loading units…", true);
+
+    const { data, error } = await supabaseClient
+        .from("customer_units")
+        .select("id, year, make, model, serial")
+        .eq("shop_id", currentShopContext.shopId)
+        .eq("customer_id", customerId)
+        .eq("archived", false)
+        .order("created_at");
+
+    if (requestId !== customerUnitRequestId) {
+        return;
+    }
+
+    if (error) {
+        setUnitDropdown("Units unavailable", true);
+        throw error;
+    }
+
+    setUnitDropdown(
+        data?.length ? "No unit / general charge" : "No active units",
+        false
+    );
+
+    (data || []).forEach(function (unit) {
+        const option = document.createElement("option");
+        option.value = unit.id;
+        option.textContent = [
+            unit.year,
+            unit.make,
+            unit.model
+        ].filter(Boolean).join(" ") ||
+            unit.serial ||
+            "Unnamed unit";
+        invoiceUnitInput.appendChild(option);
+    });
+}
+
+function updateInvoiceSourceFields() {
+    const isOneOff =
+        invoiceSourceTypeInput.value === "one-off";
+
+    invoiceRepairOrderField.hidden = isOneOff;
+    invoiceCustomerField.hidden = !isOneOff;
+    invoiceUnitField.hidden = !isOneOff;
+    invoiceSubtotalField.hidden = !isOneOff;
+    invoiceDescriptionField.hidden = !isOneOff;
+
+    invoiceRepairOrderInput.required = !isOneOff;
+    invoiceCustomerInput.required = isOneOff;
+    invoiceSubtotalInput.required = isOneOff;
+    invoiceDescriptionInput.required = isOneOff;
+
+    if (isOneOff) {
+        invoiceRepairOrderInput.value = "";
+        invoiceCustomerInput.focus();
+    } else {
+        invoiceCustomerInput.value = "";
+        invoiceSubtotalInput.value = "";
+        invoiceDescriptionInput.value = "";
+        setUnitDropdown("Select a customer first", true);
+        invoiceRepairOrderInput.focus();
+    }
+}
+
 
 /* =========================
    FORM OPEN / CLOSE
@@ -288,8 +447,17 @@ function populateRepairOrderDropdown() {
 
 async function openInvoiceForm() {
     createInvoiceForm.reset();
+    invoiceCreateMessage.textContent = "";
 
     populateRepairOrderDropdown();
+
+    try {
+        await loadInvoiceCustomers();
+    } catch (error) {
+        console.error("Could not load invoice customers:", error);
+        invoiceCreateMessage.textContent =
+            `Could not load customers: ${error.message}`;
+    }
 
     const behavior = await window.trackRightShopBehavior;
     const defaultDueDate =
@@ -305,6 +473,7 @@ async function openInvoiceForm() {
             .slice(0, 10);
 
     createInvoiceForm.hidden = false;
+    updateInvoiceSourceFields();
 
     createInvoiceForm.scrollIntoView({
         behavior: "smooth",
@@ -317,6 +486,8 @@ async function openInvoiceForm() {
 function closeInvoiceForm() {
     createInvoiceForm.hidden = true;
     createInvoiceForm.reset();
+    invoiceCreateMessage.textContent = "";
+    customerUnitRequestId += 1;
 }
 
 createInvoiceButton.addEventListener(
@@ -334,6 +505,28 @@ cancelInvoiceFormButton.addEventListener(
     closeInvoiceForm
 );
 
+invoiceSourceTypeInput.addEventListener(
+    "change",
+    updateInvoiceSourceFields
+);
+
+invoiceCustomerInput.addEventListener(
+    "change",
+    async function () {
+        invoiceCreateMessage.textContent = "";
+
+        try {
+            await loadCustomerUnits(
+                invoiceCustomerInput.value
+            );
+        } catch (error) {
+            console.error("Could not load invoice units:", error);
+            invoiceCreateMessage.textContent =
+                `Could not load units: ${error.message}`;
+        }
+    }
+);
+
 
 /* =========================
    CREATE INVOICE
@@ -345,6 +538,9 @@ createInvoiceForm.addEventListener(
         event.preventDefault();
         invoiceCreateMessage.textContent = "";
 
+        const isOneOff =
+            invoiceSourceTypeInput.value === "one-off";
+
         const selectedRepairOrder =
             getAllRepairOrders().find(
                 function (order) {
@@ -355,9 +551,49 @@ createInvoiceForm.addEventListener(
                 }
             );
 
-        if (!selectedRepairOrder) {
+        if (!isOneOff && !selectedRepairOrder) {
             invoiceCreateMessage.textContent =
                 "Select a valid repair order.";
+            return;
+        }
+
+        const selectedCustomer = isOneOff
+            ? availableCustomers.find(function (customer) {
+                return String(customer.id) ===
+                    invoiceCustomerInput.value;
+            })
+            : null;
+
+        if (isOneOff && !selectedCustomer) {
+            invoiceCreateMessage.textContent =
+                "Select a valid customer.";
+            return;
+        }
+
+        const selectedUnitOption =
+            invoiceUnitInput.options[
+                invoiceUnitInput.selectedIndex
+            ];
+
+        const selectedCustomerId = isOneOff
+            ? selectedCustomer.id
+            : selectedRepairOrder.customerId || "";
+
+        const invoiceCustomerRecord = selectedCustomer ||
+            availableCustomers.find(function (customer) {
+                return String(customer.id) ===
+                    String(selectedCustomerId);
+            }) || null;
+
+        const oneOffSubtotal =
+            Number(invoiceSubtotalInput.value);
+
+        if (
+            isOneOff &&
+            (!Number.isFinite(oneOffSubtotal) || oneOffSubtotal < 0)
+        ) {
+            invoiceCreateMessage.textContent =
+                "Enter a valid invoice subtotal.";
             return;
         }
 
@@ -367,7 +603,8 @@ createInvoiceForm.addEventListener(
         let savedInvoiceIds = [];
 
         try {
-            context = await window.trackRightAuthReady;
+            context = currentShopContext ||
+                await window.trackRightAuthReady;
             if (!context?.shopId) {
                 throw new Error("No active shop membership was found.");
             }
@@ -389,11 +626,11 @@ createInvoiceForm.addEventListener(
                 return Number(snapshot.invoice_id);
             }).filter(Number.isFinite);
 
-            if (selectedRepairOrder.customerId) {
+            if (selectedCustomerId) {
                 const customerResult = await supabaseClient
                     .from("customer_tax_profiles")
                     .select("customer_id, tax_status, exemption_reason, exemption_certificate_number")
-                    .eq("customer_id", selectedRepairOrder.customerId)
+                    .eq("customer_id", selectedCustomerId)
                     .eq("shop_id", context.shopId)
                     .maybeSingle();
                 if (customerResult.error) throw customerResult.error;
@@ -410,7 +647,9 @@ createInvoiceForm.addEventListener(
         const taxable = taxStatus === "taxable" ||
             (taxStatus === "inherit" && shopTax.default_taxable === true);
         const taxRate = taxable ? Number(shopTax.default_tax_rate || 0) : 0;
-        const subtotal = getRepairOrderTotal(selectedRepairOrder);
+        const subtotal = isOneOff
+            ? oneOffSubtotal
+            : getRepairOrderTotal(selectedRepairOrder);
         const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
 
         const invoices =
@@ -436,22 +675,41 @@ createInvoiceForm.addEventListener(
                 invoiceNumber,
 
             repairOrderId:
-                selectedRepairOrder.id,
+                isOneOff ? "" : selectedRepairOrder.id,
+
+            sourceType:
+                isOneOff ? "one-off" : "repair-order",
 
             customerId:
-                selectedRepairOrder.customerId || "",
+                selectedCustomerId,
 
             customer:
-                selectedRepairOrder.customer || "",
+                isOneOff
+                    ? selectedCustomer.name || ""
+                    : selectedRepairOrder.customer || "",
+
+            customerEmail:
+                invoiceCustomerRecord?.email || "",
+
+            customerPhone:
+                invoiceCustomerRecord?.phone || "",
 
             unitId:
-                selectedRepairOrder.unitId || "",
+                isOneOff
+                    ? invoiceUnitInput.value
+                    : selectedRepairOrder.unitId || "",
 
             unit:
-                selectedRepairOrder.unit || "",
+                isOneOff
+                    ? invoiceUnitInput.value
+                        ? selectedUnitOption.textContent.trim()
+                        : ""
+                    : selectedRepairOrder.unit || "",
 
             complaint:
-                selectedRepairOrder.complaint || "",
+                isOneOff
+                    ? invoiceDescriptionInput.value.trim()
+                    : selectedRepairOrder.complaint || "",
 
             subtotal: subtotal,
 
@@ -491,7 +749,7 @@ createInvoiceForm.addEventListener(
             .insert({
                 shop_id: context.shopId,
                 invoice_id: invoiceNumber,
-                customer_id: selectedRepairOrder.customerId ? String(selectedRepairOrder.customerId) : null,
+                customer_id: selectedCustomerId ? String(selectedCustomerId) : null,
                 taxable: taxable,
                 tax_rate: taxRate,
                 subtotal: subtotal,
@@ -614,7 +872,10 @@ function createInvoiceCard(invoice) {
             </strong>
 
             <p>
-                RO #${escapeHtml(invoice.repairOrderId)}
+                ${invoice.repairOrderId
+                    ? `RO #${escapeHtml(invoice.repairOrderId)}`
+                    : "One-off invoice"
+                }
             </p>
         </div>
 
@@ -726,7 +987,7 @@ function renderInvoices() {
             function (invoice) {
                 const matchesStatus =
                     selectedStatus === "All" ||
-                    invoice.status ===
+                    getInvoiceDisplayStatus(invoice) ===
                     selectedStatus;
 
                 const searchableText = [
