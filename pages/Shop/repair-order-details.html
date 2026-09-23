@@ -81,11 +81,6 @@
                 <button id="save-button" type="button" class="primary-btn">
                     Save
                 </button>
-                <button id="archive-button"
-                        class="secondary-btn"
-                        type="button">
-                    Archive
-                </button>
                 <button id="create-invoice-button"
                         type="button">
                     Create Invoice
@@ -233,7 +228,15 @@
                     <h2>Inspections &amp; Media</h2>
                     <p>Inspections are optional. Add photos or video directly to this repair order at any time.</p>
                 </div>
-                <div class="attach-inspection-controls"><select id="inspection-template-select" aria-label="Inspection template"><option value="">General inspection</option></select><button id="attach-inspection-button" type="button" class="secondary-button">Attach Inspection</button></div>
+                <div class="attach-inspection-panel">
+                    <label for="inspection-template-select">Add inspection</label>
+                    <div class="attach-inspection-controls">
+                        <select id="inspection-template-select">
+                            <option value="">General inspection</option>
+                        </select>
+                        <button id="attach-inspection-button" type="button">Add Inspection</button>
+                    </div>
+                </div>
             </div>
 
             <p id="inspection-media-message" class="inspection-media-message" role="status" aria-live="polite"></p>
