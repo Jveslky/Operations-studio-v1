@@ -736,6 +736,11 @@ function renderInvoiceSummary(invoices) {
 
     outstandingTotal.textContent =
         formatCurrency(outstandingAmount);
+
+    document.getElementById("all-invoice-total").textContent =
+        formatCurrency(invoices.reduce(function (total, invoice) {
+            return total + (Number(invoice.total) || 0);
+        }, 0));
 }
 
 function createInvoiceCard(invoice) {
