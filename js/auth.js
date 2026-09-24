@@ -182,6 +182,14 @@
         document.querySelectorAll(".app-brand[href]").forEach(function (brand) {
             brand.href = dashboard;
         });
+        // Mobile Service currently shares Shop authentication, so keep
+        // shop staff roles within the Shop workspace until Mobile has
+        // dedicated membership and permissions.
+        if (window.location.pathname.includes("/pages/Mobile/") &&
+            !["owner", "admin"].includes(context.role)) {
+            window.location.replace(dashboard);
+            return false;
+        }
         const canUseAccountsPayable = window.trackRightCan("expenses.read") || window.trackRightCan("expenses.write");
         if (page === "accounts-payable.html" && !canUseAccountsPayable) {
             window.location.replace(dashboard);
