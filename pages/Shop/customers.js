@@ -1854,12 +1854,14 @@ addCustomerUnitForm.addEventListener(
             }
         }
 
-        const unitsRefreshed =
-            await renderCustomerUnits();
+        const [unitsRefreshed, directoryRefreshed] = await Promise.all([
+            renderCustomerUnits(),
+            renderCustomerDirectory()
+        ]);
 
-        if (!unitsRefreshed) {
+        if (!unitsRefreshed || !directoryRefreshed) {
             customerUnitSaveMessage.textContent =
-                "Unit saved, but the unit list could not refresh. Reload the page to see the change.";
+                "Unit saved, but the page could not refresh. Reload to see the change.";
             saveCustomerUnitButton.disabled = false;
             return;
         }
@@ -1880,6 +1882,30 @@ addCustomerUnitForm.addEventListener(
 /* =========================
    START REPAIR ORDER
 ========================= */
+
+async function populateTechnicianOptions() {
+    try {
+        await window.trackRightAuthReady;
+        const { data, error } = await supabaseClient.rpc(
+            "list_shop_schedule_members"
+        );
+        if (error) throw error;
+
+        newTechnicianInput.innerHTML =
+            '<option value="Unassigned">Unassigned</option>';
+        (data || []).forEach(function (member) {
+            if (!member.email) return;
+            const option = document.createElement("option");
+            option.value = member.email;
+            option.textContent = member.email;
+            newTechnicianInput.appendChild(option);
+        });
+    } catch (error) {
+        console.error("Could not load active technicians:", error);
+        newTechnicianInput.innerHTML =
+            '<option value="Unassigned">Unassigned</option>';
+    }
+}
 
 function openNewRepairOrderForm() {
     newRepairOrderForm.hidden = false;
@@ -1906,14 +1932,21 @@ function closeNewRepairOrderForm() {
 startCustomerRepairOrderButton.addEventListener(
     "click",
     async function () {
-        const {
-            data: selectedCustomer,
-            error
-        } = await supabaseClient
-            .from("Customers")
-            .select("*")
-            .eq("id", selectedCustomerId)
-            .single();
+        const shopId = await getCurrentShopId();
+        const [customerResult, unitResult] = await Promise.all([
+            supabaseClient.from("Customers").select("*")
+                .eq("id", selectedCustomerId)
+                .eq("shop_id", shopId)
+                .eq("archived", false)
+                .single(),
+            supabaseClient.from("customer_units").select("*")
+                .eq("shop_id", shopId)
+                .eq("customer_id", selectedCustomerId)
+                .eq("archived", false)
+                .order("created_at")
+        ]);
+        const selectedCustomer = customerResult.data;
+        const error = customerResult.error || unitResult.error;
 
         if (error) {
             console.error(
@@ -1935,13 +1968,14 @@ startCustomerRepairOrderButton.addEventListener(
 
         newRepairOrderForm.reset();
         newPriorityInput.value = (await window.trackRightShopBehavior).default_ro_priority;
+        await populateTechnicianOptions();
 
         newCustomerInput.value =
             selectedCustomer.name;
 
-        populateCustomerUnitDropdown(
-            selectedCustomer
-        );
+        populateCustomerUnitDropdown({
+            units: unitResult.data || []
+        });
 
         customerRecordPanel.hidden = true;
         customerSearchResults.hidden = true;
