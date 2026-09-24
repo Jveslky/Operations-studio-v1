@@ -120,6 +120,8 @@ function renderKpis(
             function (order) {
                 return (
                     order.status ===
+                    "Ready for Pickup" ||
+                    order.status ===
                     "Ready for Payment" ||
                     order.status ===
                     "Awaiting Payment"
