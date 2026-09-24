@@ -354,7 +354,8 @@
         logout.addEventListener("click", async function () {
             logout.disabled = true;
             await client.auth.signOut();
-            sendToLogin();
+            // Explicit logout starts a fresh account selection, not a deep link.
+            window.location.replace(loginPath);
         });
 
         menu.appendChild(logout);
