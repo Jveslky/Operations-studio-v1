@@ -1044,3 +1044,53 @@ textarea {
         -webkit-appearance: none;
         margin: 0;
     }
+
+/* Keep RO controls and optional inspection entry in scale with adjacent fields. */
+.ro-controls-panel select.detail-input {
+    display: block;
+    width: 100%;
+    min-height: 43px;
+    padding: 10px 12px;
+    border: 1px solid #cbd2d8;
+    border-radius: 6px;
+    background: #fff;
+    color: #20252a;
+    font: inherit;
+}
+.attach-inspection-panel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+    padding: 8px 10px;
+}
+.attach-inspection-panel label {
+    margin: 0;
+    white-space: nowrap;
+}
+.attach-inspection-controls { align-items: center; }
+.attach-inspection-controls select {
+    min-width: 0;
+    width: 165px;
+    min-height: 36px;
+    padding: 7px 9px;
+}
+.attach-inspection-controls button {
+    min-height: 36px;
+    padding: 7px 10px;
+    white-space: nowrap;
+    font-size: .85rem;
+}
+@media (max-width: 700px) {
+    .ro-media-header { flex-direction: column; }
+    .attach-inspection-panel { flex-wrap: wrap; width: 100%; }
+}
+
+/* Form values stay regular weight even inside bold field labels. */
+#additional-work-performed,
+.ro-work-panel textarea.detail-input,
+#estimate-notes {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.45;
+}

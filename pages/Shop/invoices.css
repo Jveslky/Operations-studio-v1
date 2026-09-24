@@ -630,3 +630,42 @@ body {
             white-space: nowrap;
         }
 }
+
+/* QA: make the finance summaries readable at a glance. */
+.invoice-summary {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.invoice-summary > article {
+    min-width: 0;
+    padding: 16px 18px;
+    border: 1px solid #d2d8de;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 5px 16px rgba(31, 41, 51, .05);
+}
+.invoice-summary > article span,
+.invoice-summary > article strong,
+.invoice-summary > article small {
+    display: block;
+}
+.invoice-summary > article span {
+    color: #667085;
+    font-size: .78rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.invoice-summary > article strong {
+    margin-top: 8px;
+    color: #202833;
+    font-size: 1.45rem;
+}
+.invoice-summary > article small {
+    margin-top: 4px;
+    color: #667085;
+}
+@media (max-width: 1000px) {
+    .invoice-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 650px) {
+    .invoice-summary { grid-template-columns: 1fr; }
+}

@@ -346,8 +346,15 @@ if (!repairOrder) {
     statusDisplay.textContent =
         repairOrder.status || "Open";
 
-    statusSelect.value =
-        repairOrder.status || "Open";
+    // Keep a historical status selected until the user chooses a core status.
+    const currentStatus = repairOrder.status || "Open";
+    if (!Array.from(statusSelect.options).some(option => option.value === currentStatus)) {
+        const legacyOption = document.createElement("option");
+        legacyOption.value = currentStatus;
+        legacyOption.textContent = currentStatus + " (previous status)";
+        statusSelect.appendChild(legacyOption);
+    }
+    statusSelect.value = currentStatus;
 
     technicianSelect.value =
         repairOrder.technician || "Unassigned";

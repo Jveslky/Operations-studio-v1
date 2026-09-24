@@ -120,6 +120,8 @@ function renderKpis(
             function (order) {
                 return (
                     order.status ===
+                    "Ready for Pickup" ||
+                    order.status ===
                     "Ready for Payment" ||
                     order.status ===
                     "Awaiting Payment"
@@ -188,6 +190,11 @@ function renderKpis(
         formatCurrency(
             receivableAmount
         );
+
+    document.getElementById("paid-invoice-total").textContent =
+        formatCurrency(invoices
+            .filter(invoice => invoice.status === "Paid")
+            .reduce((total, invoice) => total + (Number(invoice.total) || 0), 0));
 
     accountsPayable.textContent =
         formatCurrency(
