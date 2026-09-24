@@ -1085,3 +1085,12 @@ textarea {
     .ro-media-header { flex-direction: column; }
     .attach-inspection-panel { flex-wrap: wrap; width: 100%; }
 }
+
+/* Form values stay regular weight even inside bold field labels. */
+#additional-work-performed,
+.ro-work-panel textarea.detail-input,
+#estimate-notes {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.45;
+}
