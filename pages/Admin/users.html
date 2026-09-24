@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="../../css/base.css">
     <link rel="stylesheet" href="../../css/layout.css">
     <link rel="stylesheet" href="../Shop/shop-dashboard.css">
+    <link rel="stylesheet" href="../../css/account-settings.css">
     <link rel="stylesheet" href="users.css">
 </head>
 <body>
@@ -14,7 +15,21 @@
         <a class="app-brand" href="../Shop/shop-dashboard.html">Track Right</a>
         <nav class="app-nav"><a href="../Shop/shop-dashboard.html">Dashboard</a><a href="../Shop/schedule.html">Schedule</a><a href="../Shop/customers.html">Customers</a><a href="../Shop/repair-orders.html">Repair Orders</a><a href="../Shop/invoices.html">Invoices</a><a href="../Shop/accounts-payable.html">Accounts Payable</a></nav>
     </div></header>
-    <main class="users-page">
+    <main class="settings-page shop-settings-page users-settings-page">
+        <div class="shop-settings-layout">
+            <nav class="shop-settings-nav" aria-label="Shop settings sections">
+                <a href="../Shop/shop-settings.html#shop-profile">Shop Profile</a>
+                <a href="../Shop/shop-settings.html#customers-tax">Customers &amp; Tax</a>
+                <a class="active" aria-current="page" href="users.html">Users &amp; Permissions</a>
+                <a href="../Shop/shop-settings.html#team-documents">Team Documents</a>
+                <a href="../Shop/shop-settings.html#requests">Requests</a>
+                <a href="../Shop/shop-settings.html#behavior">Behavior</a>
+                <a href="../Shop/shop-settings.html#appearance">Appearance</a>
+                <a href="../Shop/shop-settings.html#linked-accounts">Linked Accounts</a>
+                <a href="../Shop/shop-settings.html#data-management">Data Management</a>
+                <a href="../Shop/shop-settings.html#inspections-photos">Inspections &amp; Photos</a>
+            </nav>
+            <div class="users-page">
         <header class="users-header">
             <div><h1>Users &amp; Permissions</h1><div>Assign a role preset, then adjust individual access where needed.</div></div>
             <a href="../Shop/shop-dashboard.html">Back to dashboard</a>
@@ -45,6 +60,8 @@
             <p>Owner access is protected. Permission changes are enforced by Supabase for sensitive records and administrative actions.</p>
             <div id="users-list" class="users-list"></div>
         </section>
+            </div>
+        </div>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../../js/supabase-client.js"></script>

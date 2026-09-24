@@ -116,3 +116,7 @@
     .user-row, .user-summary, .user-permissions { grid-template-columns: 1fr; }
     .invitation-board { grid-template-columns: 1fr; }
 }
+
+.users-settings-page { width: min(1390px, calc(100% - 32px)); }
+.users-settings-page .users-page { width: 100%; min-width: 0; margin: 0; }
+.users-settings-page .users-header { flex-wrap: wrap; }
