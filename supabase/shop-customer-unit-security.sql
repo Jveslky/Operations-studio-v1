@@ -5,6 +5,15 @@ begin;
 alter table public."Customers" enable row level security;
 alter table public.customer_units enable row level security;
 
+-- Earlier membership-only policies are permissive OR policies. Leaving them
+-- in place bypasses role checks and lets inactive members see these records.
+drop policy if exists "Insert own customers" on public."Customers";
+drop policy if exists "Select own customers" on public."Customers";
+drop policy if exists "Members can update shop customers" on public."Customers";
+drop policy if exists "Members can add customer units" on public.customer_units;
+drop policy if exists "Members can view customer units" on public.customer_units;
+drop policy if exists "Members can update customer units" on public.customer_units;
+
 drop policy if exists "shop members view customers" on public."Customers";
 create policy "shop members view customers" on public."Customers"
 for select to authenticated using (public.is_shop_member(shop_id));
