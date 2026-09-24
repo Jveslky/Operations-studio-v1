@@ -218,7 +218,8 @@
 
         document.querySelectorAll(".app-nav a").forEach(function (link) {
             const linkedPage = new URL(link.href, window.location.href).pathname.split("/").pop().toLowerCase();
-            if (linkedPage === "shop-dashboard.html") {
+            if (linkedPage === "shop-dashboard.html" ||
+                linkedPage === "technician-dashboard.html") {
                 link.href = dashboard;
                 link.textContent = "Dashboard";
                 return;
