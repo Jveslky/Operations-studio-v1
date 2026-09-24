@@ -189,6 +189,11 @@ function renderKpis(
             receivableAmount
         );
 
+    document.getElementById("paid-invoice-total").textContent =
+        formatCurrency(invoices
+            .filter(invoice => invoice.status === "Paid")
+            .reduce((total, invoice) => total + (Number(invoice.total) || 0), 0));
+
     accountsPayable.textContent =
         formatCurrency(
             payableAmount
