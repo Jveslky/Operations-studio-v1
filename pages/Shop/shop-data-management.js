@@ -8,7 +8,8 @@
         invoices: { table: "shop_invoices", date: "created_at" },
         accounts_payable: { table: "shop_accounts_payable", date: "created_at" },
         requests: { table: "shop_requests", date: "created_at" },
-        calendar: { table: "shop_calendar_events", date: "created_at" }
+        calendar: { table: "shop_calendar_events", date: "created_at" },
+        appointments: { table: "shop_appointments", date: "created_at" }
     };
     const legacyKeys = ["track-right-invoices", "track-right-customers", "track-right-accounts-payable"];
     const $ = (id) => document.getElementById(id);
@@ -52,16 +53,23 @@
 
     async function fetchSet(key, filterByRange) {
         const config = configs[key];
-        let query = client.from(config.table).select("*")
-            .eq("shop_id", context.shopId).order(config.date, { ascending: true });
-        if (filterByRange) {
-            const dates = range();
+        const dates = filterByRange ? range() : {};
+        const pageSize = 500;
+        const records = [];
+        for (let offset = 0; ; offset += pageSize) {
+            let query = client.from(config.table).select("*")
+                .eq("shop_id", context.shopId)
+                .order(config.date, { ascending: true })
+                .order("id", { ascending: true })
+                .range(offset, offset + pageSize - 1);
             if (dates.start) query = query.gte(config.date, dates.start.toISOString());
             if (dates.end) query = query.lte(config.date, dates.end.toISOString());
+            const result = await query;
+            if (result.error) throw result.error;
+            records.push(...(result.data || []));
+            if (!result.data || result.data.length < pageSize) break;
         }
-        const result = await query;
-        if (result.error) throw result.error;
-        return result.data || [];
+        return records;
     }
 
     function csv(records) {

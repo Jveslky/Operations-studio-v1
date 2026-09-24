@@ -69,7 +69,7 @@
 
                 <button id="send-invoice-button"
                         type="button">
-                    Send Invoice
+                    Share Invoice
                 </button>
 
                 <button id="mark-paid-button"
@@ -173,7 +173,7 @@
 
                 <div class="send-invoice-modal-header">
                     <div>
-                        <span>Send Invoice</span>
+                        <span>Share Invoice</span>
                         <h2 id="send-invoice-number">
                             Invoice
                         </h2>
@@ -224,16 +224,23 @@
                     <textarea id="send-invoice-message"></textarea>
                 </label>
 
+                <p class="invoice-delivery-help">Email and text open your device's messaging app with this message. No invoice document is attached automatically. Finish sending there, then mark the invoice Sent here. Track Right cannot confirm delivery.</p>
+
                 <div class="send-invoice-actions">
 
                     <button id="email-invoice-button"
                             type="button">
-                        Email Invoice
+                        Open Email App
                     </button>
 
                     <button id="text-invoice-button"
                             type="button">
-                        Text Invoice
+                        Open Text App
+                    </button>
+
+                    <button id="confirm-invoice-sent"
+                            type="button">
+                        I Sent It — Mark Sent
                     </button>
 
                     <button id="cancel-send-invoice"

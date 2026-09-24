@@ -620,6 +620,20 @@ body {
     display: flex;
     gap: 10px;
     margin-top: 18px;
+    flex-wrap: wrap;
+}
+
+.invoice-delivery-help {
+    margin: 12px 0 0;
+    color: #465258;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+#confirm-invoice-sent {
+    border: 1px solid #087a4d;
+    background: #087a4d;
+    color: #ffffff;
 }
 
     .send-invoice-actions button {

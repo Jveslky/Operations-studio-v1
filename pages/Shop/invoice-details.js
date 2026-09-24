@@ -118,6 +118,11 @@ const textInvoiceButton =
         "text-invoice-button"
     );
 
+const confirmInvoiceSentButton =
+    document.getElementById(
+        "confirm-invoice-sent"
+    );
+
 const sendInvoiceNumber =
     document.getElementById(
         "send-invoice-number"
@@ -548,6 +553,8 @@ sendInvoiceButton.addEventListener(
                 `Just a reminder that invoice #${currentInvoice.id} has an outstanding balance of ${formatCurrency(currentInvoice.total)}. Please let us know if you have any questions.`;
         }
 
+        confirmInvoiceSentButton.hidden = currentInvoice.status === "Sent";
+
         sendInvoiceModal.hidden = false;
     }
 );
@@ -589,12 +596,6 @@ emailInvoiceButton.addEventListener(
         const message =
             sendInvoiceMessage.value.trim();
 
-        await updateCurrentInvoiceStatus(
-            "Sent"
-        );
-
-        closeSendInvoiceModal();
-
         window.location.href =
             `mailto:${customer.email}` +
             `?subject=${encodeURIComponent(subject)}` +
@@ -622,17 +623,22 @@ textInvoiceButton.addEventListener(
         const message =
             sendInvoiceMessage.value.trim();
 
-        await updateCurrentInvoiceStatus(
-            "Sent"
-        );
-
-        closeSendInvoiceModal();
-
         window.location.href =
             `sms:${customer.phone}` +
             `?body=${encodeURIComponent(message)}`;
     }
 );
+
+confirmInvoiceSentButton.addEventListener("click", async function () {
+    if (!currentInvoice || currentInvoice.status === "Paid") return;
+    this.disabled = true;
+    try {
+        await updateCurrentInvoiceStatus("Sent");
+        closeSendInvoiceModal();
+    } finally {
+        this.disabled = false;
+    }
+});
 
 markPaidButton.addEventListener(
     "click",
