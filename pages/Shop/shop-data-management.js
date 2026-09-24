@@ -73,24 +73,27 @@
             keys.map((key) => cell(record[key])).join(","))].join("\r\n");
     }
 
+    function belongsToCurrentShop(value) {
+        if (!value || typeof value !== "object") return false;
+        const sourceShopId = value.shop_id || value.shopId || value.sourceShopId;
+        return String(sourceShopId || "") === String(context.shopId);
+    }
+
     function collectLegacy() {
         const records = {};
         for (let index = 0; index < localStorage.length; index += 1) {
             const key = localStorage.key(index);
-            if (!key) continue;
-            if (key.startsWith("repair-order-")) {
-                try {
-                    const value = JSON.parse(localStorage.getItem(key));
-                    if (value?.appMode === "shop") records[key] = value;
-                } catch (error) {
-                    console.warn("Skipped invalid legacy record", key, error);
+            if (!key || !(key.startsWith("repair-order-") || legacyKeys.includes(key))) continue;
+            try {
+                const value = JSON.parse(localStorage.getItem(key));
+                if (Array.isArray(value)) {
+                    const scoped = value.filter(belongsToCurrentShop);
+                    if (scoped.length) records[key] = scoped;
+                } else if (belongsToCurrentShop(value)) {
+                    records[key] = value;
                 }
-            } else if (legacyKeys.includes(key)) {
-                try {
-                    records[key] = JSON.parse(localStorage.getItem(key));
-                } catch (error) {
-                    records[key] = localStorage.getItem(key);
-                }
+            } catch (error) {
+                console.warn("Skipped invalid legacy record", key, error);
             }
         }
         return records;
@@ -163,6 +166,15 @@
                 if (!configs[key] || !Array.isArray(records)) throw new Error(`Invalid backup dataset: ${key}`);
                 if (records.some((record) => record.shop_id !== context.shopId)) {
                     throw new Error(`Tenant validation failed in ${key}.`);
+                }
+            }
+            for (const [key, value] of Object.entries(data.legacy || {})) {
+                if (!(key.startsWith("repair-order-") || legacyKeys.includes(key))) {
+                    throw new Error(`Invalid legacy backup key: ${key}`);
+                }
+                const entries = Array.isArray(value) ? value : [value];
+                if (!entries.every(belongsToCurrentShop)) {
+                    throw new Error("Legacy browser records lack matching shop ownership and cannot be imported.");
                 }
             }
             validated = data;
