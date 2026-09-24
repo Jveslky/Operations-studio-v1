@@ -177,6 +177,11 @@
         const dashboard = context.role === "technician"
             ? `${rootPath}pages/Shop/technician-dashboard.html`
             : `${rootPath}pages/Shop/shop-dashboard.html`;
+        // The Shop brand is workspace navigation for signed-in staff.
+        // Keep technicians and writers away from the public module catalog.
+        document.querySelectorAll(".app-brand[href]").forEach(function (brand) {
+            brand.href = dashboard;
+        });
         const canUseAccountsPayable = window.trackRightCan("expenses.read") || window.trackRightCan("expenses.write");
         if (page === "accounts-payable.html" && !canUseAccountsPayable) {
             window.location.replace(dashboard);
