@@ -61,6 +61,12 @@ begin
         on conflict (id) do nothing;
         get diagnostics affected = row_count; restored := restored + affected;
     end loop;
+    for item in select value from jsonb_array_elements(coalesce(backup#>'{cloud,appointments}', '[]'::jsonb)) loop
+        if item->>'shop_id' <> target_shop::text then raise exception 'Appointment tenant validation failed'; end if;
+        insert into public.shop_appointments select * from jsonb_populate_record(null::public.shop_appointments, item)
+        on conflict (id) do nothing;
+        get diagnostics affected = row_count; restored := restored + affected;
+    end loop;
     return jsonb_build_object('restored', restored);
 end;
 $$;
