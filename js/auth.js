@@ -177,6 +177,19 @@
         const dashboard = context.role === "technician"
             ? `${rootPath}pages/Shop/technician-dashboard.html`
             : `${rootPath}pages/Shop/shop-dashboard.html`;
+        // The Shop brand is workspace navigation for signed-in staff.
+        // Keep technicians and writers away from the public module catalog.
+        document.querySelectorAll(".app-brand[href]").forEach(function (brand) {
+            brand.href = dashboard;
+        });
+        // Mobile Service currently shares Shop authentication, so keep
+        // shop staff roles within the Shop workspace until Mobile has
+        // dedicated membership and permissions.
+        if (window.location.pathname.includes("/pages/Mobile/") &&
+            !["owner", "admin"].includes(context.role)) {
+            window.location.replace(dashboard);
+            return false;
+        }
         const canUseAccountsPayable = window.trackRightCan("expenses.read") || window.trackRightCan("expenses.write");
         if (page === "accounts-payable.html" && !canUseAccountsPayable) {
             window.location.replace(dashboard);
@@ -354,7 +367,8 @@
         logout.addEventListener("click", async function () {
             logout.disabled = true;
             await client.auth.signOut();
-            sendToLogin();
+            // Explicit logout starts a fresh account selection, not a deep link.
+            window.location.replace(loginPath);
         });
 
         menu.appendChild(logout);

@@ -21,7 +21,6 @@
 
     async function accountDestination() {
         const requested = requestedDestination();
-        if (requested) return requested;
         const { data: userData } = await client.auth.getUser();
         const userId = userData.user?.id;
         if (!userId) return "login.html";
@@ -30,6 +29,17 @@
             client.from("personal_fleet_members").select("account_id").eq("user_id", userId).eq("is_active", true).limit(1).maybeSingle(),
             client.from("shop_members").select("shop_id").eq("user_id", userId).eq("is_active", true).limit(1).maybeSingle()
         ]);
+        // Preserve deep links only when the signed-in account belongs to
+        // the requested workspace. A returnTo from a previous account must
+        // never send the new account to its access-required page.
+        if (requested) {
+            const path = new URL(requested, window.location.origin).pathname;
+            if (path.endsWith("/pages/Admin/users.html") && shop.data) return requested;
+            if (path.includes("/pages/Admin/") && platform.data) return requested;
+            if (path.includes("/pages/Mobile/") && shop.data) return requested;
+            if (path.includes("/pages/PersonalFleet/") && personal.data) return requested;
+            if (path.includes("/pages/Shop/") && shop.data) return requested;
+        }
         if (platform.data) return "pages/Admin/development-dashboard.html";
         if (personal.data) return "pages/PersonalFleet/Personaldashboard.html";
         if (shop.data) return "pages/Shop/shop-dashboard.html";
