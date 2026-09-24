@@ -184,6 +184,10 @@
             try {
                 const order = JSON.parse(localStorage.getItem(key));
                 if (!order?.id) continue;
+                // Browser storage is shared by every shop on this origin. Only records
+                // explicitly tagged for this shop can be imported automatically.
+                const sourceShopId = order.shop_id || order.shopId || order.sourceShopId;
+                if (String(sourceShopId || "") !== String(authContext.shopId)) continue;
 
                 const row = toRow(order, authContext, true);
                 row.legacy_local_id = String(order.id);
