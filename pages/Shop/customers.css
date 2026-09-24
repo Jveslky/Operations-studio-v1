@@ -820,3 +820,45 @@ textarea.new-ro-input {
         gap: 6px;
     }
 }
+
+/* Give customer RO history the same card treatment as the directory. */
+.customer-history-card {
+    display: block;
+    border-left: 4px solid #db6128;
+    color: #27313b;
+    text-decoration: none;
+}
+.customer-history-card:focus-visible {
+    outline: 3px solid #69b2bd;
+    outline-offset: 2px;
+}
+.customer-history-card-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.customer-history-card-heading h3 {
+    margin: 0;
+    color: #27313b;
+}
+.customer-history-status {
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #e8edef;
+    color: #37434a;
+    font-size: .75rem;
+    font-weight: 800;
+}
+.customer-history-card p {
+    margin: 8px 0 0;
+    color: #53616a;
+    line-height: 1.4;
+}
+.customer-history-card p:last-child {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
