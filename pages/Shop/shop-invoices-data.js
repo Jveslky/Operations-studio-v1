@@ -47,7 +47,13 @@
         const ctx=await context(),key=`track-right-invoices-migrated:${ctx.shopId}`;
         if(localStorage.getItem(key))return;
         let invoices=[];try{invoices=JSON.parse(localStorage.getItem("track-right-invoices"))||[];}catch(error){console.warn("Could not read browser invoices",error);}
-        if(!Array.isArray(invoices)||!invoices.length){localStorage.setItem(key,new Date().toISOString());return;}
+        if(!Array.isArray(invoices))invoices=[];
+        // Browser storage is shared across shops; untagged invoices have no safe owner.
+        invoices=invoices.filter(function(invoice){
+            const sourceShopId=invoice?.shop_id||invoice?.shopId||invoice?.sourceShopId;
+            return String(sourceShopId||"")===String(ctx.shopId);
+        });
+        if(!invoices.length){localStorage.setItem(key,new Date().toISOString());return;}
         const shopName=ctx.shop?.name||"this shop";
         if(!window.confirm(`${invoices.length} browser-only invoice${invoices.length===1?"":"s"} were found. Import them into ${shopName}?\n\nChoose Cancel if they belong to another shop.`))return;
         for(const invoice of invoices){
