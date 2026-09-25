@@ -1,215 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-    <title>Operations Platform</title>
-
-    <!-- CSS -->
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/dashboard.css">
-    
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Track Right keeps repair work, vehicle histories, and maintenance in focused workspaces for shops, mobile service, and personal fleets.">
+  <title>Track Right | Keep the work moving</title>
+  <link rel="stylesheet" href="css/landing.css">
 </head>
-
 <body>
-
-    <!-- SIDEBAR (static or injected later) -->
-    <div class="sidebar">
-
-        <aside class="sidebar">
-            <div class="sidebar-inner">
-                <div class="sidebar-brand">
-                    Task Menu
-                </div>
-
-                <nav class="sidebar-nav">
-                    <a href="index.html"
-                       class="nav-item active">
-                        Overview
-                    </a>
-
-                    <a href="pages/PersonalFleet/Personaldashboard.html"
-                       class="nav-item">
-                        Personal Fleet
-                    </a>
-
-                    <a href="pages/Shop/shop-dashboard.html"
-                       class="nav-item">
-                        Shop
-                    </a>
-
-                    <a href="pages/Shop/repair-orders.html"
-                       class="nav-item">
-                        Repair Orders
-                    </a>
-
-                    <a href="pages/Shop/customers.html"
-                       class="nav-item">
-                        Customers
-                    </a>
-
-                    <a href="pages/Mobile/MobileDashboard.html"
-                       class="nav-item">
-                        Mobile
-                    </a>
-
-                    <a href="login.html"
-                       class="nav-item nav-login">
-                        Log in
-                    </a>
-                </nav>
-            </div>
-        </aside>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container header-inner">
+      <a class="brand" href="index.html" aria-label="Track Right home"><span class="brand-mark" aria-hidden="true">TR<span>.</span></span><span>Track Right</span></a>
+      <nav class="header-nav" aria-label="Main navigation">
+        <a href="#workspaces">Workspaces</a>
+        <a href="#approach">How it works</a>
+        <a class="button button-small button-outline" href="login.html">Log in <span aria-hidden="true">↗</span></a>
+      </nav>
     </div>
-   
-    <!-- APP WRAPPER -->
-    <div class="app">
-
-        <!-- NAVBAR -->
-        <header class="navbar">
-
-            <div class="navbar-inner">
-
-                <div class="navbar-left">
-                </div>
-
-                <div class="navbar-brand">
-                    <h2>Track Right Overview</h2>
-                </div>
-
-                <div class="navbar-right">
-                    <a href="login.html" class="public-login-link">Log in</a>
-                </div>
-
-            </div>
-
-        </header>
-
-        <!-- MAIN CONTENT -->
-        <main class="page-content">
-
-            <section class="landing-intro">
-                <div>
-                    <p class="landing-eyebrow">OPERATIONS PLATFORM</p>
-
-                    <h1>Service operations, organized.</h1>
-
-                    <p class="landing-description">
-                        Track Right brings shop, personal fleet, and mobile-service
-                        workflows into focused workspaces built for real repair operations.
-                    </p>
-                </div>
-            </section>
-
-
-            <section class="workspace-grid">
-
-                <a href="pages/PersonalFleet/Personaldashboard.html"
-                   class="workspace-card">
-
-                    <div class="workspace-card-top">
-                        <span class="workspace-number">01</span>
-                        <span class="workspace-status available">Available</span>
-                    </div>
-
-                    <div class="workspace-card-content">
-                        <h2>Personal Fleet</h2>
-
-                        <p>
-                            Manage personal vehicles, service records,
-                            repair orders, costs, and maintenance history.
-                        </p>
-                    </div>
-
-                    <div class="workspace-card-action">
-                        Open Personal Fleet
-                        <span aria-hidden="true">→</span>
-                    </div>
-                </a>
-
-
-                <a href="pages/Shop/shop-dashboard.html"
-                   class="workspace-card">
-
-                    <div class="workspace-card-top">
-                        <span class="workspace-number">02</span>
-                        <span class="workspace-status available">Available</span>
-                    </div>
-
-                    <div class="workspace-card-content">
-                        <h2>Shop Operations</h2>
-
-                        <p>
-                            Manage customers, repair orders, estimates,
-                            approvals, work, invoices, and payments.
-                        </p>
-                    </div>
-
-                    <div class="workspace-card-action">
-                        Open Shop Operations
-                        <span aria-hidden="true">→</span>
-                    </div>
-                </a>
-
-
-                <a href="pages/Mobile/MobileDashboard.html"
-                   class="workspace-card">
-
-                    <div class="workspace-card-top">
-                        <span class="workspace-number">03</span>
-                        <span class="workspace-status available">Available</span>
-                    </div>
-
-                    <div class="workspace-card-content">
-                        <h2>Mobile Service</h2>
-
-                        <p>
-                            Manage appointments, customers, field jobs,
-                            invoices, expenses, and mobile service activity.
-                        </p>
-                    </div>
-
-                    <div class="workspace-card-action">
-                        Open Mobile Service
-                        <span aria-hidden="true">→</span>
-                    </div>
-                </a>
-
-            </section>
-
-
-            <section class="landing-lower">
-
-                <div class="landing-info-panel">
-                    <p class="panel-label">PLATFORM</p>
-                    <h2>Built as separate working environments</h2>
-
-                    <p>
-                        Each Track Right workspace can grow independently while
-                        sharing the same overall platform and design system.
-                    </p>
-                </div>
-
-
-                <div class="landing-info-panel">
-                    <p class="panel-label">NEXT UP</p>
-                    <h2>More modules are on the way</h2>
-
-                    <p>
-                        Parts, inventory, tracking, customer access, and additional
-                        service tools can be added without crowding the main workspaces.
-                    </p>
-                </div>
-
-            </section>
-
-        </main>
-
-    </div>
-
+  </header>
+  <main id="main">
+    <section class="hero">
+      <div class="container hero-layout">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-line"></span> OPERATIONS, IN MOTION</p>
+          <h1>Keep the<br><em>work moving.</em></h1>
+          <p class="hero-description">Repair work moves fast. Track Right gives shops, mobile mechanics, and vehicle owners a clear place to keep the work, costs, and history together.</p>
+          <div class="hero-actions"><a class="button button-primary" href="#workspaces">Explore workspaces <span aria-hidden="true">↗</span></a><a class="text-link" href="login.html">Already have an account? Log in <span aria-hidden="true">→</span></a></div>
+        </div>
+        <div class="hero-graphic" aria-hidden="true">
+          <div class="graphic-heading"><span>TRACK RIGHT / OVERVIEW</span><span class="graphic-dot"></span></div>
+          <div class="graphic-routes"><div class="graphic-route"><span class="route-index">01</span><span>Shop operations</span><span class="route-arrow">↗</span></div><div class="graphic-route"><span class="route-index">02</span><span>Personal fleet</span><span class="route-arrow">↗</span></div><div class="graphic-route"><span class="route-index">03</span><span>Mobile service</span><span class="route-arrow">↗</span></div></div>
+          <div class="graphic-footer"><span>ONE PLACE FOR THE WHOLE STORY</span><span>● &nbsp; REPAIR &nbsp; ● &nbsp; MAINTAIN &nbsp; ● &nbsp; MOVE</span></div>
+        </div>
+      </div>
+    </section>
+    <section class="workspace-section" id="workspaces" aria-labelledby="workspaces-title">
+      <div class="container">
+        <div class="section-heading"><div><p class="eyebrow">BUILT AROUND THE WORK</p><h2 id="workspaces-title">Find your workspace.</h2></div><p>Focused tools for the different ways people keep vehicles and equipment working.</p></div>
+        <div class="workspace-grid">
+          <article class="workspace-card"><div class="card-top"><span class="card-number">01 / SHOP</span><span class="card-icon" aria-hidden="true">↗</span></div><div><h3>Shop operations</h3><p>Keep customers, repair orders, estimates, and invoices connected from intake through payment.</p></div><span class="card-detail">For repair shops and their teams</span></article>
+          <article class="workspace-card"><div class="card-top"><span class="card-number">02 / FLEET</span><span class="card-icon" aria-hidden="true">↗</span></div><div><h3>Personal fleet</h3><p>Follow service history, maintenance, and ownership costs across your vehicles and equipment.</p></div><span class="card-detail">For people managing their own units</span></article>
+          <article class="workspace-card"><div class="card-top"><span class="card-number">03 / FIELD</span><span class="card-icon" aria-hidden="true">↗</span></div><div><h3>Mobile service</h3><p>Bring appointments, field jobs, customer details, and expenses together wherever the work happens.</p></div><span class="card-detail">For service teams on the move</span></article>
+        </div>
+        <p class="workspace-note">Commercial fleet maintenance is in development.</p>
+      </div>
+    </section>
+    <section class="approach-section" id="approach" aria-labelledby="approach-title"><div class="container approach-layout"><div><p class="eyebrow">THE IDEA</p><h2 id="approach-title">A clearer picture of every job and every unit.</h2></div><div class="approach-steps"><div><span>01</span><p>Record what needs attention and the work that gets done.</p></div><div><span>02</span><p>Keep the details and costs with the right customer or vehicle.</p></div><div><span>03</span><p>Look back at the history when it is time to make the next call.</p></div></div></div></section>
+    <section class="closing-section"><div class="container closing-inner"><div><p class="eyebrow">READY TO GET BACK TO IT?</p><h2>Your workspace is waiting.</h2></div><a class="button button-primary" href="login.html">Log in to Track Right <span aria-hidden="true">↗</span></a></div></section>
+  </main>
+  <footer class="site-footer"><div class="container footer-inner"><span>Track Right</span><span>Built for the work that keeps things moving.</span></div></footer>
 </body>
-
 </html>
