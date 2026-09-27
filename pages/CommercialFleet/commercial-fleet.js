@@ -149,6 +149,7 @@
     const records = data.services.filter(item => !start || item.date >= start);
     const spend = records.reduce((sum, item) => sum + number(item.cost), 0);
     const downtime = records.reduce((sum, item) => sum + number(item.down), 0);
+    const serviced = new Set(records.map(item => item.unitId)).size;
     const available = data.units.filter(unit => unit.status === 'active').length;
     const fleetSize = data.units.length;
     const dueUnits = data.units.filter(due);
@@ -159,10 +160,16 @@
     $('readiness-rate').textContent = rate;
     $('readiness-detail').textContent = fleetSize ? `${available} of ${fleetSize} units marked available` : 'Add units to calculate readiness';
     $('fleet-size-detail').textContent = `of ${fleetSize} units`;
+    if (!fleetSize) {
+      $('unit-count').textContent = '—';
+      $('down-count').textContent = '—';
+      $('due-count').textContent = '—';
+    }
     $('urgent-detail').textContent = `${urgent} urgent`;
     $('schedule-detail').textContent = `${upcoming} in next 7 days`;
     $('spend-total').textContent = money(spend);
-    $('period-spend').textContent = money(spend);
+    $('completed-count').textContent = String(records.length);
+    $('avg-unit-spend').textContent = serviced ? money(spend / serviced) : '—';
     $('spend-period-label').textContent = periodLabel;
     $('cost-period-label').textContent = periodLabel;
     $('downtime-hours').textContent = `${downtime.toLocaleString()} hr`;
@@ -177,6 +184,21 @@
       comparison = `${money(priorSpend)} in prior comparable period`;
     }
     $('spend-comparison').textContent = comparison;
+    const trend = $('trend-bars'); trend.replaceChildren();
+    const months = Array.from({ length: 6 }, (_, index) => {
+      const date = new Date(today.getFullYear(), today.getMonth() - (5 - index), 1);
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      return { key, label: date.toLocaleDateString(undefined, { month: 'short', year: '2-digit' }), value: data.services.filter(item => item.date.startsWith(key)).reduce((sum, item) => sum + number(item.cost), 0) };
+    });
+    if (!data.services.length) empty(trend, 'Log completed maintenance to see a monthly trend.');
+    else for (const month of months) {
+      const row = node('div', undefined, 'spend-row');
+      row.append(node('span', month.label));
+      const track = node('div', undefined, 'spend-track');
+      const fill = node('div', undefined, 'spend-fill');
+      fill.style.width = `${Math.max(...months.map(m => m.value)) ? month.value / Math.max(...months.map(m => m.value)) * 100 : 0}%`;
+      track.append(fill); row.append(track, node('strong', money(month.value))); trend.append(row);
+    }
     const byDivision = new Map();
     for (const item of records) {
       const unit = data.units.find(u => u.id === item.unitId);
