@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Commercial Fleet | Track Right</title>
+  <link rel="stylesheet" href="commercial-fleet.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="top"><div class="shell top-inner"><div><a class="brand" href="../../index.html">Track Right</a><span class="product">/ Commercial Fleet</span></div><span class="preview">LOCAL CONCEPT · NOT CONNECTED TO SHOP DATA</span></div></header>
+  <div class="shell layout">
+    <nav class="nav" aria-label="Commercial Fleet sections"><a href="#overview">Overview</a><a href="#units">Units</a><a href="#maintenance">Maintenance</a><a href="#metrics">Metrics</a></nav>
+    <main id="main">
+      <section class="intro" id="overview"><p class="eyebrow">OPERATIONS / MAINTENANCE</p><h1>Know what needs the next wrench.</h1><p>One view for trucks, trailers, and equipment. Start with maintenance and costs; jobs and tracking can come later.</p></section>
+      <div class="metrics"><article><strong id="unit-count">0</strong><span>Active units</span></article><article><strong id="due-count">0</strong><span>PM due / overdue</span></article><article><strong id="down-count">0</strong><span>Out of service</span></article><article><strong id="spend-total">$0</strong><span>Recorded spend</span></article></div>
+      <section class="panel"><div class="section-head"><div><p class="eyebrow">TODAY'S VIEW</p><h2>Needs attention</h2></div><span class="hint">Due status uses your entered meter and next service reading.</span></div><div id="attention" class="rows"></div></section>
+      <section class="panel" id="units"><div class="section-head"><div><p class="eyebrow">ASSETS</p><h2>Fleet units</h2></div><span class="hint">Add a truck, trailer, or piece of equipment.</span></div>
+        <form id="unit-form" class="form-grid">
+          <label>Unit name / number<input id="unit-name" required maxlength="70" placeholder="Truck 12"></label>
+          <label>Type<select id="unit-type"><option>Truck</option><option>Trailer</option><option>Equipment</option></select></label>
+          <label>Division / crew<input id="unit-division" maxlength="60" placeholder="Landscape crew"></label>
+          <label>Location<input id="unit-location" maxlength="60" placeholder="North yard"></label>
+          <label>Meter type<select id="unit-meter-type"><option value="miles">Miles</option><option value="hours">Hours</option><option value="none">Date only</option></select></label>
+          <label>Current reading<input id="unit-meter" type="number" min="0" step="1" value="0"></label>
+          <label>Next PM at reading<input id="unit-next" type="number" min="0" step="1" placeholder="Optional"></label>
+          <label>Availability<select id="unit-status"><option value="active">Available</option><option value="down">Out of service</option></select></label>
+          <button class="primary" type="submit">Add unit</button>
+        </form>
+        <div class="rows" id="units-list"></div>
+      </section>
+      <section class="panel" id="maintenance"><div class="section-head"><div><p class="eyebrow">WORK HISTORY</p><h2>Maintenance log</h2></div><span class="hint">Completed work follows the unit.</span></div>
+        <form id="service-form" class="form-grid">
+          <label>Unit<select id="service-unit" required></select></label>
+          <label>Completed on<input id="service-date" type="date" required></label>
+          <label>Work performed<input id="service-work" required maxlength="100" placeholder="Oil service"></label>
+          <label>Vendor / technician<input id="service-vendor" maxlength="70" placeholder="Optional"></label>
+          <label>Cost ($)<input id="service-cost" type="number" min="0" step=".01" value="0"></label>
+          <label>Downtime (hours)<input id="service-down" type="number" min="0" step=".25" value="0"></label>
+          <label>Meter at service<input id="service-meter" type="number" min="0" step="1" placeholder="Optional"></label>
+          <label>Next PM reading<input id="service-next" type="number" min="0" step="1" placeholder="Optional"></label>
+          <button class="primary" type="submit">Log completed work</button>
+        </form>
+        <div class="rows" id="service-list"></div>
+      </section>
+      <section class="panel" id="metrics"><div class="section-head"><div><p class="eyebrow">FLEET HEALTH</p><h2>Costs by unit</h2></div><span class="hint">Based on maintenance entries recorded here.</span></div><div class="table-wrap"><table><thead><tr><th>Unit</th><th>Type / division</th><th>Maintenance spend</th><th>Downtime</th><th>Next PM</th></tr></thead><tbody id="unit-metrics"></tbody></table></div></section>
+      <div class="row"><div><strong>Local concept data</strong><small>Download a copy before clearing this browser's storage.</small></div><button id="export-concept" class="secondary" type="button">Export concept JSON</button></div>
+      <p class="footnote">Concept data stays in this browser only. No team sync, alerts, shop records, or live telemetry are connected. This JSON export is for review; it is not a Track Right Shop backup.</p>
+    </main>
+  </div>
+  <script src="commercial-fleet.js"></script>
+</body>
+</html>
