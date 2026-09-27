@@ -308,8 +308,26 @@
                         VIN or Serial Number
 
                         <input id="customer-unit-serial"
-                               type="text">
+                               type="text"
+                               autocomplete="off"
+                               spellcheck="false">
                     </label>
+                    <div class="vin-lookup">
+                        <button id="decode-customer-unit-vin" type="button">Decode road-vehicle VIN</button>
+                        <small>Equipment serial numbers stay manual. Suggested details are never saved automatically.</small>
+                    </div>
+                </div>
+
+                <div id="vin-lookup-result" class="vin-lookup-result" hidden>
+                    <p id="vin-lookup-status" role="status" aria-live="polite"></p>
+                    <div id="vin-lookup-fields" hidden>
+                        <dl>
+                            <div><dt>Year</dt><dd id="vin-lookup-year"></dd></div>
+                            <div><dt>Make</dt><dd id="vin-lookup-make"></dd></div>
+                            <div><dt>NHTSA model</dt><dd id="vin-lookup-model"></dd></div>
+                        </dl>
+                        <button id="apply-customer-unit-vin" type="button">Fill empty unit fields</button>
+                    </div>
                 </div>
 
                 <div class="customer-unit-form-actions">
@@ -516,5 +534,6 @@
     <script src="./shop-repair-orders-data.js"></script>
     <script src="./shop-invoices-data.js"></script>
     <script src="customers.js"></script>
+    <script src="../../js/vin-decoder.js"></script>
 </body>
 </html>
