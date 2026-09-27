@@ -30,10 +30,11 @@
     return `${remaining.toLocaleString()} ${unit.meterType} to PM` + (unit.nextDate ? ` / ${unit.nextDate}` : '');
   };
   function render() {
-    $('unit-count').textContent = data.units.filter(unit => unit.status === 'active').length;
-    $('due-count').textContent = data.units.filter(due).length;
-    $('down-count').textContent = data.units.filter(unit => unit.status === 'down').length;
-    $('spend-total').textContent = money(data.services.reduce((sum, service) => sum + service.cost, 0));
+    if ($('unit-count')) $('unit-count').textContent = data.units.filter(unit => unit.status === 'active').length;
+    if ($('due-count')) $('due-count').textContent = data.units.filter(due).length;
+    if ($('down-count')) $('down-count').textContent = data.units.filter(unit => unit.status === 'down').length;
+    if ($('spend-total')) $('spend-total').textContent = money(data.services.reduce((sum, service) => sum + service.cost, 0));
+    if ($('service-unit')) {
     const options = $('service-unit');
     const selected = options.value;
     options.replaceChildren(node('option', 'Select a unit'));
@@ -44,6 +45,8 @@
       options.append(option);
     }
     if (data.units.some(unit => unit.id === selected)) options.value = selected;
+    }
+    if ($('attention')) {
     const attention = $('attention');
     attention.replaceChildren();
     const needing = data.units.filter(unit => unit.status === 'down' || due(unit));
@@ -55,6 +58,8 @@
       row.append(detail, node('span', unit.status === 'down' ? 'Out of service' : pm(unit), 'pill'));
       attention.append(row);
     }
+    }
+    if ($('units-list')) {
     const units = $('units-list');
     units.replaceChildren();
     if (!data.units.length) empty(units, 'No units yet. Add your first truck, trailer, or machine above.');
@@ -82,6 +87,8 @@
       row.append(info, actions);
       units.append(row);
     }
+    }
+    if ($('service-list')) {
     const services = $('service-list');
     services.replaceChildren();
     if (!data.services.length) empty(services, 'No completed maintenance recorded yet.');
@@ -93,6 +100,8 @@
       row.append(info, node('strong', money(record.cost)));
       services.append(row);
     }
+    }
+    if ($('unit-metrics')) {
     const table = $('unit-metrics');
     table.replaceChildren();
     if (!data.units.length) {
@@ -105,8 +114,9 @@
       for (const cell of [unit.name, `${unit.type} / ${unit.division || '—'}`, money(records.reduce((sum, record) => sum + record.cost, 0)), `${records.reduce((sum, record) => sum + record.down, 0)} hr`, pm(unit)]) tr.append(node('td', cell));
       table.append(tr);
     }
+    }
   }
-  $('unit-form').addEventListener('submit', event => {
+  if ($('unit-form')) $('unit-form').addEventListener('submit', event => {
     event.preventDefault();
     const type = $('unit-meter-type').value;
     const nextText = $('unit-next').value;
@@ -118,7 +128,7 @@
     });
     save(); $('unit-form').reset(); render();
   });
-  $('service-form').addEventListener('submit', event => {
+  if ($('service-form')) $('service-form').addEventListener('submit', event => {
     event.preventDefault();
     const unit = data.units.find(item => item.id === $('service-unit').value);
     if (!unit) { alert('Select a unit first.'); return; }
@@ -134,8 +144,8 @@
     if ($('service-next-date').value) unit.nextDate = $('service-next-date').value;
     save(); $('service-form').reset(); $('service-date').value = new Date().toISOString().slice(0, 10); render();
   });
-  $('service-date').value = new Date().toISOString().slice(0, 10);
-  $('export-concept').onclick = () => {
+  if ($('service-date')) $('service-date').value = new Date().toISOString().slice(0, 10);
+  if ($('export-concept')) $('export-concept').onclick = () => {
     const url = URL.createObjectURL(new Blob([JSON.stringify({ version: 1, exportedAt: new Date().toISOString(), ...data }, null, 2)], { type: 'application/json' }));
     const link = document.createElement('a');
     link.href = url; link.download = 'commercial-fleet-concept.json'; link.click();
