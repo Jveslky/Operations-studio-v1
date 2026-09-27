@@ -12,7 +12,7 @@
         description.textContent = "Your login works, but this account has not accepted a Personal Fleet invitation. Open the private invitation link you received to finish setup.";
     } else if (workspace === "platform") {
         title.textContent = "Development access required";
-        description.textContent = "This account does not have Track Right platform-administrator access.";
+        description.textContent = "This account does not have Long Shift platform-administrator access.";
     } else {
         title.textContent = "Shop access required";
         description.textContent = "Your login works, but this account has not been connected to a shop. Ask the shop owner or administrator to add you.";
