@@ -761,7 +761,7 @@ importBackupInput.addEventListener(
                     console.error(error);
 
                     alert(
-                        "That file could not be imported. Make sure it is a Track Right backup."
+                        "That file could not be imported. Make sure it is a Long Shift backup."
                     );
                 }
 
