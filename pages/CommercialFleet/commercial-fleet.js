@@ -135,6 +135,94 @@
     }
     }
     renderExtra();
+    renderDashboard();
+  }
+  function renderDashboard() {
+    if (!$('readiness-rate')) return;
+    const today = new Date();
+    const localDate = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    const period = $('dashboard-period').value;
+    const from = new Date(today.getFullYear(), today.getMonth(), 1);
+    if (period === '30') from.setTime(today.getTime() - 29 * 86400000);
+    const start = period === 'all' ? '' : localDate(from);
+    const periodLabel = period === 'month' ? 'This month' : period === '30' ? 'Last 30 days' : 'All recorded time';
+    const records = data.services.filter(item => !start || item.date >= start);
+    const spend = records.reduce((sum, item) => sum + number(item.cost), 0);
+    const downtime = records.reduce((sum, item) => sum + number(item.down), 0);
+    const available = data.units.filter(unit => unit.status === 'active').length;
+    const fleetSize = data.units.length;
+    const dueUnits = data.units.filter(due);
+    const urgent = data.repairs.filter(item => item.status !== 'Closed' && item.priority === 'Urgent').length;
+    const nextWeek = localDate(new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7));
+    const upcoming = data.schedules.filter(item => !item.done && item.when.slice(0, 10) >= localDate(today) && item.when.slice(0, 10) <= nextWeek).length;
+    const rate = fleetSize ? Math.round(available / fleetSize * 100) + '%' : '—';
+    $('readiness-rate').textContent = rate;
+    $('readiness-detail').textContent = fleetSize ? `${available} of ${fleetSize} units marked available` : 'Add units to calculate readiness';
+    $('fleet-size-detail').textContent = `of ${fleetSize} units`;
+    $('urgent-detail').textContent = `${urgent} urgent`;
+    $('schedule-detail').textContent = `${upcoming} in next 7 days`;
+    $('spend-total').textContent = money(spend);
+    $('period-spend').textContent = money(spend);
+    $('spend-period-label').textContent = periodLabel;
+    $('cost-period-label').textContent = periodLabel;
+    $('downtime-hours').textContent = `${downtime.toLocaleString()} hr`;
+    $('downtime-context').textContent = records.length ? `Across ${records.length} completed maintenance entr${records.length === 1 ? 'y' : 'ies'}` : 'No completed maintenance recorded in this period';
+    $('as-of-label').textContent = `Local records · ${today.toLocaleDateString()}`;
+    let comparison = 'Choose a time period to compare';
+    if (period !== 'all') {
+      const priorEnd = new Date(from.getTime() - 86400000);
+      const priorStart = period === 'month' ? new Date(from.getFullYear(), from.getMonth() - 1, 1) : new Date(priorEnd.getTime() - 29 * 86400000);
+      const previous = data.services.filter(item => item.date >= localDate(priorStart) && item.date <= localDate(priorEnd));
+      const priorSpend = previous.reduce((sum, item) => sum + number(item.cost), 0);
+      comparison = `${money(priorSpend)} in prior comparable period`;
+    }
+    $('spend-comparison').textContent = comparison;
+    const byDivision = new Map();
+    for (const item of records) {
+      const unit = data.units.find(u => u.id === item.unitId);
+      const label = unit?.division || 'Unassigned';
+      byDivision.set(label, (byDivision.get(label) || 0) + number(item.cost));
+    }
+    const bars = $('spend-bars'); bars.replaceChildren();
+    const divisions = [...byDivision].sort((a, b) => b[1] - a[1]).slice(0, 5);
+    if (!divisions.length) empty(bars, 'Log maintenance to see spending by division.');
+    for (const [name, value] of divisions) {
+      const row = node('div', undefined, 'spend-row');
+      row.append(node('span', name));
+      const track = node('div', undefined, 'spend-track');
+      const fill = node('div', undefined, 'spend-fill');
+      fill.style.width = `${spend ? value / spend * 100 : 0}%`;
+      track.append(fill);
+      row.append(track, node('strong', money(value)));
+      bars.append(row);
+    }
+    const types = $('fleet-breakdown'); types.replaceChildren();
+    for (const type of ['Truck', 'Trailer', 'Equipment']) {
+      const units = data.units.filter(unit => unit.type === type);
+      if (!units.length) continue;
+      const row = node('div', undefined, 'readiness-item');
+      row.append(node('strong', type + 's'), node('span', `${units.filter(u => u.status === 'active').length} / ${units.length} available`));
+      types.append(row);
+    }
+    if (!types.children.length) empty(types, 'Add fleet units for an availability breakdown.');
+    const points = [];
+    points.push(fleetSize ? `${available} of ${fleetSize} units marked available (${rate}).` : 'No fleet units recorded yet.');
+    points.push(`${dueUnits.length} unit${dueUnits.length === 1 ? '' : 's'} due for PM; ${data.units.filter(u => u.status === 'down').length} marked out of service.`);
+    points.push(`${data.repairs.filter(r => r.status !== 'Closed').length} open repairs (${urgent} urgent); ${upcoming} visits scheduled in the next 7 days.`);
+    points.push(`${money(spend)} maintenance spend and ${downtime.toLocaleString()} downtime hours recorded for ${periodLabel.toLowerCase()}.`);
+    const brief = $('manager-brief'); brief.replaceChildren();
+    points.forEach((point, index) => {
+      const row = node('div', undefined, 'brief-point');
+      row.append(node('span', String(index + 1).padStart(2, '0')), node('p', point));
+      brief.append(row);
+    });
+    $('copy-brief').onclick = async () => {
+      try {
+        await navigator.clipboard.writeText('Commercial Fleet · ' + today.toLocaleDateString() + '\n' + points.join('\n'));
+        $('copy-brief').textContent = 'Copied';
+        setTimeout(() => { $('copy-brief').textContent = 'Copy brief'; }, 1800);
+      } catch (_) { $('copy-brief').textContent = 'Copy unavailable'; }
+    };
   }
   function fillUnitSelect(id) {
     const select = $(id);
@@ -281,5 +369,6 @@
     link.href = url; link.download = 'commercial-fleet-concept.json'; link.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
+  if ($('dashboard-period')) $('dashboard-period').onchange = renderDashboard;
   render();
 })();
