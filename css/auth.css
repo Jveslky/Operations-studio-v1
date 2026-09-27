@@ -138,3 +138,5 @@ body.auth-page {
     .auth-card { padding: 23px; }
     .account-identity { display: none; }
 }
+
+.auth-brand .trademark{margin-left:2px;font-size:.42em;line-height:0;vertical-align:super;letter-spacing:0}
