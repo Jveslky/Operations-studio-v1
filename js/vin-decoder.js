@@ -63,10 +63,17 @@
                 status.textContent = "NHTSA returned no result. Check the VIN or enter unit details manually.";
                 return;
             }
+            const model = String(decoded.Model || "").trim();
+            const series = String(decoded.Series || "").trim();
+            // vPIC sometimes places the Ram weight class in Series instead of Model.
+            const displayModel = /\bram\b/i.test(model)
+                && /^(1500|2500|3500|4500|5500)$/.test(series)
+                && !new RegExp(`\\b${series}\\b`).test(model)
+                ? `${model} ${series}` : model;
             const values = {
                 year: String(decoded.ModelYear || "").trim(),
                 make: String(decoded.Make || "").trim(),
-                model: String(decoded.Model || "").trim()
+                model: displayModel
             };
             if (!values.year && !values.make && !values.model) {
                 status.textContent = code === "0"
