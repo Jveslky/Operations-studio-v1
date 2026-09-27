@@ -21,15 +21,17 @@
     return element;
   };
   const empty = (container, message) => container.append(node('div', message, 'empty'));
-  const reading = unit => unit.meterType === 'none' ? 'Date based' : `${number(unit.meter).toLocaleString()} ${unit.meterType}`;
+  const reading = unit => unit.meterType === 'none' ? 'No meter' : `${number(unit.meter).toLocaleString()} ${unit.meterType}`;
+  const due = unit => (unit.meterType !== 'none' && unit.next !== null && unit.meter >= unit.next) || (unit.nextDate && unit.nextDate <= new Date().toISOString().slice(0, 10));
   const pm = unit => {
-    if (unit.meterType === 'none' || unit.next === null) return 'PM not scheduled';
+    if (due(unit)) return 'PM due now';
+    if (unit.meterType === 'none' || unit.next === null) return unit.nextDate ? `PM by ${unit.nextDate}` : 'PM not scheduled';
     const remaining = unit.next - unit.meter;
-    return remaining <= 0 ? 'PM due now' : `${remaining.toLocaleString()} ${unit.meterType} to PM`;
+    return `${remaining.toLocaleString()} ${unit.meterType} to PM` + (unit.nextDate ? ` / ${unit.nextDate}` : '');
   };
   function render() {
     $('unit-count').textContent = data.units.filter(unit => unit.status === 'active').length;
-    $('due-count').textContent = data.units.filter(unit => unit.meterType !== 'none' && unit.next !== null && unit.meter >= unit.next).length;
+    $('due-count').textContent = data.units.filter(due).length;
     $('down-count').textContent = data.units.filter(unit => unit.status === 'down').length;
     $('spend-total').textContent = money(data.services.reduce((sum, service) => sum + service.cost, 0));
     const options = $('service-unit');
@@ -44,7 +46,7 @@
     if (data.units.some(unit => unit.id === selected)) options.value = selected;
     const attention = $('attention');
     attention.replaceChildren();
-    const needing = data.units.filter(unit => unit.status === 'down' || (unit.meterType !== 'none' && unit.next !== null && unit.meter >= unit.next));
+    const needing = data.units.filter(unit => unit.status === 'down' || due(unit));
     if (!needing.length) empty(attention, data.units.length ? 'No units marked down or due for PM.' : 'Add a unit to start the fleet overview.');
     for (const unit of needing) {
       const row = node('div', undefined, 'row ' + (unit.status === 'down' ? 'down' : 'warning'));
@@ -112,7 +114,7 @@
       id: uid(), name: $('unit-name').value.trim(), type: $('unit-type').value,
       division: $('unit-division').value.trim(), location: $('unit-location').value.trim(),
       meterType: type, meter: type === 'none' ? 0 : number($('unit-meter').value),
-      next: type === 'none' || nextText === '' ? null : number(nextText), status: $('unit-status').value
+      next: type === 'none' || nextText === '' ? null : number(nextText), nextDate: $('unit-next-date').value, status: $('unit-status').value
     });
     save(); $('unit-form').reset(); render();
   });
@@ -129,6 +131,7 @@
     });
     if (unit.meterType !== 'none' && meterText !== '') unit.meter = number(meterText);
     if (unit.meterType !== 'none' && nextText !== '') unit.next = number(nextText);
+    if ($('service-next-date').value) unit.nextDate = $('service-next-date').value;
     save(); $('service-form').reset(); $('service-date').value = new Date().toISOString().slice(0, 10); render();
   });
   $('service-date').value = new Date().toISOString().slice(0, 10);
