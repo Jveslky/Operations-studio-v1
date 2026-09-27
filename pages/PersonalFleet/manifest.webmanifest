@@ -1,7 +1,7 @@
 {
-  "name": "Track Right PFleet",
+  "name": "Long Shift PFleet",
   "short_name": "PFleet",
-  "description": "Personal fleet records in Track Right",
+  "description": "Personal fleet records in Long Shift",
   "start_url": "./Personaldashboard.html",
   "scope": "./",
   "display": "browser",

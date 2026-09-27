@@ -27,7 +27,7 @@
         }
 
         localStorage.removeItem("track-right-invite-token");
-        showMessage("Invitation accepted. Opening Track Right…", "success");
+        showMessage("Invitation accepted. Opening Long Shift…", "success");
         window.location.replace("pages/Shop/shop-dashboard.html");
     }
 

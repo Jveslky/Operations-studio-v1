@@ -437,7 +437,7 @@ body {
     }
 }
 /* =========================================================
-   TRACK RIGHT LANDING PAGE
+   LONG SHIFT LANDING PAGE
    Main content only
    ========================================================= */
 
@@ -693,3 +693,8 @@ a.workspace-card:hover .workspace-card-action {
         padding-top: 32px;
     }
 }
+
+/* Shared workspace identity: one product name, one module label. */
+.app-header .app-brand { display: inline-flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 3px; line-height: 1.05; white-space: nowrap; }
+.app-header .app-brand .brand-title { display: block; color: #e66b32; font-size: 22px; font-weight: 800; }
+.app-header .app-brand .brand-module { display: block; color: #f5f6f7; font-size: 11px; font-weight: 600; line-height: 1.1; letter-spacing: .01em; }

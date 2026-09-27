@@ -165,7 +165,7 @@
         try {
             const data = JSON.parse(await file.text());
             if (data.format !== "track-right-shop-backup" || data.version !== 2 || !data.cloud) {
-                throw new Error("This is not a supported version 2 Track Right Shop backup.");
+                throw new Error("This is not a supported version 2 Long Shift Shop backup.");
             }
             if (data.source_shop_id !== context.shopId) {
                 throw new Error("This backup belongs to a different shop and cannot be imported here.");

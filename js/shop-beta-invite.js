@@ -21,7 +21,7 @@
         const result=await client.rpc("get_shop_beta_invitation",{invitation_token:token});
         if(result.error||!result.data?.length){summary.textContent="This invitation is invalid or no longer available.";show("Ask for a new Shop beta invitation.","error");return;}
         const invitation=result.data[0];
-        summary.textContent=`You’re invited to create ${invitation.shop_name} on Track Right Shop beta.`;
+        summary.textContent=`You’re invited to create ${invitation.shop_name} on Long Shift Shop beta.`;
         localStorage.setItem("track-right-shop-beta-token",token);
         const session=await client.auth.getSession();
         if(session.data.session){acceptButton.hidden=false;return;}

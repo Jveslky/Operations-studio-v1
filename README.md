@@ -96,7 +96,7 @@ Prototype platform architecture and workflow validation.
 
 ## Authentication setup
 
-Track Right uses Supabase Auth with shop-scoped membership and roles.
+Long Shift uses Supabase Auth with shop-scoped membership and roles.
 
 1. Run `supabase/auth-and-membership.sql` in the Supabase SQL editor.
 2. In Supabase Authentication URL Configuration, set the production Site URL.
