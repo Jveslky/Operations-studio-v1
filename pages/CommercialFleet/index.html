@@ -12,7 +12,7 @@
     <nav class="nav" aria-label="Commercial Fleet sections"><a href="#overview">Overview</a><a href="#units">Units</a><a href="#maintenance">Maintenance</a><a href="#metrics">Metrics</a></nav>
     <main id="main">
       <section class="intro" id="overview"><p class="eyebrow">OPERATIONS / MAINTENANCE</p><h1>Know what needs the next wrench.</h1><p>One view for trucks, trailers, and equipment. Start with maintenance and costs; jobs and tracking can come later.</p></section>
-      <div class="metrics"><article><strong id="unit-count">0</strong><span>Active units</span></article><article><strong id="due-count">0</strong><span>PM due / overdue</span></article><article><strong id="down-count">0</strong><span>Out of service</span></article><article><strong id="spend-total">$0</strong><span>Recorded spend</span></article></div>
+      <div class="metrics"><article><strong id="unit-count">0</strong><span>Available units</span></article><article><strong id="due-count">0</strong><span>PM due / overdue</span></article><article><strong id="down-count">0</strong><span>Out of service</span></article><article><strong id="spend-total">$0</strong><span>Recorded spend</span></article></div>
       <section class="panel"><div class="section-head"><div><p class="eyebrow">TODAY'S VIEW</p><h2>Needs attention</h2></div><span class="hint">Due status uses your entered meter and next service reading.</span></div><div id="attention" class="rows"></div></section>
       <section class="panel" id="units"><div class="section-head"><div><p class="eyebrow">ASSETS</p><h2>Fleet units</h2></div><span class="hint">Add a truck, trailer, or piece of equipment.</span></div>
         <form id="unit-form" class="form-grid">
@@ -20,9 +20,10 @@
           <label>Type<select id="unit-type"><option>Truck</option><option>Trailer</option><option>Equipment</option></select></label>
           <label>Division / crew<input id="unit-division" maxlength="60" placeholder="Landscape crew"></label>
           <label>Location<input id="unit-location" maxlength="60" placeholder="North yard"></label>
-          <label>Meter type<select id="unit-meter-type"><option value="miles">Miles</option><option value="hours">Hours</option><option value="none">Date only</option></select></label>
+          <label>Meter type<select id="unit-meter-type"><option value="miles">Miles</option><option value="hours">Hours</option><option value="none">No meter</option></select></label>
           <label>Current reading<input id="unit-meter" type="number" min="0" step="1" value="0"></label>
           <label>Next PM at reading<input id="unit-next" type="number" min="0" step="1" placeholder="Optional"></label>
+          <label>Next PM date<input id="unit-next-date" type="date"></label>
           <label>Availability<select id="unit-status"><option value="active">Available</option><option value="down">Out of service</option></select></label>
           <button class="primary" type="submit">Add unit</button>
         </form>
@@ -38,6 +39,7 @@
           <label>Downtime (hours)<input id="service-down" type="number" min="0" step=".25" value="0"></label>
           <label>Meter at service<input id="service-meter" type="number" min="0" step="1" placeholder="Optional"></label>
           <label>Next PM reading<input id="service-next" type="number" min="0" step="1" placeholder="Optional"></label>
+          <label>Next PM date<input id="service-next-date" type="date"></label>
           <button class="primary" type="submit">Log completed work</button>
         </form>
         <div class="rows" id="service-list"></div>
