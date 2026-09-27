@@ -39,7 +39,7 @@
             detail: message
         }));
         if (document.documentElement.dataset.authReady === "true") {
-            window.alert(`Track Right could not save this change: ${message}`);
+            window.alert(`Long Shift could not save this change: ${message}`);
         }
     }
 
