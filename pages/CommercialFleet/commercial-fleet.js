@@ -5,11 +5,14 @@
   const money = n => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 }).format(n);
   const number = value => Math.max(0, Number(value) || 0);
   const uid = () => crypto.randomUUID ? crypto.randomUUID() : String(Date.now()) + Math.random().toString(36).slice(2);
-  let data = { units: [], services: [] };
+  let data = { units: [], services: [], schedules: [], repairs: [], reminders: [], accounts: [] };
   try {
     const saved = JSON.parse(localStorage.getItem(KEY) || '{}');
     if (Array.isArray(saved.units) && Array.isArray(saved.services)) data = saved;
   } catch (_) { /* Fresh local concept. */ }
+  for (const field of ['units', 'services', 'schedules', 'repairs', 'reminders', 'accounts']) {
+    if (!Array.isArray(data[field])) data[field] = [];
+  }
   const save = () => {
     try { localStorage.setItem(KEY, JSON.stringify(data)); }
     catch (_) { window.alert('This browser could not save the fleet data.'); }
@@ -21,6 +24,11 @@
     return element;
   };
   const empty = (container, message) => container.append(node('div', message, 'empty'));
+  const unitLink = unit => {
+    const link = node('a', unit?.name || 'Unknown unit', 'unit-link');
+    link.href = unit ? `units.html#unit-${unit.id}` : 'units.html';
+    return link;
+  };
   const reading = unit => unit.meterType === 'none' ? 'No meter' : `${number(unit.meter).toLocaleString()} ${unit.meterType}`;
   const due = unit => (unit.meterType !== 'none' && unit.next !== null && unit.meter >= unit.next) || (unit.nextDate && unit.nextDate <= new Date().toISOString().slice(0, 10));
   const pm = unit => {
@@ -34,6 +42,8 @@
     if ($('due-count')) $('due-count').textContent = data.units.filter(due).length;
     if ($('down-count')) $('down-count').textContent = data.units.filter(unit => unit.status === 'down').length;
     if ($('spend-total')) $('spend-total').textContent = money(data.services.reduce((sum, service) => sum + service.cost, 0));
+    if ($('scheduled-count')) $('scheduled-count').textContent = data.schedules.filter(item => !item.done).length;
+    if ($('repair-count')) $('repair-count').textContent = data.repairs.filter(item => item.status !== 'Closed').length;
     if ($('service-unit')) {
     const options = $('service-unit');
     const selected = options.value;
@@ -66,7 +76,9 @@
     for (const unit of data.units) {
       const row = node('div', undefined, 'row ' + (unit.status === 'down' ? 'down' : ''));
       const info = node('div');
-      info.append(node('strong', unit.name), node('small', `${unit.type} · ${unit.division || 'Unassigned division'} · ${unit.location || 'Unassigned location'} · ${reading(unit)} · ${pm(unit)}`));
+      row.id = `unit-${unit.id}`;
+      const title = node('strong'); title.append(unitLink(unit));
+      info.append(title, node('small', `${unit.type} · ${unit.division || 'Unassigned division'} · ${unit.location || 'Unassigned location'} · ${reading(unit)} · ${pm(unit)}`));
       const actions = node('div', undefined, 'row-end');
       actions.append(node('span', unit.status === 'down' ? 'Out of service' : 'Available', 'pill'));
       const status = node('button', unit.status === 'down' ? 'Return to service' : 'Mark down', 'secondary');
@@ -84,6 +96,12 @@
       };
       actions.append(status);
       if (unit.meterType !== 'none') actions.append(meter);
+      if (unit.trackingUrl && /^https?:\/\//i.test(unit.trackingUrl)) {
+        const tracking = node('a', 'Tracking ↗', 'secondary');
+        tracking.href = unit.trackingUrl;
+        tracking.target = '_blank'; tracking.rel = 'noopener noreferrer';
+        actions.append(tracking);
+      }
       row.append(info, actions);
       units.append(row);
     }
@@ -111,11 +129,122 @@
     for (const unit of data.units) {
       const records = data.services.filter(record => record.unitId === unit.id);
       const tr = node('tr');
-      for (const cell of [unit.name, `${unit.type} / ${unit.division || '—'}`, money(records.reduce((sum, record) => sum + record.cost, 0)), `${records.reduce((sum, record) => sum + record.down, 0)} hr`, pm(unit)]) tr.append(node('td', cell));
+      const first = node('td'); first.append(unitLink(unit)); tr.append(first);
+      for (const cell of [`${unit.type} / ${unit.division || '—'}`, money(records.reduce((sum, record) => sum + record.cost, 0)), `${records.reduce((sum, record) => sum + record.down, 0)} hr`, pm(unit)]) tr.append(node('td', cell));
       table.append(tr);
     }
     }
+    renderExtra();
   }
+  function fillUnitSelect(id) {
+    const select = $(id);
+    if (!select) return;
+    const previous = select.value;
+    select.replaceChildren();
+    const placeholder = node('option', 'Select a unit'); placeholder.value = '';
+    select.append(placeholder);
+    for (const unit of data.units) {
+      const option = node('option', unit.name); option.value = unit.id; select.append(option);
+    }
+    if (data.units.some(unit => unit.id === previous)) select.value = previous;
+  }
+  function linkedRow(unit, title, detail, action) {
+    const row = node('div', undefined, 'row');
+    const info = node('div');
+    const heading = node('strong', title);
+    const line = node('small'); line.append(unitLink(unit), document.createTextNode(' · ' + detail));
+    info.append(heading, line); row.append(info);
+    if (action) row.append(action);
+    return row;
+  }
+  function renderExtra() {
+    for (const id of ['schedule-unit', 'repair-unit', 'reminder-unit']) fillUnitSelect(id);
+    const schedules = $('schedule-list');
+    if (schedules) {
+      schedules.replaceChildren();
+      if (!data.schedules.length) empty(schedules, 'No visits scheduled yet.');
+      for (const item of [...data.schedules].sort((a, b) => a.when.localeCompare(b.when))) {
+        const unit = data.units.find(u => u.id === item.unitId);
+        const button = node('button', item.done ? 'Reopen' : 'Complete', 'secondary');
+        button.type = 'button';
+        button.onclick = () => { item.done = !item.done; save(); render(); };
+        const row = linkedRow(unit, item.title, `${item.when.replace('T', ' ')} · ${item.assigned || 'Unassigned'} · ${item.done ? 'Done' : 'Planned'}`, button);
+        schedules.append(row);
+      }
+    }
+    const repairs = $('repair-list');
+    if (repairs) {
+      repairs.replaceChildren();
+      if (!data.repairs.length) empty(repairs, 'No repair issues logged yet.');
+      for (const item of data.repairs) {
+        const unit = data.units.find(u => u.id === item.unitId);
+        const select = node('select');
+        select.setAttribute('aria-label', `Status for ${item.title}`);
+        for (const label of ['Open', 'In Progress', 'Closed']) {
+          const option = node('option', label); select.append(option);
+        }
+        select.value = item.status;
+        select.onchange = () => { item.status = select.value; save(); render(); };
+        repairs.append(linkedRow(unit, item.title, `${item.priority} priority · ${item.status}`, select));
+      }
+    }
+    const pmList = $('pm-reminders');
+    if (pmList) {
+      pmList.replaceChildren();
+      const planned = data.units.filter(u => u.next !== null || u.nextDate);
+      if (!planned.length) empty(pmList, 'Add a next PM reading or date on the Units page.');
+      for (const unit of planned.sort((a, b) => Number(due(b)) - Number(due(a)))) {
+        const row = linkedRow(unit, due(unit) ? 'PM due' : 'PM planned', pm(unit));
+        if (due(unit)) row.classList.add('warning');
+        pmList.append(row);
+      }
+    }
+    const reminders = $('reminder-list');
+    if (reminders) {
+      reminders.replaceChildren();
+      if (!data.reminders.length) empty(reminders, 'No other reminders yet.');
+      for (const item of [...data.reminders].sort((a, b) => a.date.localeCompare(b.date))) {
+        const unit = data.units.find(u => u.id === item.unitId);
+        const button = node('button', item.done ? 'Reopen' : 'Complete', 'secondary');
+        button.type = 'button';
+        button.onclick = () => { item.done = !item.done; save(); render(); };
+        const row = linkedRow(unit, item.title, `${item.date} · ${item.done ? 'Done' : 'Open'}`, button);
+        if (!item.done && item.date <= new Date().toISOString().slice(0, 10)) row.classList.add('warning');
+        reminders.append(row);
+      }
+    }
+    const accounts = $('account-list');
+    if (accounts) {
+      accounts.replaceChildren();
+      if (!data.accounts.length) empty(accounts, 'No outside service accounts added yet.');
+      for (const item of data.accounts) {
+        const row = node('div', undefined, 'row');
+        const info = node('div');
+        info.append(node('strong', item.name), node('small', `${item.type} · ${item.contact || 'No contact reference'}`));
+        row.append(info); accounts.append(row);
+      }
+    }
+  }
+  if ($('schedule-form')) $('schedule-form').addEventListener('submit', event => {
+    event.preventDefault();
+    data.schedules.push({ id: uid(), unitId: $('schedule-unit').value, when: $('schedule-when').value, title: $('schedule-title').value.trim(), assigned: $('schedule-assigned').value.trim(), done: false });
+    save(); $('schedule-form').reset(); render();
+  });
+  if ($('repair-form')) $('repair-form').addEventListener('submit', event => {
+    event.preventDefault();
+    data.repairs.push({ id: uid(), unitId: $('repair-unit').value, title: $('repair-title').value.trim(), priority: $('repair-priority').value, status: 'Open' });
+    save(); $('repair-form').reset(); render();
+  });
+  if ($('reminder-form')) $('reminder-form').addEventListener('submit', event => {
+    event.preventDefault();
+    data.reminders.push({ id: uid(), unitId: $('reminder-unit').value, title: $('reminder-title').value.trim(), date: $('reminder-date').value, done: false });
+    save(); $('reminder-form').reset(); render();
+  });
+  if ($('account-form')) $('account-form').addEventListener('submit', event => {
+    event.preventDefault();
+    data.accounts.push({ id: uid(), name: $('account-name').value.trim(), type: $('account-type').value, contact: $('account-contact').value.trim() });
+    save(); $('account-form').reset(); render();
+  });
   if ($('unit-form')) $('unit-form').addEventListener('submit', event => {
     event.preventDefault();
     const type = $('unit-meter-type').value;
@@ -124,7 +253,8 @@
       id: uid(), name: $('unit-name').value.trim(), type: $('unit-type').value,
       division: $('unit-division').value.trim(), location: $('unit-location').value.trim(),
       meterType: type, meter: type === 'none' ? 0 : number($('unit-meter').value),
-      next: type === 'none' || nextText === '' ? null : number(nextText), nextDate: $('unit-next-date').value, status: $('unit-status').value
+      next: type === 'none' || nextText === '' ? null : number(nextText), nextDate: $('unit-next-date').value, status: $('unit-status').value,
+      trackingUrl: $('unit-tracking-url').value.trim()
     });
     save(); $('unit-form').reset(); render();
   });
