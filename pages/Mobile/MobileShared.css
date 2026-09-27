@@ -1,5 +1,5 @@
 /* =========================================
-   TRACK RIGHT MOBILE
+   LONG SHIFT MOBILE
    SHARED DESIGN SYSTEM
    ========================================= */
 
@@ -768,3 +768,8 @@ textarea {
     #account-controls { max-width: 46%; }
     .account-identity { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+
+/* Match the workspace identity used across the product. */
+.top-bar { border-bottom: 4px solid #db6128; }
+.top-bar h1 { color: #e66b32; font-weight: 800; }
+.top-bar p { color: #f5f6f7; font-size: 11px; font-weight: 600; }
