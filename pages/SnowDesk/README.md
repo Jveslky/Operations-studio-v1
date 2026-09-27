@@ -1,4 +1,4 @@
-# Snow Desk concept
+# Long Shift Snow Desk concept
 
 Standalone winter operations prototype. Open `index.html` to review the plow/salt estimator, route schedule, assignment and priority controls, and manual storm planning prompts.
 
