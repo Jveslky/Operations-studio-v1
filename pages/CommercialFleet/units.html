@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Units | Commercial Fleet | Track Right</title>
+  <link rel="stylesheet" href="commercial-fleet.css">
+</head>
+<body><a class="skip" href="#main">Skip to content</a>
+  <header class="top"><div class="shell top-inner"><div><a class="brand" href="../../index.html">Track Right</a><span class="product">/ Commercial Fleet</span></div><span class="preview">LOCAL CONCEPT · NOT CONNECTED TO SHOP DATA</span></div></header><div class="shell layout"><nav class="nav" aria-label="Commercial Fleet pages"><a href="index.html">Dashboard</a><a href="units.html" aria-current="page">Units</a><a href="maintenance.html">Maintenance</a><a href="metrics.html">Metrics</a></nav><main id="main"><section class="intro"><p class="eyebrow">COMMERCIAL FLEET / UNITS</p><h1>Trucks first, with trailers and equipment alongside them.</h1></section><section class="panel" id="units"><div class="section-head"><div><p class="eyebrow">ASSETS</p><h2>Fleet units</h2></div><span class="hint">Add a truck, trailer, or piece of equipment.</span></div>
+        <form id="unit-form" class="form-grid">
+          <label>Unit name / number<input id="unit-name" required maxlength="70" placeholder="Truck 12"></label>
+          <label>Type<select id="unit-type"><option>Truck</option><option>Trailer</option><option>Equipment</option></select></label>
+          <label>Division / crew<input id="unit-division" maxlength="60" placeholder="Landscape crew"></label>
+          <label>Location<input id="unit-location" maxlength="60" placeholder="North yard"></label>
+          <label>Meter type<select id="unit-meter-type"><option value="miles">Miles</option><option value="hours">Hours</option><option value="none">No meter</option></select></label>
+          <label>Current reading<input id="unit-meter" type="number" min="0" step="1" value="0"></label>
+          <label>Next PM at reading<input id="unit-next" type="number" min="0" step="1" placeholder="Optional"></label>
+          <label>Next PM date<input id="unit-next-date" type="date"></label>
+          <label>Availability<select id="unit-status"><option value="active">Available</option><option value="down">Out of service</option></select></label>
+          <button class="primary" type="submit">Add unit</button>
+        </form>
+        <div class="rows" id="units-list"></div>
+      </section></main></div><script src="commercial-fleet.js"></script></body></html>
