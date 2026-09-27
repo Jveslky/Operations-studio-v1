@@ -51,18 +51,16 @@
         status.textContent = "Checking the VIN with NHTSA…";
         const timer = window.setTimeout(() => controller.abort(), 10000);
         try {
-            const year = inputs.year.value.trim();
             const url = new URL(`https://vpic.nhtsa.dot.gov/api/vehicles/DecodeVinValues/${encodeURIComponent(vin)}`);
             url.searchParams.set("format", "json");
-            if (/^(19|20)\d{2}$/.test(year)) url.searchParams.set("modelyear", year);
             const response = await fetch(url.toString(), { signal: controller.signal });
             if (!response.ok) throw new Error("NHTSA is unavailable");
             const data = await response.json();
             if (pending !== controller || vinInput.value.trim().toUpperCase() !== vin) return;
             const decoded = data && Array.isArray(data.Results) ? data.Results[0] : null;
             const code = String(decoded?.ErrorCode ?? "");
-            if (!decoded || code !== "0") {
-                status.textContent = "NHTSA could not confirm this VIN. Check the number or enter the unit details manually.";
+            if (!decoded) {
+                status.textContent = "NHTSA returned no result. Check the VIN or enter unit details manually.";
                 return;
             }
             const values = {
@@ -71,13 +69,21 @@
                 model: String(decoded.Model || "").trim()
             };
             if (!values.year && !values.make && !values.model) {
-                status.textContent = "No year, make, or model was returned. Enter the details manually.";
+                status.textContent = code === "0"
+                    ? "NHTSA returned no year, make, or model. Enter the details manually."
+                    : `NHTSA could not confirm this VIN (code ${code || "unknown"}). Check it or enter details manually.`;
+                return;
+            }
+            for (const key of Object.keys(output)) output[key].textContent = values[key] || "Not provided";
+            fields.hidden = false;
+            if (code !== "0") {
+                applyButton.hidden = true;
+                status.textContent = `NHTSA could not confirm this VIN (code ${code || "unknown"}). It returned partial details below for reference only. Verify the VIN and enter the unit manually.`;
                 return;
             }
             suggestion = { vin, values };
-            for (const key of Object.keys(output)) output[key].textContent = values[key] || "Not provided";
-            fields.hidden = false;
-            status.textContent = "Suggested by NHTSA. Check the vehicle before filling the form; existing entries stay as entered.";
+            applyButton.hidden = false;
+            status.textContent = "Suggested by NHTSA. Its model may be broader than a trim or sales name. Check the vehicle before filling; existing entries stay as entered.";
         } catch (error) {
             if (pending !== controller) return;
             status.textContent = error.name === "AbortError"
