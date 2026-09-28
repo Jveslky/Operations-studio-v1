@@ -426,6 +426,9 @@ revoke all on function public.snow_has_role(uuid,text[]),
     public.snow_record_service(uuid,text,text,text,text,numeric,text),
     public.snow_agree_quote(uuid),public.snow_mark_ready_to_bill(uuid),
     public.snow_audit_change() from public,anon;
+-- Supabase projects can grant EXECUTE to authenticated through default
+-- privileges. Audit triggers run as the table owner and need no client grant.
+revoke all on function public.snow_audit_change() from authenticated;
 grant execute on function public.snow_has_role(uuid,text[]),
     public.snow_create_workspace(text),public.snow_set_member(uuid,uuid,text,boolean),
     public.snow_assign_service(uuid,uuid,uuid,timestamptz,text),
