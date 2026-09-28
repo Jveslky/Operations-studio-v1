@@ -7,6 +7,14 @@
   if (!state || typeof state !== 'object') state = {};
   if (!Array.isArray(state.jobs)) state.jobs = [];
   let selectedId = null;
+  const estimateHandoff = state.estimateHandoff && typeof state.estimateHandoff === 'object' ? state.estimateHandoff : null;
+  if (estimateHandoff) {
+    if (['Commercial','Residential'].includes(estimateHandoff.kind)) $('kind').value = estimateHandoff.kind;
+    if (['Plow','Plow + salt','Salt'].includes(estimateHandoff.service)) $('service').value = estimateHandoff.service;
+    $('price').value = String(estimateHandoff.price || '').slice(0,70);
+    $('estimate-preview').hidden = false;
+    $('estimate-preview').textContent = 'Estimate carried into intake: '+String(estimateHandoff.details || '')+'. Review and adjust before scheduling.';
+  }
 
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(state)); return true; }
@@ -76,6 +84,8 @@
     $('ready-to-bill').disabled=!!job.billReady;
     $('ready-to-bill').textContent=job.billReady ? 'Ready to bill recorded' : 'Mark ready to bill';
     $('ticket-message').textContent=job.billReady?'Ready to bill; invoicing is not connected.':'';
+    $('ticket-estimate').hidden=!job.estimateDetails;
+    $('ticket-estimate-details').textContent=job.estimateDetails || '';
     history(job); render();
     $('ticket').scrollIntoView({behavior:'smooth',block:'start'});
   }
@@ -91,10 +101,12 @@
     event.preventDefault();
     if (!value('customer') || !value('address')) return;
     const now=new Date().toISOString();
-    const job={id:crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),site:value('customer')+' · '+value('address'),customer:value('customer'),phone:value('phone'),email:value('email'),address:value('address'),kind:value('kind'),work:value('service'),priority:value('priority'),price:value('price'),access:value('access'),route:value('route'),assigned:value('operator'),when:value('when'),windowNote:value('window-note'),done:false,status:'Scheduled',billReady:false,events:[{at:now,detail:'Job added'+(value('when')?' and scheduled':' without a service time')}],createdAt:now};
+    const job={id:crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),site:value('customer')+' · '+value('address'),customer:value('customer'),phone:value('phone'),email:value('email'),address:value('address'),kind:value('kind'),work:value('service'),priority:value('priority'),price:value('price'),estimateDetails:estimateHandoff ? String(estimateHandoff.details || '').slice(0,600) : '',access:value('access'),route:value('route'),assigned:value('operator'),when:value('when'),windowNote:value('window-note'),done:false,status:'Scheduled',billReady:false,events:[{at:now,detail:'Job added'+(value('when')?' and scheduled':' without a service time')}],createdAt:now};
     state.jobs.push(job);
-    if (!save()) {state.jobs.pop();$('intake-message').textContent='Could not save this stop on this device.';return;}
+    delete state.estimateHandoff;
+    if (!save()) {state.jobs.pop();if(estimateHandoff)state.estimateHandoff=estimateHandoff;$('intake-message').textContent='Could not save this stop on this device.';return;}
     $('intake-form').reset(); $('intake-message').textContent='Stop added. Open the ticket to update status or document service.';
+    $('estimate-preview').hidden=true;
     render();openTicket(job.id);
   });
   $('save-ticket').addEventListener('click',()=>{
