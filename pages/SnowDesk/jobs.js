@@ -7,7 +7,7 @@
   if (!state || typeof state !== 'object') state = {};
   if (!Array.isArray(state.jobs)) state.jobs = [];
   let selectedId = null;
-  const estimateHandoff = state.estimateHandoff && typeof state.estimateHandoff === 'object' ? state.estimateHandoff : null;
+  let estimateHandoff = state.estimateHandoff && typeof state.estimateHandoff === 'object' ? state.estimateHandoff : null;
   if (estimateHandoff) {
     if (['Commercial','Residential'].includes(estimateHandoff.kind)) $('kind').value = estimateHandoff.kind;
     if (['Plow','Plow + salt','Salt'].includes(estimateHandoff.service)) $('service').value = estimateHandoff.service;
@@ -58,7 +58,7 @@
       const detail=document.createElement('small'); detail.textContent=[job.kind || 'Stop',job.work || 'Service',dateLabel(job.when)].join(' · ');
       const location=document.createElement('small'); location.textContent=[job.address,job.route || 'Unrouted',job.assigned || 'Unassigned'].filter(Boolean).join(' · ');
       const actions=document.createElement('div'); actions.className='row';
-      const status=document.createElement('span'); status.className='badge'; status.textContent=statusOf(job)+(job.billReady?' · Ready to bill':'');
+      const status=document.createElement('span'); status.className='badge'; status.textContent=statusOf(job)+(job.billReady?' · Ready to bill':'')+(job.quote?.status === 'Agreed'?' · Quote agreed':'');
       const open=document.createElement('button'); open.type='button'; open.className='secondary'; open.textContent='Open ticket'; open.addEventListener('click',()=>openTicket(job.id));
       actions.append(status,open); row.append(top,detail,location,actions); list.append(row);
     }
@@ -79,13 +79,13 @@
     $('ticket').hidden=false;
     $('ticket-title').textContent=job.site || job.address || 'Service ticket';
     $('ticket-subtitle').textContent=[job.address,job.customer,job.phone].filter(Boolean).join(' · ');
-    const fields={ 'ticket-status':statusOf(job),'ticket-operator':job.assigned || '', 'ticket-route':job.route || '', 'ticket-when':job.when || '', 'ticket-price':job.price || '', 'ticket-service':job.work || '', 'ticket-condition':job.condition || '', 'ticket-material':job.material || '', 'ticket-quantity':job.quantity || '', 'ticket-notes':job.notes || '' };
+    const fields={ 'ticket-status':statusOf(job),'ticket-operator':job.assigned || '', 'ticket-route':job.route || '', 'ticket-when':job.when || '', 'ticket-price':job.quote?.price || job.price || '', 'ticket-quote-status':job.quote?.status || 'Draft', 'ticket-service':job.work || '', 'ticket-condition':job.condition || '', 'ticket-material':job.material || '', 'ticket-quantity':job.quantity || '', 'ticket-notes':job.notes || '' };
     for (const [id,content] of Object.entries(fields)) $(id).value=content;
     $('ready-to-bill').disabled=!!job.billReady;
     $('ready-to-bill').textContent=job.billReady ? 'Ready to bill recorded' : 'Mark ready to bill';
     $('ticket-message').textContent=job.billReady?'Ready to bill; invoicing is not connected.':'';
-    $('ticket-estimate').hidden=!job.estimateDetails;
-    $('ticket-estimate-details').textContent=job.estimateDetails || '';
+    $('ticket-estimate').hidden=!(job.quote?.estimate?.details || job.estimateDetails);
+    $('ticket-estimate-details').textContent=job.quote?.estimate?.details || job.estimateDetails || '';
     history(job); render();
     $('ticket').scrollIntoView({behavior:'smooth',block:'start'});
   }
@@ -101,21 +101,26 @@
     event.preventDefault();
     if (!value('customer') || !value('address')) return;
     const now=new Date().toISOString();
-    const job={id:crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),site:value('customer')+' · '+value('address'),customer:value('customer'),phone:value('phone'),email:value('email'),address:value('address'),kind:value('kind'),work:value('service'),priority:value('priority'),price:value('price'),estimateDetails:estimateHandoff ? String(estimateHandoff.details || '').slice(0,600) : '',access:value('access'),route:value('route'),assigned:value('operator'),when:value('when'),windowNote:value('window-note'),done:false,status:'Scheduled',billReady:false,events:[{at:now,detail:'Job added'+(value('when')?' and scheduled':' without a service time')}],createdAt:now};
+    const estimate = estimateHandoff ? {details:String(estimateHandoff.details || '').slice(0,600), inputs:estimateHandoff.inputs || null, projectedRevenue:estimateHandoff.projectedRevenue || null} : null;
+    const job={id:crypto.randomUUID ? crypto.randomUUID() : String(Date.now()),site:value('customer')+' · '+value('address'),customer:value('customer'),phone:value('phone'),email:value('email'),address:value('address'),kind:value('kind'),work:value('service'),priority:value('priority'),price:value('price'),quote:{price:value('price'),status:value('quote-status'),estimate,recordedAt:now},estimateDetails:estimate?.details || '',access:value('access'),route:value('route'),assigned:value('operator'),when:value('when'),windowNote:value('window-note'),done:false,status:'Scheduled',billReady:false,events:[{at:now,detail:'Job added'+(value('when')?' and scheduled':' without a service time')+(value('quote-status')==='Agreed'?' · quote agreed':'')}],createdAt:now};
     state.jobs.push(job);
     delete state.estimateHandoff;
     if (!save()) {state.jobs.pop();if(estimateHandoff)state.estimateHandoff=estimateHandoff;$('intake-message').textContent='Could not save this stop on this device.';return;}
     $('intake-form').reset(); $('intake-message').textContent='Stop added. Open the ticket to update status or document service.';
     $('estimate-preview').hidden=true;
+    estimateHandoff=null;
     render();openTicket(job.id);
   });
   $('save-ticket').addEventListener('click',()=>{
     const job=selected(); if(!job)return;
     const update={status:value('ticket-status'),assigned:value('ticket-operator'),route:value('ticket-route'),when:value('ticket-when'),price:value('ticket-price'),work:value('ticket-service'),condition:value('ticket-condition'),material:value('ticket-material'),quantity:value('ticket-quantity'),notes:value('ticket-notes')};
     const changed=Object.entries(update).filter(([key,entry])=>String(job[key] || '')!==entry).map(([key])=>key);
+    const quoteStatus=value('ticket-quote-status');
+    if ((job.quote?.status || 'Draft')!==quoteStatus) changed.push('quote agreement');
     if (!changed.length) { $('ticket-message').textContent='No changes to record.';return; }
     Object.assign(job,update);job.done=update.status==='Completed';
     const now=new Date().toISOString();if(update.status==='Service Started'&&!job.startedAt)job.startedAt=now;if(job.done&&!job.completedAt)job.completedAt=now;
+    job.quote={...(job.quote || {}),price:update.price,status:quoteStatus,recordedAt:now};
     appendEvent(job,'Updated '+changed.join(', ')+(job.done?' · completed at '+new Date(now).toLocaleString():''));
     if (!save())return;
     $('ticket-message').textContent='Update recorded on this device.';history(job);render();
