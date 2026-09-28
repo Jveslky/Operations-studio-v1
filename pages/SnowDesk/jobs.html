@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Service Desk | Long Shift Snow</title>
+  <link rel="stylesheet" href="jobs.css">
+</head>
+<body>
+  <header class="site-header"><div class="shell header-inner"><div class="brand">Long Shift<small>Snow Service Desk</small></div><nav aria-label="Snow Desk pages"><a class="current" href="jobs.html">Service Desk</a><a href="index.html">Estimator &amp; storm plan</a></nav><span class="draft">BROWSER-LOCAL DRAFT</span></div></header>
+  <main class="shell">
+    <section class="intro"><div><p class="eyebrow">WINTER OPERATIONS / SERVICE DESK</p><h1>From call to stop in one pass.</h1><p>Capture the request, put it on a route, and carry the same ticket through service and billing.</p></div><div class="summary"><strong id="open-count">0</strong><span>Open stops</span><strong id="bill-count">0</strong><span>Ready to bill</span></div></section>
+    <div class="layout">
+      <section class="card intake" aria-labelledby="intake-title"><div class="section-title"><div><p class="eyebrow">01 / INTAKE</p><h2 id="intake-title">New snow job</h2></div><span>Required fields are marked *</span></div>
+        <form id="intake-form"><div class="fields">
+          <label>Customer name *<input id="customer" required maxlength="80" autocomplete="name" placeholder="Customer or property manager"></label>
+          <label>Phone<input id="phone" type="tel" maxlength="35" autocomplete="tel" placeholder="For confirmation handoff"></label>
+          <label class="wide">Property address *<input id="address" required maxlength="160" list="known-properties" autocomplete="street-address" placeholder="Start typing an existing property"><datalist id="known-properties"></datalist></label>
+          <label>Property type<select id="kind"><option value="Residential">Residential</option><option value="Commercial">Commercial</option></select></label>
+          <label>Service<select id="service"><option>Plow</option><option>Plow + salt</option><option>Salt</option><option>Sidewalk / walkway</option><option>Site check</option></select></label>
+          <label>Priority<select id="priority"><option value="standard">Standard</option><option value="asap">ASAP / call-in</option><option value="high">High</option><option value="flexible">Flexible</option></select></label>
+          <label>Price or method<input id="price" maxlength="70" placeholder="e.g. $85 flat, or $180/hour"></label>
+          <label class="wide">Access / gate notes<input id="access" maxlength="240" placeholder="Gate code, parking, paths, obstacles"></label>
+        </div><p id="estimate-preview" class="estimate-preview" hidden></p><details><summary>Route, assignment &amp; service window</summary><div class="fields extras"><label>Route / area<input id="route" maxlength="35" list="known-routes"></label><label>Assigned operator<input id="operator" maxlength="45" list="known-operators"></label><label>Scheduled date and time<input id="when" type="datetime-local"></label><label>Service window note<input id="window-note" maxlength="90" placeholder="No exact ETA promised"></label><label>Email (optional)<input id="email" type="email" maxlength="120"></label></div></details>
+          <div class="form-actions"><button type="submit" class="primary">Add &amp; schedule</button><span id="intake-message" role="status" aria-live="polite">Leave the time empty to place a stop in Unscheduled.</span></div>
+        </form><datalist id="known-routes"></datalist><datalist id="known-operators"></datalist>
+      </section>
+      <section class="card board" aria-labelledby="board-title"><div class="section-title"><div><p class="eyebrow">02 / RUN SHEET</p><h2 id="board-title">Stops</h2></div></div>
+        <div class="filters"><label>Route<select id="route-filter"><option value="all">All routes</option></select></label><label>View<select id="status-filter"><option value="open">Open</option><option value="all">All</option><option value="done">Complete</option></select></label></div>
+        <div id="stop-list" class="stop-list"></div>
+      </section>
+    </div>
+    <section class="card ticket" id="ticket" hidden aria-labelledby="ticket-title"><div class="section-title"><div><p class="eyebrow">03 / SERVICE EVENT</p><h2 id="ticket-title">Service ticket</h2><p id="ticket-subtitle" class="muted"></p></div><button id="close-ticket" class="secondary" type="button">Close</button></div>
+      <div class="ticket-grid"><div>
+        <label>Status<select id="ticket-status"><option>Scheduled</option><option>On Route</option><option>Service Started</option><option>Weather Delay</option><option>Completed</option></select></label>
+        <div class="fields"><label>Operator<input id="ticket-operator" maxlength="45"></label><label>Route<input id="ticket-route" maxlength="35"></label><label>Scheduled time<input id="ticket-when" type="datetime-local"></label><label>Price / method<input id="ticket-price" maxlength="70"></label><label>Service performed<input id="ticket-service" maxlength="90"></label><label>Condition<select id="ticket-condition"><option value="">Choose if useful</option><option>Snowing</option><option>Snow stopped</option><option>Ice</option><option>Refreeze</option><option>Drifting</option><option>Other</option></select></label><label>Material type<input id="ticket-material" maxlength="60" placeholder="e.g. bulk salt"></label><label>Quantity / unit<input id="ticket-quantity" maxlength="60" placeholder="e.g. 400 lb"></label></div>
+        <label>Visit notes<textarea id="ticket-notes" rows="3" maxlength="1500" placeholder="Conditions, treatments, access, or follow-up"></textarea></label>
+        <div class="form-actions"><button id="save-ticket" class="primary" type="button">Record update</button><button id="ready-to-bill" class="secondary" type="button">Mark ready to bill</button><span id="ticket-message" role="status" aria-live="polite"></span></div>
+      </div><aside><div id="ticket-estimate" hidden><h3>Estimate basis</h3><p id="ticket-estimate-details"></p></div><h3>Customer message handoff</h3><p>Only send when useful. Text and email open your device's app; sending and delivery are not tracked here.</p><div class="row"><button id="text-customer" class="secondary" type="button">Open text</button><button id="email-customer" class="secondary" type="button">Open email</button></div><h3>Service evidence</h3><p>Before/during/after photos require private account storage before they can be safely attached to a permanent ticket or sent to customers.</p><span class="pending">PHOTO STORAGE: NOT CONNECTED</span><h3>Activity on this device</h3><ol id="ticket-history"></ol><button id="print-ticket" class="secondary" type="button">Print service summary</button></aside></div>
+    </section>
+    <p class="footnote">Concept data is saved only in this browser. Do not use it as an insurance record or shared dispatch log. Automated notifications, durable photos, edit attribution, and invoices require an authenticated backend.</p>
+  </main><script src="jobs.js"></script>
+</body></html>
