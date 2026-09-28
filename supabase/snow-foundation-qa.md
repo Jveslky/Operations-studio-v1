@@ -17,6 +17,14 @@
 
 The transactional test in `snow-foundation-isolation.test.sql` ran successfully in Snow QA on September 27, 2026, including a same-workspace unassigned stop and dispatcher assignment. All eight Snow tables had RLS enabled; there were zero Shop tables. Post-test counts were zero auth users, workspaces, service events, and audit rows, confirming the synthetic fixtures rolled back. Browser-based sign-in/API tests and backup/restore remain open gates.
 
+On September 28, the QA project was rechecked read-only: 8 Snow tables, 0 Shop tables, 0 Auth users, 0 Snow workspaces, and 0 service events. Authentication permits email sign-in with confirmation, while anonymous sign-in remains disabled. A grant inspection found that `authenticated` could execute `snow_audit_change()` due to project defaults, though it is a trigger-only function. The unnecessary grant was revoked in QA and verified `false`; the migration now explicitly revokes it. Seven client RPC functions retain authenticated execute grants. No QA users or service records were created in this pass.
+
+### Real-session gate
+
+Use four distinct QA-only email identities: owner A, owner B, dispatcher A, and operator A. Provision them using supported Supabase Auth flows (invitation or signup); do not write directly to `auth.users` or disable confirmation/enable anonymous sign-in. Keep passwords and service keys out of SQL snippets, the repository, and chat. Sign in separately to obtain actual user JWTs and run the role matrix above through Supabase REST/RPC against this disposable project. The SQL Editor's `SET LOCAL ROLE` simulation is not a substitute for this gate. Do not claim the real-session gate passed until those calls succeed and the retained QA records are verified or removed.
+
+The QA project's Auth Site URL is still `http://localhost:3000` and custom SMTP is disabled. Configure an isolated QA sign-in/confirmation destination and email delivery before sending invitations; do not route QA tokens through the shared Shop application.
+
 ## Integration gate
 
 Only after these checks pass should the Snow UI swap `snowDeskDraft.v1` for authenticated reads and writes. Keep local demo drafts separate: show a preview and explicit import into the selected Snow workspace rather than silently copying localStorage. Private photo policies, customer messaging, invoice integration, and storage quotas need their own migrations and tests.
