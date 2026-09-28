@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#20292f">
+  <title>Snow QA | Long Shift</title>
+  <link rel="stylesheet" href="qa.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="qa.html">Long Shift<sup>™</sup><span>Snow Service</span></a>
+      <span class="environment">Snow QA · isolated test project</span>
+    </div>
+  </header>
+
+  <main class="wrap layout">
+    <section class="intro" aria-labelledby="page-title">
+      <span class="eyebrow">Snow service workspace</span>
+      <h1 id="page-title">The next shift starts here.</h1>
+      <p>Sign in to the dedicated Snow QA environment. This page checks your workspace access while the service workflow is being connected.</p>
+      <div class="steps" aria-label="Snow service flow">
+        <span>01 Intake</span><span>02 Route</span><span>03 Service</span><span>04 Bill</span>
+      </div>
+      <p class="context">Test records in this environment are separate from Shop, Del-Mobile, and PFleet.</p>
+    </section>
+
+    <section class="panel" aria-label="Snow QA account">
+      <div id="loading" class="state" role="status">Checking your Snow QA session…</div>
+
+      <div id="signed-out" hidden>
+        <span class="eyebrow">Account access</span>
+        <h2>Sign in</h2>
+        <p>Use your Snow QA invitation email and password.</p>
+        <form id="login-form" class="form">
+          <label>Email <input name="email" type="email" autocomplete="username" required></label>
+          <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+          <button type="submit" class="primary">Sign in to Snow QA</button>
+        </form>
+      </div>
+
+      <div id="signed-in" hidden>
+        <div class="account-row"><div><span class="eyebrow">Signed in</span><h2>Snow QA access</h2></div><button id="logout" type="button" class="secondary">Log out</button></div>
+        <p id="account-email" class="account-email"></p>
+        <div id="memberships" class="memberships" aria-live="polite"></div>
+
+        <form id="workspace-form" class="form secondary-form" hidden>
+          <h3>Create a test workspace</h3>
+          <p>Use this only for the isolated Snow QA role test.</p>
+          <label>Workspace name <input name="name" maxlength="120" minlength="2" required placeholder="Snow QA A"></label>
+          <button type="submit" class="primary">Create QA workspace</button>
+        </form>
+
+        <form id="password-form" class="form secondary-form" hidden>
+          <h3>Set your password</h3>
+          <p>Finish accepting your Snow QA invitation. Keep this password out of chat.</p>
+          <label>New password <input name="password" type="password" autocomplete="new-password" minlength="12" required></label>
+          <button type="submit" class="primary">Save password</button>
+        </form>
+      </div>
+
+      <p id="message" class="message" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="qa.js"></script>
+</body>
+</html>
