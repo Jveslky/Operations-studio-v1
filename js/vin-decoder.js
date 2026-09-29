@@ -13,12 +13,20 @@
     const inputs = {
         year: document.getElementById("customer-unit-year"),
         make: document.getElementById("customer-unit-make"),
-        model: document.getElementById("customer-unit-model")
+        model: document.getElementById("customer-unit-model"),
+        engineMake: document.getElementById("customer-unit-engine-make"),
+        engineModel: document.getElementById("customer-unit-engine-model"),
+        fuelType: document.getElementById("customer-unit-fuel-type"),
+        displacement: document.getElementById("customer-unit-displacement")
     };
     const output = {
         year: document.getElementById("vin-lookup-year"),
         make: document.getElementById("vin-lookup-make"),
-        model: document.getElementById("vin-lookup-model")
+        model: document.getElementById("vin-lookup-model"),
+        engineMake: document.getElementById("vin-lookup-engine-make"),
+        engineModel: document.getElementById("vin-lookup-engine-model"),
+        fuelType: document.getElementById("vin-lookup-fuel-type"),
+        displacement: document.getElementById("vin-lookup-displacement")
     };
     let suggestion = null;
     let pending = null;
@@ -73,8 +81,13 @@
             const values = {
                 year: String(decoded.ModelYear || "").trim(),
                 make: String(decoded.Make || "").trim(),
-                model: displayModel
+                model: displayModel,
+                engineMake: String(decoded.EngineManufacturer || "").trim(),
+                engineModel: String(decoded.EngineModel || "").trim(),
+                fuelType: String(decoded.FuelTypePrimary || "").trim(),
+                displacement: String(decoded.DisplacementL || "").trim()
             };
+            if (values.displacement && /^\d+(?:\.\d+)?$/.test(values.displacement)) values.displacement += "L";
             if (!values.year && !values.make && !values.model) {
                 status.textContent = code === "0"
                     ? "NHTSA returned no year, make, or model. Enter the details manually."
@@ -112,8 +125,16 @@
         }
         const filled = [];
         for (const [key, input] of Object.entries(inputs)) {
+            if (!input) continue;
             if (!input.value.trim() && suggestion.values[key]) {
-                input.value = suggestion.values[key];
+                if (input.tagName === "SELECT") {
+                    // Only select an exact supported fuel type; vPIC can return other labels.
+                    const match = Array.from(input.options).find(option => option.value.toLowerCase() === suggestion.values[key].toLowerCase());
+                    if (!match) continue;
+                    input.value = match.value;
+                } else {
+                    input.value = suggestion.values[key];
+                }
                 input.dispatchEvent(new Event("input", { bubbles: true }));
                 filled.push(key);
             }
