@@ -315,7 +315,26 @@
                     <div class="vin-lookup">
                         <button id="decode-customer-unit-vin" type="button">Decode road-vehicle VIN</button>
                         <small>Suggestions are reviewed before filling and never saved automatically.</small>
-                        <span>Equipment serial lookup: <a href="https://parts.cat.com/en/catcorp/parts-diagram" target="_blank" rel="noopener noreferrer">Cat parts diagrams</a> · <a href="https://partscatalog.deere.com/jdrc?locale=en-US" target="_blank" rel="noopener noreferrer">John Deere parts catalog</a>. Enter the serial on the manufacturer's site, then fill the unit here.</span>
+                        <details class="manufacturer-lookup">
+                            <summary>Manufacturer parts lookup</summary>
+                            <p>Open the official catalog and enter the VIN, machine serial, or engine serial there. Results do not fill this form.</p>
+                            <div class="manufacturer-lookup-groups">
+                                <div><strong>Trucks (VIN or parts account)</strong>
+                                    <a href="https://www.macktrucks.com/parts-and-services/parts/partsasist/" target="_blank" rel="noopener noreferrer">Mack PartsASIST</a>
+                                    <a href="https://partsandservice.peterbilt.com/en/onlinepartscounter" target="_blank" rel="noopener noreferrer">Peterbilt Parts Counter</a>
+                                </div>
+                                <div><strong>Equipment (machine serial or model)</strong>
+                                    <a href="https://parts.cat.com/en/catcorp/parts-diagram" target="_blank" rel="noopener noreferrer">Cat</a>
+                                    <a href="https://www.mycnhstore.com/us/en/casece" target="_blank" rel="noopener noreferrer">CASE Construction</a>
+                                    <a href="https://partscatalog.deere.com/jdrc?locale=en-US" target="_blank" rel="noopener noreferrer">John Deere</a>
+                                    <a href="https://www.bobcat.com/na/en/parts-service/parts-catalog" target="_blank" rel="noopener noreferrer">Bobcat</a>
+                                    <a href="https://www.toro.com/en/parts" target="_blank" rel="noopener noreferrer">Toro (model and serial)</a>
+                                </div>
+                                <div><strong>Engine serial</strong>
+                                    <a href="https://quickserve.cummins.com/" target="_blank" rel="noopener noreferrer">Cummins QuickServe</a>
+                                </div>
+                            </div>
+                        </details>
                     </div>
                 </div>
 
