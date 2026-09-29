@@ -11,6 +11,9 @@
     const expires = document.getElementById("team-document-expires");
     const reminder = document.getElementById("team-document-reminder");
     const fileInput = document.getElementById("team-document-file");
+    const cameraInput = document.getElementById("team-document-camera");
+    const readButton = document.getElementById("team-document-read");
+    const ocrMessage = document.getElementById("team-document-ocr-message");
     const visible = document.getElementById("team-document-visible");
     const message = document.getElementById("team-document-message");
     const list = document.getElementById("team-document-list");
@@ -19,6 +22,71 @@
     let context = null;
     let members = new Map();
     let documents = [];
+    let selectedFile = null;
+
+    function selectFile(file, otherInput) {
+        otherInput.value = "";
+        selectedFile = file || null;
+        readButton.disabled = !selectedFile || !["application/pdf", "image/jpeg", "image/png"].includes(selectedFile.type);
+        ocrMessage.textContent = selectedFile
+            ? (readButton.disabled ? "This format can be uploaded, but OCR needs a PDF, JPG, or PNG." : "Ready to read on this device. Check any suggested fields before upload.")
+            : "OCR suggests dates and document numbers; review before saving. Extracted text is not stored.";
+    }
+    fileInput.addEventListener("change", () => selectFile(fileInput.files[0], cameraInput));
+    cameraInput.addEventListener("change", () => selectFile(cameraInput.files[0], fileInput));
+
+    function labeledDate(text, label) {
+        const match = text.match(new RegExp(`(?:${label})\\s*(?:date)?\\s*[:#-]?\\s*(\\d{1,2}[/-]\\d{1,2}[/-]\\d{4}|\\d{4}-\\d{2}-\\d{2})`, "i"));
+        if (!match) return "";
+        const raw = match[1];
+        const parts = raw.includes("/") || /^\d{1,2}-/.test(raw) ? raw.split(/[/-]/) : null;
+        const iso = parts ? `${parts[2]}-${parts[0].padStart(2,"0")}-${parts[1].padStart(2,"0")}` : raw;
+        const date = new Date(`${iso}T00:00:00Z`);
+        return !Number.isNaN(date.getTime()) && date.toISOString().slice(0,10) === iso ? iso : "";
+    }
+
+    async function readText(file) {
+        if (file.type !== "application/pdf") return (await Tesseract.recognize(file, "eng")).data.text;
+        const pdfjs = await import("https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.min.mjs");
+        pdfjs.GlobalWorkerOptions.workerSrc = "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.8.69/build/pdf.worker.min.mjs";
+        const pdf = await pdfjs.getDocument({ data: await file.arrayBuffer() }).promise;
+        let text = "";
+        for (let pageNumber=1; pageNumber<=Math.min(pdf.numPages, 2); pageNumber+=1) {
+            ocrMessage.textContent = `Reading page ${pageNumber} of ${Math.min(pdf.numPages, 2)} on this device…`;
+            const page = await pdf.getPage(pageNumber);
+            const viewport = page.getViewport({ scale: 1.7 });
+            const canvas = document.createElement("canvas"); canvas.width=viewport.width; canvas.height=viewport.height;
+            await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise;
+            text += `${(await Tesseract.recognize(canvas, "eng")).data.text}\n`;
+        }
+        return text;
+    }
+
+    readButton.addEventListener("click", async () => {
+        const file = selectedFile;
+        if (!file || readButton.disabled || !canManage()) return;
+        readButton.disabled = true;
+        ocrMessage.textContent = "Reading document on this device…";
+        try {
+            const text = await readText(file);
+            if (file !== selectedFile) return;
+            const suggestions = {
+                issued: labeledDate(text, "(?:issued|issue|effective)"),
+                expires: labeledDate(text, "(?:expires|expiry|expiration|valid until)"),
+                number: text.match(/(?:license|certificate|certification|document)\s*(?:no\.?|number|#)\s*[:#-]?\s*([A-Z0-9-]{4,})/i)?.[1] || ""
+            };
+            const filled = [];
+            for (const [key,value] of Object.entries(suggestions)) {
+                const input = { issued, expires, number }[key];
+                if (value && !input.value) { input.value=value; filled.push(key); }
+            }
+            ocrMessage.textContent = filled.length
+                ? `Suggested ${filled.join(", ")}. Check the original and edit any mistakes before uploading.`
+                : "No reliable labeled dates or number found. Enter details manually.";
+        } catch (error) {
+            ocrMessage.textContent = "Could not read this file. Enter details manually; upload is still available.";
+        } finally { readButton.disabled = !selectedFile || !["application/pdf", "image/jpeg", "image/png"].includes(selectedFile.type); }
+    });
 
     function status(text, state) {
         message.textContent = text;
@@ -104,7 +172,7 @@
     form.addEventListener("submit", async function (event) {
         event.preventDefault();
         if (!canManage()) { status("Owner or admin access is required.", "error"); return; }
-        const file = fileInput.files[0];
+        const file = selectedFile;
         const allowed = ["application/pdf","image/jpeg","image/png","image/heic","image/heif","application/msword","application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
         if (!file || !allowed.includes(file.type) || file.size > 20 * 1024 * 1024) { status("Choose a supported document no larger than 20 MB.", "error"); return; }
         if (issued.value && expires.value && expires.value < issued.value) { status("Expiration date cannot be before the issued date.", "error"); return; }
@@ -117,7 +185,7 @@
         const record = { id, shop_id: context.shopId, subject_user_id: member.value, document_type: type.value, title: title.value.trim(), issuer: issuer.value.trim() || null, document_number: number.value.trim() || null, issued_on: issued.value || null, expires_on: expires.value || null, reminder_days: Number(reminder.value), visible_to_subject: visible.checked, object_path: path, original_filename: file.name, mime_type: file.type, file_size: file.size, uploaded_by: context.user.id };
         const result = await client.from("shop_team_documents").insert(record);
         if (result.error) { await client.storage.from("shop-team-documents").remove([path]); saveButton.disabled = false; status(`Document record failed: ${result.error.message}`, "error"); return; }
-        form.reset(); reminder.value = "30"; saveButton.disabled = false; await loadDocuments(); status("Team document uploaded privately.", "success");
+        form.reset(); selectedFile = null; readButton.disabled = true; reminder.value = "30"; saveButton.disabled = false; await loadDocuments(); status("Team document uploaded privately.", "success");
     });
 
     showArchived.addEventListener("change", render);

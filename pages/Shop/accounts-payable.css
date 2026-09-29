@@ -118,6 +118,8 @@ body {
 .ap-header-actions { display: flex; gap: 9px; }
 #scan-bill-button { min-height: 40px; padding: 9px 17px; border: 1px solid #347f8c; border-radius: 6px; background: #3f9fb0; color: #fff; font-weight: 700; cursor: pointer; }
 .bill-document-field { grid-column: 1 / -1; padding: 16px; border: 1px dashed #69b2bd; border-radius: 8px; background: #f1f9fa; }
+.bill-document-field:not([hidden]) { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+.bill-document-field label { display:grid; gap:6px; }
 .bill-document-field span { color: #68757a; font-size: 12px; font-weight: 500; }
 .bill-review-message { min-height: 20px; margin: 14px 0 0; font-weight: 700; }
 .bill-review-message.success { color: #24703a; }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Shop Settings | Long Shift</title>
-    <link rel="stylesheet" href="../../css/base.css"><link rel="stylesheet" href="../../css/layout.css"><link rel="stylesheet" href="shop-dashboard.css"><link rel="stylesheet" href="../../css/account-settings.css">
+    <link rel="stylesheet" href="../../css/base.css"><link rel="stylesheet" href="../../css/layout.css"><link rel="stylesheet" href="shop-dashboard.css"><link rel="stylesheet" href="../../css/account-settings.css"><link rel="stylesheet" href="team-documents-scanner.css">
 </head>
 <body>
     <header class="app-header"><div class="app-header-inner">
@@ -91,7 +91,11 @@
                             <label>Issued date<input id="team-document-issued" type="date"></label>
                             <label>Expiration date<input id="team-document-expires" type="date"></label>
                             <label>Reminder lead time<select id="team-document-reminder"><option value="0">On expiration date</option><option value="7">7 days</option><option value="30" selected>30 days</option><option value="60">60 days</option><option value="90">90 days</option><option value="180">6 months</option></select></label>
-                            <label class="settings-full-width">Private document<input id="team-document-file" type="file" required accept=".pdf,.jpg,.jpeg,.png,.heic,.heif,.doc,.docx,application/pdf,image/jpeg,image/png,image/heic,image/heif,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><span class="field-help">PDF, JPG, PNG, HEIC, DOC, or DOCX · 20 MB maximum</span></label>
+                            <div class="settings-full-width team-document-sources">
+                                <label>Upload private document<input id="team-document-file" type="file" accept=".pdf,.jpg,.jpeg,.png,.heic,.heif,.doc,.docx,application/pdf,image/jpeg,image/png,image/heic,image/heif,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"><span class="field-help">Desktop scanner: save a PDF or image, then choose it here. DOC and DOCX can be uploaded without OCR · 20 MB maximum</span></label>
+                                <label>Take document photo<input id="team-document-camera" type="file" accept="image/jpeg,image/png,image/heic,image/heif" capture="environment"><span class="field-help">Use the rear camera when your phone offers it.</span></label>
+                            </div>
+                            <div class="settings-full-width"><button id="team-document-read" type="button" disabled>Read document on this device</button><p id="team-document-ocr-message" role="status" aria-live="polite" class="field-help">OCR suggests dates and document numbers; review before saving. Extracted text is not stored.</p></div>
                             <label class="settings-checkbox settings-full-width"><input id="team-document-visible" type="checkbox"><span>Allow this team member to view the document</span></label>
                         </div>
                         <div class="settings-actions"><button id="save-team-document" type="submit">Upload Team Document</button><p id="team-document-message" class="settings-message" role="status" aria-live="polite"></p></div>
@@ -229,5 +233,5 @@
             </div>
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="../../js/shop-appearance.js"></script><script src="../../js/shop-behavior.js"></script><script src="shop-settings-navigation.js"></script><script src="shop-settings.js"></script><script src="team-documents-settings.js"></script><script src="shop-requests-settings.js"></script><script src="shop-behavior-settings.js"></script><script src="shop-appearance-settings.js"></script><script src="shop-data-management.js"></script><script src="inspection-settings.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="../../js/shop-appearance.js"></script><script src="../../js/shop-behavior.js"></script><script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script><script src="shop-settings-navigation.js"></script><script src="shop-settings.js"></script><script src="team-documents-settings.js"></script><script src="shop-requests-settings.js"></script><script src="shop-behavior-settings.js"></script><script src="shop-appearance-settings.js"></script><script src="shop-data-management.js"></script><script src="inspection-settings.js"></script>
 </body></html>

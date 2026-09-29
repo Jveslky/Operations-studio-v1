@@ -206,7 +206,10 @@
 
 
             <div class="bill-form-grid">
-                <label id="bill-document-field" class="bill-document-field" hidden>Invoice document<input id="bill-document" type="file" accept="application/pdf,image/jpeg,image/png"><span>PDF, JPG, or PNG · 20 MB maximum · OCR runs on this device</span></label>
+                <div id="bill-document-field" class="bill-document-field" hidden>
+                    <label>Upload scanned invoice<input id="bill-document" type="file" accept="application/pdf,image/jpeg,image/png"><span>Desktop scanner: save a PDF, JPG, or PNG, then choose it here · 20 MB maximum</span></label>
+                    <label>Take photo on phone<input id="bill-camera" type="file" accept="image/jpeg,image/png" capture="environment"><span>Use the rear camera when your phone offers it. OCR runs on this device.</span></label>
+                </div>
 
                 <label>
                     Vendor
