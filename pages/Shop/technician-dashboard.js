@@ -31,6 +31,65 @@
         const email = context.user.email.toLowerCase();
         return [order.technician, order.additionalTechnician].some((value) => String(value || "").toLowerCase() === email);
     }
+    async function editUnit(order, item, button) {
+        button.disabled = true;
+        const loaded = await client.rpc("tech_assigned_unit", { target_ro: order.recordId });
+        button.disabled = false;
+        if (loaded.error) {
+            const message = document.createElement("p");
+            message.textContent = `Unit details unavailable: ${loaded.error.message}`;
+            item.append(message);
+            return;
+        }
+        button.hidden = true;
+        const original = loaded.data;
+        const form = document.createElement("form");
+        form.className = "technician-unit-form";
+        const serialLabel = document.createElement("label");
+        serialLabel.textContent = "VIN or machine serial";
+        const serial = document.createElement("input");
+        serial.value = original.serial || "";
+        serial.maxLength = 100;
+        serialLabel.append(serial);
+        const mileageLabel = document.createElement("label");
+        mileageLabel.textContent = "Mileage (leave blank if unknown)";
+        const mileage = document.createElement("input");
+        mileage.type = "number";
+        mileage.min = "0";
+        mileage.max = "999999999.9";
+        mileage.step = "0.1";
+        mileage.value = original.mileage ?? "";
+        mileageLabel.append(mileage);
+        const save = document.createElement("button");
+        save.type = "submit";
+        save.textContent = "Save unit details";
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.textContent = "Cancel";
+        cancel.addEventListener("click", () => { form.remove(); button.hidden = false; });
+        const message = document.createElement("p");
+        message.setAttribute("role", "status");
+        form.append(serialLabel, mileageLabel, save, cancel, message);
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+            if (!form.reportValidity()) return;
+            save.disabled = true;
+            message.textContent = "Saving…";
+            const result = await client.rpc("tech_update_assigned_unit", {
+                target_ro: order.recordId,
+                new_serial: serial.value,
+                new_mileage: mileage.value === "" ? null : Number(mileage.value),
+                expected_serial: original.serial,
+                expected_mileage: original.mileage
+            });
+            save.disabled = false;
+            if (result.error) { message.textContent = `Could not save: ${result.error.message}`; return; }
+            message.textContent = "Unit details saved. The office can review the change history.";
+            original.serial = result.data.serial;
+            original.mileage = result.data.mileage;
+        });
+        item.append(form);
+    }
     function renderOrders(orders) {
         const active = orders.filter((order) => !order.archived && isAssigned(order) && !["Closed", "Complete"].includes(order.status));
         document.getElementById("tech-open-orders").textContent = active.length;
@@ -38,7 +97,15 @@
         roList.replaceChildren();
         active.forEach((order) => {
             const item = row(`RO #${order.id} · ${order.unit || "Unit not listed"}`, `${order.customer || "Customer"} · Authorization: ${order.estimateApprovalStatus || "Draft"}`, order.status, "");
-            const link = document.createElement("a"); link.href=`repair-order-details.html?id=${encodeURIComponent(order.id)}`; link.textContent="Open repair order"; item.append(link); roList.append(item);
+            const link = document.createElement("a"); link.href=`repair-order-details.html?id=${encodeURIComponent(order.id)}`; link.textContent="Open repair order"; item.append(link);
+            if (order.unitId && order.recordId) {
+                const edit = document.createElement("button");
+                edit.type = "button";
+                edit.textContent = "Update VIN / mileage";
+                edit.addEventListener("click", () => editUnit(order, item, edit));
+                item.append(edit);
+            }
+            roList.append(item);
         });
         if (!active.length) empty(roList, "No open repair orders are assigned to your email.");
     }

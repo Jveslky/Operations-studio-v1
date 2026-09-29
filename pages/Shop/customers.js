@@ -247,6 +247,7 @@ const customerUnitSerialInput =
     document.getElementById(
         "customer-unit-serial"
     );
+const customerUnitMileageInput = document.getElementById("customer-unit-mileage");
 
 const customerUnitEngineMakeInput =
     document.getElementById(
@@ -1320,6 +1321,7 @@ async function renderCustomerUnits() {
                 make: unit.make,
                 model: unit.model,
                 serial: unit.serial,
+                mileage: unit.mileage,
                 engineMake: unit.engine_make,
                 engineModel: unit.engine_model,
                 fuelType: unit.fuel_type,
@@ -1402,6 +1404,11 @@ async function renderCustomerUnits() {
                     )}
                         </p>
                     `
+                    : ""
+                }
+
+                ${unit.mileage != null
+                    ? `<p>Mileage: ${escapeHtml(Number(unit.mileage).toLocaleString())}</p>`
                     : ""
                 }
 
@@ -1634,6 +1641,7 @@ async function openEditCustomerUnitForm(
 
     customerUnitSerialInput.value =
         unit.serial || "";
+    customerUnitMileageInput.value = unit.mileage ?? "";
 
     customerUnitEngineMakeInput.value =
         unit.engine_make || "";
@@ -1769,6 +1777,8 @@ addCustomerUnitForm.addEventListener(
                 customerUnitSerialInput
                     .value
                     .trim(),
+            mileage: customerUnitMileageInput.value === ""
+                ? null : Number(customerUnitMileageInput.value),
 
             engine_make:
                 customerUnitEngineMakeInput
