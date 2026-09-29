@@ -8,12 +8,13 @@
     const warning = byId("bill-duplicate-warning");
     const fileField = byId("bill-document-field");
     const fileInput = byId("bill-document");
+    const cameraInput = byId("bill-camera");
     const fields = {
         vendor: byId("bill-vendor"), invoice_number: byId("bill-reference"), invoice_date: byId("bill-invoice-date"),
         subtotal: byId("bill-subtotal"), tax: byId("bill-tax"), total: byId("bill-amount"), due_date: byId("bill-due-date"),
         category: byId("bill-category"), repair_order_id: byId("bill-repair-order"), notes: byId("bill-notes")
     };
-    let context, bills = [], scanMode = false, documentPath = null, ocrText = "", canWrite = false;
+    let context, bills = [], scanMode = false, documentPath = null, ocrText = "", canWrite = false, scanToken = 0, scanBusy = false;
 
     function setMessage(text, state) { message.textContent = text; message.className = `bill-review-message${state ? ` ${state}` : ""}`; }
     function money(value) { return Number(value || 0).toLocaleString("en-US", { style: "currency", currency: "USD" }); }
@@ -50,13 +51,15 @@
     }
 
     function openForm(scanning) {
+        scanToken += 1; scanBusy = false;
         scanMode = scanning; form.reset(); documentPath = null; ocrText = ""; warning.hidden = true;
-        fileField.hidden = !scanning; fileInput.required = scanning; form.hidden = false;
+        fileField.hidden = !scanning; form.hidden = false;
         setMessage(scanning ? "Choose an invoice to upload privately and prepare OCR suggestions." : "Enter and confirm the bill details.", "");
         form.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     async function closeForm() {
+        scanToken += 1; scanBusy = false;
         if (documentPath && form.dataset.saved !== "true") await client.storage.from("shop-ap-documents").remove([documentPath]);
         form.hidden = true; form.reset(); documentPath = null; ocrText = ""; delete form.dataset.saved;
     }
@@ -101,26 +104,37 @@
         if (match) { warning.textContent = `Possible duplicate: ${match.vendor} · ${match.invoice_number || "no reference"} · ${money(match.total)}. Review carefully before confirming.`; warning.hidden = false; }
     }
 
-    fileInput.addEventListener("change", async function () {
-        const file = fileInput.files[0]; if (!file) return;
-        if (!["application/pdf", "image/jpeg", "image/png"].includes(file.type) || file.size > 20 * 1024 * 1024) { setMessage("Use a PDF, JPG, or PNG no larger than 20 MB.", "error"); return; }
-        if (documentPath) await client.storage.from("shop-ap-documents").remove([documentPath]);
-        documentPath = `${context.shopId}/${crypto.randomUUID()}.${file.name.split(".").pop().replace(/[^a-z0-9]/gi, "").toLowerCase()}`;
-        setMessage("Uploading the original privately…", ""); const upload = await client.storage.from("shop-ap-documents").upload(documentPath, file, { contentType: file.type });
-        if (upload.error) { documentPath = null; setMessage(`Upload failed: ${upload.error.message}`, "error"); return; }
+    async function handleDocument(file) {
+        if (!file) return;
+        const token = ++scanToken;
+        scanBusy = true;
+        const previousPath = documentPath;
+        documentPath = null; ocrText = "";
+        if (previousPath) await client.storage.from("shop-ap-documents").remove([previousPath]);
+        if (token !== scanToken) return;
+        if (!["application/pdf", "image/jpeg", "image/png"].includes(file.type) || file.size > 20 * 1024 * 1024) { scanBusy = false; setMessage("Use a PDF, JPG, or PNG no larger than 20 MB.", "error"); return; }
+        const path = `${context.shopId}/${crypto.randomUUID()}.${file.name.split(".").pop().replace(/[^a-z0-9]/gi, "").toLowerCase()}`;
+        setMessage("Uploading the original privately…", ""); const upload = await client.storage.from("shop-ap-documents").upload(path, file, { contentType: file.type });
+        if (token !== scanToken) { if (!upload.error) await client.storage.from("shop-ap-documents").remove([path]); return; }
+        if (upload.error) { scanBusy = false; setMessage(`Upload failed: ${upload.error.message}`, "error"); return; }
+        documentPath = path;
         try {
-            ocrText = await runOcr(file); const suggestions = suggestionsFromText(ocrText);
+            const text = await runOcr(file); if (token !== scanToken) return;
+            ocrText = text; const suggestions = suggestionsFromText(ocrText);
             Object.entries(suggestions).forEach(([name, value]) => { if (value !== "") fields[name].value = value; });
             await checkDuplicates(); setMessage("OCR suggestions are ready. Review every value before creating the bill.", "success");
-        } catch (error) { setMessage(`Original saved, but OCR could not finish: ${error.message}. Enter the values manually.`, "error"); }
-    });
+        } catch (error) { if (token === scanToken) setMessage(`Original saved, but OCR could not finish: ${error.message}. Enter the values manually.`, "error"); }
+        finally { if (token === scanToken) scanBusy = false; }
+    }
+    fileInput.addEventListener("change", () => { cameraInput.value = ""; handleDocument(fileInput.files[0]); });
+    cameraInput.addEventListener("change", () => { fileInput.value = ""; handleDocument(cameraInput.files[0]); });
 
     byId("scan-bill-button").addEventListener("click", () => openForm(true)); byId("add-bill-button").addEventListener("click", () => openForm(false)); byId("close-bill-form").addEventListener("click", closeForm); byId("cancel-bill-form").addEventListener("click", closeForm);
     [fields.vendor, fields.invoice_number, fields.total, fields.invoice_date].forEach((field) => field.addEventListener("blur", checkDuplicates));
 
     form.addEventListener("submit", async function (event) {
-        event.preventDefault(); await checkDuplicates(); if (scanMode && !documentPath) { setMessage("Upload the original invoice before confirming.", "error"); return; }
-        const record = { shop_id: context.shopId, vendor: fields.vendor.value.trim(), invoice_number: fields.invoice_number.value.trim() || null, invoice_date: fields.invoice_date.value || null, due_date: fields.due_date.value || null, subtotal: fields.subtotal.value ? Number(fields.subtotal.value) : null, tax: fields.tax.value ? Number(fields.tax.value) : null, total: Number(fields.total.value), category: fields.category.value.trim() || null, repair_order_id: fields.repair_order_id.value.trim() || null, notes: fields.notes.value.trim() || null, document_path: documentPath, ocr_text: ocrText || null, status: "open", created_by: context.user.id };
+        event.preventDefault(); if (scanBusy) { setMessage("Wait for the document scan to finish before confirming.", "error"); return; } await checkDuplicates(); if (scanMode && !documentPath) { setMessage("Upload the original invoice before confirming.", "error"); return; }
+        const record = { shop_id: context.shopId, vendor: fields.vendor.value.trim(), invoice_number: fields.invoice_number.value.trim() || null, invoice_date: fields.invoice_date.value || null, due_date: fields.due_date.value || null, subtotal: fields.subtotal.value ? Number(fields.subtotal.value) : null, tax: fields.tax.value ? Number(fields.tax.value) : null, total: Number(fields.total.value), category: fields.category.value.trim() || null, repair_order_id: fields.repair_order_id.value.trim() || null, notes: fields.notes.value.trim() || null, document_path: documentPath, status: "open", created_by: context.user.id };
         setMessage("Creating confirmed AP record…", ""); const result = await client.from("shop_accounts_payable").insert(record);
         if (result.error) { setMessage(`Bill could not be created: ${result.error.message}`, "error"); return; }
         form.dataset.saved = "true"; await closeForm(); await loadBills();
