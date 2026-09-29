@@ -25,4 +25,10 @@
 .technician-actions p { margin:0; }
 .technician-subheading { padding:1rem 1.1rem 0; margin-bottom:0; }
 .technician-help { padding:1rem 1.1rem 0; margin-bottom:0; color:#56636a; }
+.technician-unit-form { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.6rem; padding-top:.5rem; }
+.technician-unit-form label { display:grid; gap:.25rem; font-weight:700; }
+.technician-unit-form input { width:100%; box-sizing:border-box; padding:.55rem; border:1px solid #a9b1b5; border-radius:5px; font:inherit; }
+.technician-unit-form button { width:fit-content; }
+.technician-unit-form p { grid-column:1/-1; }
+@media (max-width:600px) { .technician-unit-form { grid-template-columns:1fr; } }
 @media (max-width:800px) { .technician-grid { grid-template-columns:1fr; } .technician-form-row { grid-template-columns:1fr; } }
