@@ -314,7 +314,8 @@
                     </label>
                     <div class="vin-lookup">
                         <button id="decode-customer-unit-vin" type="button">Decode road-vehicle VIN</button>
-                        <small>Equipment serial numbers stay manual. Suggested details are never saved automatically.</small>
+                        <small>Suggestions are reviewed before filling and never saved automatically.</small>
+                        <span>Equipment serial lookup: <a href="https://parts.cat.com/en/catcorp/parts-diagram" target="_blank" rel="noopener noreferrer">Cat parts diagrams</a> · <a href="https://partscatalog.deere.com/jdrc?locale=en-US" target="_blank" rel="noopener noreferrer">John Deere parts catalog</a>. Enter the serial on the manufacturer's site, then fill the unit here.</span>
                     </div>
                 </div>
 
@@ -325,8 +326,13 @@
                             <div><dt>Year</dt><dd id="vin-lookup-year"></dd></div>
                             <div><dt>Make</dt><dd id="vin-lookup-make"></dd></div>
                             <div><dt>NHTSA model</dt><dd id="vin-lookup-model"></dd></div>
+                            <div><dt>Engine manufacturer</dt><dd id="vin-lookup-engine-make"></dd></div>
+                            <div><dt>Engine model</dt><dd id="vin-lookup-engine-model"></dd></div>
+                            <div><dt>Fuel</dt><dd id="vin-lookup-fuel-type"></dd></div>
+                            <div><dt>Displacement</dt><dd id="vin-lookup-displacement"></dd></div>
                         </dl>
                         <button id="apply-customer-unit-vin" type="button">Fill empty unit fields</button>
+                        <p><a href="https://www.nhtsa.gov/recalls" target="_blank" rel="noopener noreferrer">Check recalls at NHTSA</a> (enter the VIN there).</p>
                     </div>
                 </div>
 
