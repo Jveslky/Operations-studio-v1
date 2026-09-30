@@ -171,8 +171,15 @@
         return context;
     }
 
+    // Cloudflare Pages serves HTML routes without the .html suffix.
+    // Normalize both forms before comparing role access and navigation links.
+    function shopPageName(pathname) {
+        const name = pathname.replace(/\/+$/, "").split("/").pop().toLowerCase();
+        return name && !name.endsWith(".html") ? name + ".html" : name;
+    }
+
     function applyShopPageAccess(context) {
-        const page = window.location.pathname.split("/").pop().toLowerCase();
+        const page = shopPageName(window.location.pathname);
         const rootPath = loginPath.replace(/login\.html(?:\?.*)?$/, "");
         const dashboard = context.role === "technician"
             ? `${rootPath}pages/Shop/technician-dashboard.html`
@@ -201,7 +208,7 @@
         }
 
         document.querySelectorAll(".app-nav a").forEach(function (link) {
-            const linkedPage = new URL(link.href, window.location.href).pathname.split("/").pop().toLowerCase();
+            const linkedPage = shopPageName(new URL(link.href, window.location.href).pathname);
             if (linkedPage === "accounts-payable.html" && !canUseAccountsPayable) link.remove();
         });
         if (context.role !== "technician") return true;
@@ -217,7 +224,7 @@
         }
 
         document.querySelectorAll(".app-nav a").forEach(function (link) {
-            const linkedPage = new URL(link.href, window.location.href).pathname.split("/").pop().toLowerCase();
+            const linkedPage = shopPageName(new URL(link.href, window.location.href).pathname);
             if (linkedPage === "shop-dashboard.html" ||
                 linkedPage === "technician-dashboard.html") {
                 link.href = dashboard;
