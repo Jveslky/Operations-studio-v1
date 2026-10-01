@@ -54,12 +54,12 @@ await db.exec(`insert into auth.users(id,email) values
 ('00000000-0000-0000-0000-000000000002','tr.qa.tech@proton.me'),
 ('00000000-0000-0000-0000-000000000003','tr.qa.writer@proton.me'),
 ('00000000-0000-0000-0000-000000000004','tr.qa.owner+shopb@gmail.com');
-insert into public.shops(id,name,created_by) values('10000000-0000-0000-0000-000000000001','Long Shift Shop Test A','00000000-0000-0000-0000-000000000001'),('10000000-0000-0000-0000-000000000002','Long Shift Shop Test B','00000000-0000-0000-0000-000000000004');
+insert into public.shops(id,name,created_by) values('ddd8d44c-041f-4510-aa8b-a03b2dde87a6','Long Shift Shop Test A','00000000-0000-0000-0000-000000000001'),('1161bc88-9ed5-4d76-a2cf-c7a77d41eea9','Long Shift Shop Test B','00000000-0000-0000-0000-000000000004');
 insert into public.shop_members(shop_id,user_id,role) values
-('10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000001','owner'),
-('10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000002','technician'),
-('10000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000003','service_writer'),
-('10000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000004','owner');`);
+('ddd8d44c-041f-4510-aa8b-a03b2dde87a6','00000000-0000-0000-0000-000000000001','owner'),
+('ddd8d44c-041f-4510-aa8b-a03b2dde87a6','00000000-0000-0000-0000-000000000002','technician'),
+('ddd8d44c-041f-4510-aa8b-a03b2dde87a6','00000000-0000-0000-0000-000000000003','service_writer'),
+('1161bc88-9ed5-4d76-a2cf-c7a77d41eea9','00000000-0000-0000-0000-000000000004','owner');`);
 
 for(const file of ['shop-test-floor-role-access.sql','shop-test-floor-role-checks.sql']){
  try{await db.exec(read(file));console.log('PASS',file);}catch(e){console.log('FAIL',file,e.message,e.where);process.exit(1);}

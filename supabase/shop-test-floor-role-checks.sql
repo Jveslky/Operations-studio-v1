@@ -9,10 +9,10 @@ select a.id shop_a,b.id shop_b,
  gen_random_uuid() assigned_id,gen_random_uuid() unassigned_id,gen_random_uuid() additional_id,
  gen_random_uuid() foreign_id,gen_random_uuid() inspection_id
 from public.shops a cross join public.shops b
-where a.name='Long Shift Shop Test A' and b.name='Long Shift Shop Test B';
+where a.id='ddd8d44c-041f-4510-aa8b-a03b2dde87a6'::uuid and b.id='1161bc88-9ed5-4d76-a2cf-c7a77d41eea9'::uuid;
 do $$ begin
  if (select count(*) from floor_test_context)<>1 or exists(select 1 from floor_test_context where owner_id is null or tech_id is null or writer_id is null)
- or exists(select 1 from public.shops where name not in ('Long Shift Shop Test A','Long Shift Shop Test B')) then raise exception 'STOP: expected Test A/B and three QA accounts'; end if;
+ or exists(select 1 from public.shops where id not in ('ddd8d44c-041f-4510-aa8b-a03b2dde87a6'::uuid,'1161bc88-9ed5-4d76-a2cf-c7a77d41eea9'::uuid)) then raise exception 'STOP: expected Test A/B and three QA accounts'; end if;
 end $$;
 grant select on floor_test_context to authenticated;
 create function pg_temp.floor_assert(ok boolean,label text) returns void language plpgsql as $$

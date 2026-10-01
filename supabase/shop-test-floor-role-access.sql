@@ -2,9 +2,10 @@
 -- Apply after Shop Test foundation step 6. Transactional; no business rows deleted.
 begin;
 do $$ begin
- if not exists(select 1 from public.shops where name='Long Shift Shop Test A')
- or exists(select 1 from public.shops where name not in ('Long Shift Shop Test A','Long Shift Shop Test B')) then
-  raise exception 'STOP: expected only Long Shift Shop Test A/B';
+ if not exists(select 1 from public.shops where id='ddd8d44c-041f-4510-aa8b-a03b2dde87a6'::uuid)
+ or not exists(select 1 from public.shops where id='1161bc88-9ed5-4d76-a2cf-c7a77d41eea9'::uuid)
+ or exists(select 1 from public.shops where id not in ('ddd8d44c-041f-4510-aa8b-a03b2dde87a6'::uuid,'1161bc88-9ed5-4d76-a2cf-c7a77d41eea9'::uuid)) then
+  raise exception 'STOP: expected only the verified Shop Test A/B IDs';
  end if;
 end $$;
 
