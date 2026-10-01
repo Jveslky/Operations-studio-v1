@@ -37,7 +37,7 @@ Passed locally using PostgreSQL in PGlite, with stubbed Supabase Auth/Storage sc
 - Migration reruns; rollback leaves zero RO fixtures; UI and SQL role presets agree.
 - Extensionless/HTML routes retain Dashboard; forbidden floor pages redirect; save requests use narrow RPCs and omit estimate/customer fields.
 
-**Not yet verified in Supabase or signed-in browsers.** SQL installation, real Storage API behavior, signed URLs, backup/restore, and account refresh/login are still gates. PGlite tests do not reproduce Supabase's HTTP/storage service or auth lifecycle.
+**Supabase database checkpoint passed (Jon, September 30, 2026).** Jon reported the verified-ID migration succeeded and supplied the successful rollback-check result. The SQL checks simulated authenticated roles and tested storage metadata policies without uploading file bytes. Real signed-in API/browser sessions, Storage API behavior, signed URLs, backup/restore, and account refresh/login remain gates. PGlite tests do not reproduce Supabase's HTTP/storage service or auth lifecycle.
 
 ## Signed-in gate
 
