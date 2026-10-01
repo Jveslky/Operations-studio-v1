@@ -7,7 +7,7 @@
     const message = document.getElementById("users-message");
     const result = document.getElementById("invite-result");
     const linkInput = document.getElementById("invite-link");
-    const roles = ["admin", "service_writer", "technician", "read_only"];
+    const roles = ["admin", "foreman", "service_writer", "technician", "read_only"];
     const permissions = [
         ["expenses.read", "View accounts payable"],
         ["expenses.write", "Manage accounts payable"],
@@ -25,7 +25,7 @@
     }
 
     function roleLabel(role) {
-        return role.replaceAll("_", " ");
+        return role === "admin" ? "Shop admin" : role.replaceAll("_", " ");
     }
 
     function buildMember(member) {

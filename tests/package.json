@@ -1,0 +1,6 @@
+{
+  "name": "long-shift-shop-role-tests",
+  "private": true,
+  "scripts": {"test": "node shop-floor-interface.mjs && node shop-floor-database.mjs"},
+  "devDependencies": {"@electric-sql/pglite": "0.5.8"}
+}
