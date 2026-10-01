@@ -66,6 +66,18 @@ for(const file of ['shop-test-floor-role-access.sql','shop-test-floor-role-check
 }
 const retained=(await db.query('select count(*)::int as count from public.shop_repair_orders')).rows[0].count;
 if(retained!==0) throw new Error('Rollback retained repair-order fixtures');
+// Force an unexpected failure after the writes to verify rollback on failure as well as success.
+let failureObserved=false;
+try {
+ await db.exec(read('shop-test-floor-role-checks.sql').replace('  finished:=true;', "  raise exception 'intentional test failure';"));
+} catch(error) {
+ if(error.message!=='intentional test failure') throw error;
+ failureObserved=true;
+}
+assert.equal(failureObserved,true);
+assert.equal((await db.query('select count(*)::int as count from public.shop_repair_orders')).rows[0].count,0);
+assert.equal((await db.query("select role from public.shop_members where user_id='00000000-0000-0000-0000-000000000003'")).rows[0].role,'service_writer');
+console.log('PASS: unexpected failure also restores fixtures and Writer role');
 // Reapply migration to verify idempotence.
 await db.exec(read('shop-test-floor-role-access.sql'));
 const authSource=fs.readFileSync(new URL('../js/auth.js',import.meta.url),'utf8');
