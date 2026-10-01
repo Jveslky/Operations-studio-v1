@@ -481,6 +481,8 @@ if (!repairOrder) {
 
     const canWriteRepairOrder = window.trackRightCan("repair_orders.write");
     const canUpdateWork = window.trackRightCan("repair_orders.update_work");
+    const canAssign = window.trackRightCan("repair_orders.assign");
+    const assignmentFields = new Set([technicianSelect, additionalTechnicianSelect, prioritySelect]);
     const workFields = new Set([
         statusSelect,
         technicianNotesInput,
@@ -492,7 +494,7 @@ if (!repairOrder) {
         if (!field) return;
         field.disabled = canWriteRepairOrder
             ? false
-            : !(canUpdateWork && workFields.has(field));
+            : !((canUpdateWork && workFields.has(field)) || (canAssign && assignmentFields.has(field)));
     });
 
     saveButton.hidden = !canWriteRepairOrder && !canUpdateWork;
