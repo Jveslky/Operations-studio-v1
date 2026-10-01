@@ -1171,3 +1171,11 @@ textarea.new-ro-input {
             white-space: nowrap;
         }
 }
+
+.intake-shortcuts { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0; }
+.quick-intake { border:1px solid #ccd4da; border-radius:10px; padding:16px; margin:12px 0; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; background:#f5f8f9; }
+.quick-intake h3,.quick-intake p { grid-column:1/-1; margin:0; }
+.quick-intake label { display:grid; gap:6px; }
+.quick-intake input { min-width:0; width:100%; box-sizing:border-box; padding:10px; border:1px solid #bdc8d2; border-radius:6px; font:inherit; }
+.quick-intake[hidden],.intake-shortcuts[hidden] { display:none; }
+#quick-intake-message.error { color:#a32b15; }
