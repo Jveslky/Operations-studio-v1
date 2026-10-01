@@ -84,6 +84,30 @@
                   hidden>
                 <h2>Create Repair Order</h2>
 
+                <div class="intake-shortcuts" id="intake-shortcuts" hidden>
+                    <button type="button" id="quick-customer-open">+ New customer</button>
+                    <button type="button" id="quick-unit-open">+ New vehicle / unit</button>
+                </div>
+                <section id="quick-customer-panel" class="quick-intake" hidden aria-label="New customer">
+                    <h3>New customer</h3>
+                    <label>Name<input id="quick-customer-name" maxlength="200" autocomplete="name"></label>
+                    <label>Phone (optional)<input id="quick-customer-phone" type="tel" autocomplete="tel"></label>
+                    <label>Email (optional)<input id="quick-customer-email" type="email" autocomplete="email"></label>
+                    <button type="button" id="quick-customer-save">Save and select customer</button>
+                    <button type="button" data-intake-close="customer">Cancel</button>
+                </section>
+                <section id="quick-unit-panel" class="quick-intake" hidden aria-label="New vehicle or unit">
+                    <h3>New vehicle / unit</h3>
+                    <p id="quick-unit-customer"></p>
+                    <label>Name / description<input id="quick-unit-name" maxlength="200" placeholder="e.g. 2018 Ford F-250 or Loader 3"></label>
+                    <label>Year (optional)<input id="quick-unit-year" inputmode="numeric"></label>
+                    <label>Make (optional)<input id="quick-unit-make"></label>
+                    <label>Model (optional)<input id="quick-unit-model"></label>
+                    <label>VIN / serial (optional)<input id="quick-unit-serial"></label>
+                    <button type="button" id="quick-unit-save">Save and select vehicle</button>
+                    <button type="button" data-intake-close="unit">Cancel</button>
+                </section>
+                <p id="quick-intake-message" role="status" aria-live="polite"></p>
                 <div class="new-ro-grid">
                     <label>
                         Customer
@@ -199,5 +223,6 @@
     <script src="../../js/shop-behavior.js"></script>
     <script src="./shop-repair-orders-data.js"></script>
     <script src="./repair-orders.js"></script>
+    <script src="./repair-order-intake.js"></script>
 </body>
 </html>

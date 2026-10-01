@@ -469,6 +469,7 @@ async function populateTechnicianOptions() {
 newRepairOrderButton.addEventListener(
     "click",
     async function () {
+        if (!newRepairOrderForm.hidden) { newComplaintInput.focus(); return; }
         selectedCustomerId = null;
 
         newRepairOrderForm.reset();
@@ -500,6 +501,11 @@ newRepairOrderForm.addEventListener(
     "submit",
     async function (event) {
         event.preventDefault();
+        if (!newCustomerInput.value || !newUnitInput.value) {
+            newRoDataMessage.textContent = "Select a customer and vehicle before saving the repair order.";
+            newRoDataMessage.classList.add("error");
+            return;
+        }
         const submitButton = newRepairOrderForm.querySelector('[type="submit"]');
         submitButton.disabled = true;
         newRoDataMessage.textContent = "Saving repair order…";
@@ -1040,7 +1046,7 @@ newCustomerInput.addEventListener(
             const { data: units, error } =
                 await supabaseClient
                     .from("customer_units")
-                    .select("id, year, make, model, serial")
+                    .select("id, name, year, make, model, serial")
                     .eq("shop_id", shopId)
                     .eq("customer_id", customerId)
                     .eq("archived", false)
@@ -1078,7 +1084,7 @@ newCustomerInput.addEventListener(
                 ]
                     .filter(Boolean)
                     .join(" ") ||
-                    unit.serial ||
+                    unit.name || unit.serial ||
                     "Unnamed unit";
 
                 newUnitInput.appendChild(option);
