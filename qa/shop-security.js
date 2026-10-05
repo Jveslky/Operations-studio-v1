@@ -21,6 +21,32 @@ async function hash(blob) {
     return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", await blob.arrayBuffer())))
         .map(x => x.toString(16).padStart(2,"0")).join("");
 }
+async function directPhoto(anonymous = false) {
+    const headers = { apikey: client.supabaseKey };
+    if (!anonymous) {
+        const session = await client.auth.getSession();
+        if (session.error || !session.data.session?.access_token) throw new Error("Authenticated session unavailable");
+        headers.Authorization = `Bearer ${session.data.session.access_token}`;
+    }
+    const path = target.path.split("/").map(encodeURIComponent).join("/");
+    const response = await fetch(`${client.supabaseUrl}/storage/v1/object/authenticated/shop-inspection-media/${path}?qa=${Date.now()}`, { headers, cache: "no-store" });
+    if (response.ok) {
+        const blob = await response.blob();
+        return { allowed: true, status: response.status, size: blob.size, matches: await hash(blob) === target.sha256 };
+    }
+    return { allowed: false, status: response.status, size: 0, matches: false };
+}
+function photoResult(result, allow) {
+    return allow ? result.allowed && result.matches : !result.allowed && [400,401,403,404].includes(result.status);
+}
+async function checkExpiry() {
+    if (!link || Date.now() < linkExpires) return;
+    $("expiry").disabled = true;
+    try { const response = await fetch(link, {cache:"no-store"}); record("Signed link expiry", [400,401,403,404].includes(response.status), `HTTP ${response.status}`); }
+    catch(error) { record("Signed link expiry",false,"Network failure; expiry not verified"); }
+    $("report").disabled = false;
+    $("expiry-help").textContent = "Expiry check finished. Download results now.";
+}
 async function init() {
     const host = location.hostname;
     if (!(host === "long-shift-test.pages.dev" || host.endsWith(".long-shift-test.pages.dev") || host === "localhost") ||
@@ -46,7 +72,9 @@ $("run").addEventListener("click", async () => {
             record(`${table} direct UUID read`, allow ? !result.error && result.data?.length===1 && result.data[0].shop_id===target.shopId : deniedRead(result),allow?"Expected own-shop record":"Expected no record");
         }
         const photo = await client.storage.from("shop-inspection-media").download(target.path);
-        record("Private photo direct download", allow ? !photo.error && !!photo.data && await hash(photo.data) === target.sha256 : deniedFile(photo));
+        const rawPhoto = await directPhoto();
+        record("Private photo direct download", photoResult(rawPhoto,allow), `HTTP ${rawPhoto.status}; photo bytes received: ${rawPhoto.size}`);
+        record("SDK photo download comparison", allow ? !photo.error && !!photo.data && await hash(photo.data) === target.sha256 : !!photo.error && !photo.data, `SDK error: ${photo.error?.name || "none"}; status: ${photo.error?.statusCode || photo.error?.status || photo.error?.originalError?.status || "not supplied"}`);
         const sign = await client.storage.from("shop-inspection-media").createSignedUrl(target.path,30);
         record("Private photo signing authorization",allow ? !sign.error && !!sign.data?.signedUrl : deniedFile(sign));
         if (allow && !sign.error && sign.data?.signedUrl) {
@@ -54,7 +82,8 @@ $("run").addEventListener("click", async () => {
             const control=await fetch(link,{cache:"no-store"});
             record("Signed link positive control",control.ok && await hash(await control.blob())===target.sha256);
             $("expiry-help").textContent="The test link lasts 30 seconds. Check expiry after 45 seconds; the link itself stays private.";
-            setTimeout(()=>{$("expiry").disabled=false;},45000);
+            $("report").disabled=true;
+            setTimeout(checkExpiry,45000);
         }
         // Empty arrays exercise the server permission gate without inserting records.
         const restore = await client.rpc("restore_shop_data_backup",{backup:{format:"track-right-shop-backup",version:3,source_shop_id:target.shopId,cloud:{}}});
@@ -62,17 +91,14 @@ $("run").addEventListener("click", async () => {
         record("Restore RPC permission gate (empty payload)",canImport ? !restore.error && restore.data?.restored===0 : !!restore.error && /Data-import permission is required/.test(restore.error.message));
         const anon=window.supabase.createClient(client.supabaseUrl,client.supabaseKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
         record("Anonymous RO direct read",deniedRead(await anon.from("shop_repair_orders").select("id").eq("id",target.roId)));
-        record("Anonymous photo direct download",deniedFile(await anon.storage.from("shop-inspection-media").download(target.path)));
+        const anonymousPhoto=await directPhoto(true);
+        record("Anonymous photo direct download",photoResult(anonymousPhoto,false),`HTTP ${anonymousPhoto.status}; photo bytes received: ${anonymousPhoto.size}`);
     } catch(error) {record("Checks completed",false,error.message);}
-    finally {$("run").disabled=false;$("report").disabled=false;}
+    finally {$("run").disabled=false;$("report").disabled=!!link;}
 });
-$("expiry").addEventListener("click",async()=>{
-    if (!link || Date.now()<linkExpires) return;
-    $("expiry").disabled=true;
-    try {const response=await fetch(link,{cache:"no-store"});record("Signed link expiry",[400,401,403,404].includes(response.status),`HTTP ${response.status}`);} catch(error){record("Signed link expiry",false,"Network failure; expiry not verified");}
-});
+$("expiry").addEventListener("click",checkExpiry);
 $("report").addEventListener("click",()=>{
-    const report={checked_at:new Date().toISOString(),project:"guvzuufdmnvurshknsnq",shop:context.shop_id===target.shopId?"Test A":"Test B",role:context.role,results:rows};
+    const report={probe_version:2,checked_at:new Date().toISOString(),project:"guvzuufdmnvurshknsnq",shop:context.shop_id===target.shopId?"Test A":"Test B",role:context.role,results:rows};
     const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download=`long-shift-security-${report.shop.replace(" ","-")}-${context.role}.json`;a.click();URL.revokeObjectURL(url);
 });
 init().catch(error=>{$("identity").textContent=error.message;});
