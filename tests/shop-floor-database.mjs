@@ -89,4 +89,39 @@ for(const [role,allowed] of Object.entries(presets)) {
 }
 console.log('PASS: role presets agree between frontend and database');
 console.log('PASS: migration rerun; rollback retained zero ROs');
+// Regression: same-statement INSERT RETURNING must see the new row.
+await db.exec(`drop policy "assigned ro read boundary" on public.shop_repair_orders;
+create policy "assigned ro read boundary" on public.shop_repair_orders as restrictive for select to authenticated using(public.shop_can_access_ro(shop_id,id::text,'read'));
+begin; set local role authenticated;
+select set_config('request.jwt.claim.sub','00000000-0000-0000-0000-000000000001',true);`);
+await assert.rejects(db.query("insert into public.shop_repair_orders(shop_id) values('ddd8d44c-041f-4510-aa8b-a03b2dde87a6') returning *"),/assigned ro read boundary/);
+await db.exec('rollback');
+console.log('PASS: original INSERT RETURNING policy failure reproduced');
+await db.exec(read('shop-test-ro-insert-read-policy-fix.sql'));
+await db.exec(read('shop-test-ro-insert-read-policy-fix.sql'));
+const shopA='ddd8d44c-041f-4510-aa8b-a03b2dde87a6';
+const shopB='1161bc88-9ed5-4d76-a2cf-c7a77d41eea9';
+const tech='00000000-0000-0000-0000-000000000002';
+for (const user of ['00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000003']) {
+ await db.exec('begin; set local role authenticated');
+ await db.query("select set_config('request.jwt.claim.sub',$1,true)",[user]);
+ for (const assigned of ['Unassigned','tr.qa.tech@proton.me']) {
+  const rows=(await db.query('insert into public.shop_repair_orders(shop_id,customer_name,complaint,technician) values($1,$2,$3,$4) returning *',[shopA,'INSERT RETURNING TEST','needs work',assigned])).rows;
+  assert.equal(rows.length,1);
+  assert.equal(rows[0].technician_user_id,assigned==='Unassigned'?null:tech);
+ }
+ await assert.rejects(db.query('insert into public.shop_repair_orders(shop_id,customer_name) values($1,$2) returning *',[shopB,'FORBIDDEN']),/row-level security|Assignment permission required/);
+ await db.exec('rollback');
+}
+await db.exec('begin');
+await db.query("select set_config('request.jwt.claim.sub',$1,true)",['00000000-0000-0000-0000-000000000001']);
+const assigned=(await db.query('insert into public.shop_repair_orders(shop_id,technician) values($1,$2) returning id',[shopA,'tr.qa.tech@proton.me'])).rows[0].id;
+const unassigned=(await db.query('insert into public.shop_repair_orders(shop_id) values($1) returning id',[shopA])).rows[0].id;
+await db.query("select set_config('request.jwt.claim.sub',$1,true)",[tech]);
+await db.exec('set local role authenticated');
+assert.deepEqual((await db.query('select id from public.shop_repair_orders')).rows.map(r=>r.id),[assigned]);
+await assert.rejects(db.query('insert into public.shop_repair_orders(shop_id) values($1) returning id',[shopA]),/permission|security/);
+await db.exec('rollback');
+assert.equal((await db.query('select count(*)::int as count from public.shop_repair_orders')).rows[0].count,0);
+console.log('PASS: Owner/Writer INSERT RETURNING assigned and unassigned; other-shop insert denied; Tech assigned-only reads and no creation; fix rerun; zero retained fixtures');
 await db.close();

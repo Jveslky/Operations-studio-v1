@@ -157,7 +157,13 @@ create trigger shop_ro_assignment_identity before insert or update on public.sho
 -- RESTRICTIVE policies AND with existing permissive policies, closing legacy OR bypasses.
 drop policy if exists "assigned ro read boundary" on public.shop_repair_orders;
 create policy "assigned ro read boundary" on public.shop_repair_orders as restrictive for select to authenticated
- using(public.shop_can_access_ro(shop_id,id::text,'read'));
+ using (
+  public.shop_has_permission(shop_id,'repair_orders.read')
+  and (
+   not public.has_shop_role(shop_id,array['technician'])
+   or coalesce(auth.uid() in (technician_user_id,additional_technician_user_id),false)
+  )
+ );
 drop policy if exists "office direct ro update boundary" on public.shop_repair_orders;
 create policy "office direct ro update boundary" on public.shop_repair_orders as restrictive for update to authenticated
  using(public.shop_has_permission(shop_id,'repair_orders.write')) with check(public.shop_has_permission(shop_id,'repair_orders.write'));
