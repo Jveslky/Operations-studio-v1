@@ -2,7 +2,7 @@
   "name": "long-shift-shop-role-tests",
   "private": true,
   "scripts": {
-    "test": "node shop-inline-intake.mjs && node shop-floor-interface.mjs && node shop-floor-database.mjs && node shop-recovery-media.mjs"
+    "test": "node shop-inline-intake.mjs && node shop-floor-interface.mjs && node shop-floor-database.mjs && node shop-recovery-media.mjs && node shop-security-probes.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8"
