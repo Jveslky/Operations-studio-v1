@@ -5,10 +5,24 @@
  const key = "sb_publishable_cz1cnxmzVXA1U-OwIgXBkw_pazScuWr";
  if (new URL(url).hostname !== project + ".supabase.co") throw new Error("Test project mismatch");
  if (!window.supabase) throw new Error("Supabase failed to load");
+ // Private Storage responses must never be reused across users on one browser.
+ const nativeFetch = window.fetch.bind(window);
+ function privateStorageFetch(input, options = {}) {
+  const requestUrl = new URL(typeof input === "string" ? input : input.url || input.href);
+  const method = (options.method || input.method || "GET").toUpperCase();
+  const privateRead = requestUrl.origin === url &&
+   requestUrl.pathname.startsWith("/storage/v1/object/") &&
+   !requestUrl.pathname.startsWith("/storage/v1/object/public/") &&
+   (method === "GET" || method === "HEAD");
+  if (!privateRead) return nativeFetch(input, options);
+  requestUrl.searchParams.set("ls_private_request", crypto.randomUUID());
+  const nextInput = input instanceof Request ? new Request(requestUrl.href, input) : requestUrl.href;
+  return nativeFetch(nextInput, {...options, cache:"no-store"});
+ }
  window.trackRightSupabase = window.supabase.createClient(url, key, {auth: {
   persistSession: true, autoRefreshToken: true, detectSessionInUrl: true,
   storageKey: "long-shift-shop-test-" + project
- }});
+ }, global: { fetch: privateStorageFetch }});
  document.documentElement.dataset.environment = "test";
  function label() {
   const banner = document.createElement("div");
