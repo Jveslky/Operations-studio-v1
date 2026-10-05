@@ -9,7 +9,15 @@
         accounts_payable: { table: "shop_accounts_payable", date: "created_at" },
         requests: { table: "shop_requests", date: "created_at" },
         calendar: { table: "shop_calendar_events", date: "created_at" },
-        appointments: { table: "shop_appointments", date: "created_at" }
+        appointments: { table: "shop_appointments", date: "created_at" },
+        response_sets: { table: "shop_inspection_response_sets", date: "id" },
+        response_options: { table: "shop_inspection_response_options", date: "id" },
+        inspection_templates: { table: "shop_inspection_templates", date: "id" },
+        template_sections: { table: "shop_inspection_template_sections", date: "id" },
+        template_items: { table: "shop_inspection_template_items", date: "id" },
+        inspections: { table: "shop_inspections", date: "id" },
+        inspection_items: { table: "shop_inspection_items", date: "id" },
+        ro_media: { table: "shop_ro_media", date: "id" }
     };
     const legacyKeys = ["track-right-invoices", "track-right-customers", "track-right-accounts-payable"];
     const $ = (id) => document.getElementById(id);
@@ -20,6 +28,89 @@
         const element = $(id);
         element.textContent = message;
         element.className = `settings-message${state ? ` ${state}` : ""}`;
+    }
+
+
+    const mediaBucket = "shop-inspection-media";
+    const maxMediaBytes = 250 * 1024 * 1024;
+    const mediaTypes = new Set(["image/jpeg", "image/png", "image/heic", "image/heif", "video/mp4", "video/quicktime", "video/webm"]);
+    function validMediaPath(row) {
+        const prefix = `${context.shopId}/${String(row.repair_order_id).replace(/[^a-zA-Z0-9_-]/g, "_")}/`;
+        return typeof row.object_path === "string" && row.object_path.startsWith(prefix) &&
+            !row.object_path.slice(prefix.length).includes("/") && row.object_path.length > prefix.length;
+    }
+    async function digest(bytes) {
+        return Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)))
+            .map(value => value.toString(16).padStart(2, "0")).join("");
+    }
+    function encode(bytes) {
+        let value = "";
+        for (let i = 0; i < bytes.length; i += 32768) value += String.fromCharCode(...bytes.subarray(i, i + 32768));
+        return btoa(value);
+    }
+    function decode(value) {
+        if (typeof value !== "string" || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(value)) throw new Error("Invalid media encoding");
+        return Uint8Array.from(atob(value), char => char.charCodeAt(0));
+    }
+    async function recoveryFiles(rows) {
+        const files = [];
+        let total = 0;
+        for (const row of rows) {
+            if (!validMediaPath(row) || !mediaTypes.has(row.mime_type)) throw new Error("Invalid media record");
+            total += Number(row.file_size);
+            if (total > maxMediaBytes) throw new Error("Media exceeds the 250 MB recovery limit; no backup was downloaded");
+            status("data-export-message", `Backing up media ${files.length + 1} of ${rows.length}…`, "");
+            const result = await client.storage.from(mediaBucket).download(row.object_path);
+            if (result.error) throw result.error;
+            const bytes = new Uint8Array(await result.data.arrayBuffer());
+            if (bytes.length !== Number(row.file_size)) throw new Error("Media size differs from its record");
+            files.push({ object_path: row.object_path, sha256: await digest(bytes), data: encode(bytes) });
+        }
+        return files;
+    }
+    async function validateRecoveryFiles(data) {
+        if (data.version === 2) return;
+        if (!Array.isArray(data.media_files)) throw new Error("Recovery media files are missing");
+        const rows = data.cloud.ro_media || [];
+        const files = new Map();
+        let total = 0;
+        for (const file of data.media_files) {
+            if (files.has(file.object_path)) throw new Error("Duplicate recovery media path");
+            files.set(file.object_path, file);
+        }
+        if (files.size !== rows.length) throw new Error("Media file/record counts differ");
+        for (const row of rows) {
+            if (!validMediaPath(row) || !mediaTypes.has(row.mime_type) || !(Number(row.file_size) > 0) || Number(row.file_size) > 100 * 1024 * 1024) throw new Error("Invalid recovery media record");
+            total += Number(row.file_size);
+            if (total > maxMediaBytes) throw new Error("Recovery media exceeds 250 MB");
+            const file = files.get(row.object_path);
+            if (!file) throw new Error("Recovery file is missing for a media record");
+            if (typeof file.data !== "string" || file.data.length > Math.ceil(Number(row.file_size) / 3) * 4) throw new Error("Media encoding exceeds declared size");
+            const bytes = decode(file.data);
+            if (bytes.length !== Number(row.file_size) || await digest(bytes) !== file.sha256) throw new Error("Media integrity check failed");
+            // Bound the DOM preview and avoid inserting uploaded strings as HTML.
+        }
+    }
+    async function restoreRecoveryFiles(data) {
+        if (data.version === 2) return;
+        const files = new Map(data.media_files.map(file => [file.object_path, file]));
+        for (const row of data.cloud.ro_media || []) {
+            const file = files.get(row.object_path);
+            const storage = client.storage.from(mediaBucket);
+            const existing = await storage.download(row.object_path);
+            if (!existing.error) {
+                if (await digest(await existing.data.arrayBuffer()) !== file.sha256) throw new Error("An existing media file differs; it was preserved");
+                continue;
+            }
+            const code = Number(existing.error.statusCode || existing.error.status);
+            if (code !== 404 && code !== 400) throw existing.error;
+            const upload = await storage.upload(row.object_path, decode(file.data), { contentType: row.mime_type, upsert: false });
+            if (upload.error) {
+                // Concurrent or repeat restores preserve files and verify their contents.
+                const retry = await storage.download(row.object_path);
+                if (retry.error || await digest(await retry.data.arrayBuffer()) !== file.sha256) throw upload.error;
+            }
+        }
     }
 
     function download(name, type, content) {
@@ -137,10 +228,11 @@
             for (const key of Object.keys(configs)) cloud[key] = await fetchSet(key, false);
             const backup = {
                 format: "track-right-shop-backup",
-                version: 2,
+                version: 3,
                 source_shop_id: context.shopId,
                 exported_at: new Date().toISOString(),
-                excludes: ["private storage documents", "photos", "videos"],
+                excludes: ["private team documents", "shop settings", "notifications"],
+                media_files: await recoveryFiles(cloud.ro_media),
                 cloud,
                 legacy: collectLegacy()
             };
@@ -163,9 +255,10 @@
         const file = this.files[0];
         if (!file) return;
         try {
+            if (file.size > 350 * 1024 * 1024) throw new Error("Recovery file exceeds the 350 MB browser limit.");
             const data = JSON.parse(await file.text());
-            if (data.format !== "track-right-shop-backup" || data.version !== 2 || !data.cloud) {
-                throw new Error("This is not a supported version 2 Long Shift Shop backup.");
+            if (data.format !== "track-right-shop-backup" || ![2, 3].includes(data.version) || !data.cloud) {
+                throw new Error("This is not a supported Long Shift Shop backup.");
             }
             if (data.source_shop_id !== context.shopId) {
                 throw new Error("This backup belongs to a different shop and cannot be imported here.");
@@ -185,6 +278,7 @@
                     throw new Error("Legacy browser records lack matching shop ownership and cannot be imported.");
                 }
             }
+            await validateRecoveryFiles(data);
             validated = data;
             const review = $("shop-backup-review");
             review.innerHTML = `<h3>Backup validated</h3><ul>${Object.entries(data.cloud)
@@ -207,8 +301,9 @@
         try {
             this.disabled = true;
             status("data-import-message", "Importing missing records…", "");
-            const result = await client.rpc("restore_shop_data_backup", { backup: validated });
+            const result = await client.rpc("restore_shop_data_backup", { backup: { ...validated, media_files: undefined } });
             if (result.error) throw result.error;
+            await restoreRecoveryFiles(validated);
             Object.entries(validated.legacy || {}).forEach(([key, value]) => {
                 if ((key.startsWith("repair-order-") || legacyKeys.includes(key)) &&
                     localStorage.getItem(key) === null) {
@@ -217,7 +312,7 @@
             });
             status("data-import-message", "Import complete. Existing records were preserved.", "success");
         } catch (error) {
-            status("data-import-message", `Import stopped: ${error.message}`, "error");
+            status("data-import-message", `Import incomplete: ${error.message}. Records or files may already have been restored; retry this same backup to finish.`, "error");
         } finally {
             this.disabled = false;
         }

@@ -124,4 +124,32 @@ await assert.rejects(db.query('insert into public.shop_repair_orders(shop_id) va
 await db.exec('rollback');
 assert.equal((await db.query('select count(*)::int as count from public.shop_repair_orders')).rows[0].count,0);
 console.log('PASS: Owner/Writer INSERT RETURNING assigned and unassigned; other-shop insert denied; Tech assigned-only reads and no creation; fix rerun; zero retained fixtures');
+
+await db.exec(read('shop-test-recovery-media.sql'));
+await db.exec('begin');
+await db.query("select set_config('request.jwt.claim.sub',$1,true)",['00000000-0000-0000-0000-000000000001']);
+const recoveryRO=(await db.query('insert into public.shop_repair_orders(shop_id,customer_name) values($1,$2) returning *',[shopA,'RECOVERY TEST'])).rows[0];
+const inspection=(await db.query(`insert into shop_inspections(shop_id,repair_order_id,title,created_by) values($1,$2,'Recovery',$3) returning *`,[shopA,String(recoveryRO.ro_number),'00000000-0000-0000-0000-000000000001'])).rows[0];
+const checkItem=(await db.query(`insert into shop_inspection_items(shop_id,inspection_id,section_title,item_label,response,notes) values($1,$2,'Test','Check','pass','Preserve notes') returning *`,[shopA,inspection.id])).rows[0];
+const media=(await db.query(`insert into shop_ro_media(shop_id,repair_order_id,inspection_id,inspection_item_id,object_path,mime_type,file_size,uploaded_by) values($1,$2,$3,$4,$5,'image/png',3,$6) returning *`,[shopA,String(recoveryRO.ro_number),inspection.id,checkItem.id,`${shopA}/${recoveryRO.ro_number}/test.png`,'00000000-0000-0000-0000-000000000001'])).rows[0];
+const recovery={format:'track-right-shop-backup',version:3,source_shop_id:shopA,cloud:{inspections:[inspection],inspection_items:[checkItem],ro_media:[media]}};
+await db.query('delete from shop_ro_media where id=$1',[media.id]);
+await db.query('delete from shop_inspections where id=$1',[inspection.id]);
+await db.exec('set local role authenticated');
+assert.equal((await db.query('select restore_shop_data_backup($1::jsonb) as result',[JSON.stringify(recovery)])).rows[0].result.restored,3);
+assert.equal((await db.query('select restore_shop_data_backup($1::jsonb) as result',[JSON.stringify(recovery)])).rows[0].result.restored,0);
+assert.equal((await db.query('select notes from shop_inspection_items where id=$1',[checkItem.id])).rows[0].notes,'Preserve notes');
+await db.exec('savepoint bad_restore');
+await assert.rejects(db.query('select restore_shop_data_backup($1::jsonb)',[JSON.stringify({...recovery,cloud:{inspections:[{...inspection,shop_id:shopB}]}})]),/tenant validation/);
+await db.exec('rollback to savepoint bad_restore');
+await assert.rejects(db.query('select restore_shop_data_backup($1::jsonb)',[JSON.stringify({...recovery,cloud:{inspections:[{...inspection,shop_id:null}]}})]),/tenant validation/);
+await db.exec('rollback to savepoint bad_restore');
+await db.query("select set_config('request.jwt.claim.sub',$1,true)",['00000000-0000-0000-0000-000000000004']);
+await assert.rejects(db.query('select restore_shop_data_backup($1::jsonb)',[JSON.stringify(recovery)]),/permission/);
+await db.exec('rollback to savepoint bad_restore');
+await db.query("select set_config('request.jwt.claim.sub',$1,true)",[tech]);
+await assert.rejects(db.query('select restore_shop_data_backup($1::jsonb)',[JSON.stringify(recovery)]),/permission/);
+await db.exec('rollback');
+console.log('PASS: inspection/items/media metadata restoration, repeat preservation, null/cross-shop tenants and unauthorized roles denied; rollback clean');
+
 await db.close();
