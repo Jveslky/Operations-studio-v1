@@ -36,6 +36,45 @@ async function directPhoto(anonymous = false) {
     }
     return { allowed: false, status: response.status, size: 0, matches: false };
 }
+async function sdkPhotoSummary(result) {
+    const blob = result.data;
+    return {
+        hasData: !!blob,
+        size: blob?.size ?? null,
+        type: blob?.type || "",
+        matches: blob instanceof Blob ? await hash(blob) === target.sha256 : false,
+        hasError: !!result.error,
+        errorName: result.error?.name || "none",
+        errorStatus: result.error?.statusCode || result.error?.status || result.error?.originalError?.status || "not supplied"
+    };
+}
+async function freshSdkPhoto() {
+    const session = await client.auth.getSession();
+    const token = session.data.session?.access_token;
+    if (session.error || !token) throw new Error("Authenticated session unavailable");
+    let httpStatus = null;
+    const isolated = window.supabase.createClient(client.supabaseUrl, client.supabaseKey, {
+        auth: { persistSession:false, autoRefreshToken:false, detectSessionInUrl:false },
+        global: {
+            headers: { Authorization: `Bearer ${token}` },
+            fetch: async (input, options) => {
+                const url = new URL(input);
+                if (url.origin !== client.supabaseUrl || !url.pathname.startsWith("/storage/v1/object/")) {
+                    throw new Error("Unexpected SDK download destination");
+                }
+                url.searchParams.set("qa", crypto.randomUUID());
+                const response = await fetch(url.href, {...options, cache:"no-store"});
+                httpStatus = response.status;
+                return response;
+            }
+        }
+    });
+    const result = await isolated.storage.from("shop-inspection-media").download(target.path);
+    return {summary:await sdkPhotoSummary(result), httpStatus};
+}
+function sdkDetail(summary) {
+    return `SDK data: ${summary.hasData}; bytes: ${summary.size ?? "none"}; type: ${summary.type || "none"}; fixture hash matches: ${summary.matches}; error: ${summary.errorName}; status: ${summary.errorStatus}`;
+}
 function photoResult(result, allow) {
     return allow ? result.allowed && result.matches : !result.allowed && [400,401,403,404].includes(result.status);
 }
@@ -45,6 +84,7 @@ async function checkExpiry() {
     try { const response = await fetch(link, {cache:"no-store"}); record("Signed link expiry", [400,401,403,404].includes(response.status), `HTTP ${response.status}`); }
     catch(error) { record("Signed link expiry",false,"Network failure; expiry not verified"); }
     $("report").disabled = false;
+    $("run").disabled = false;
     $("expiry-help").textContent = "Expiry check finished. Download results now.";
 }
 async function init() {
@@ -74,7 +114,12 @@ $("run").addEventListener("click", async () => {
         const photo = await client.storage.from("shop-inspection-media").download(target.path);
         const rawPhoto = await directPhoto();
         record("Private photo direct download", photoResult(rawPhoto,allow), `HTTP ${rawPhoto.status}; photo bytes received: ${rawPhoto.size}`);
-        record("SDK photo download comparison", allow ? !photo.error && !!photo.data && await hash(photo.data) === target.sha256 : !!photo.error && !photo.data, `SDK error: ${photo.error?.name || "none"}; status: ${photo.error?.statusCode || photo.error?.status || photo.error?.originalError?.status || "not supplied"}`);
+        const sdk = await sdkPhotoSummary(photo);
+        record("SDK photo download comparison", allow ? !sdk.hasError && sdk.matches : sdk.hasError && !sdk.hasData, sdkDetail(sdk));
+        const fresh = await freshSdkPhoto();
+        const freshAllowed = !fresh.summary.hasError && fresh.summary.matches && fresh.httpStatus === 200;
+        const freshDenied = fresh.summary.hasError && !fresh.summary.hasData && [400,401,403,404].includes(fresh.httpStatus);
+        record("SDK photo download without cache", allow ? freshAllowed : freshDenied, `HTTP ${fresh.httpStatus}; ${sdkDetail(fresh.summary)}`);
         const sign = await client.storage.from("shop-inspection-media").createSignedUrl(target.path,30);
         record("Private photo signing authorization",allow ? !sign.error && !!sign.data?.signedUrl : deniedFile(sign));
         if (allow && !sign.error && sign.data?.signedUrl) {
@@ -94,11 +139,11 @@ $("run").addEventListener("click", async () => {
         const anonymousPhoto=await directPhoto(true);
         record("Anonymous photo direct download",photoResult(anonymousPhoto,false),`HTTP ${anonymousPhoto.status}; photo bytes received: ${anonymousPhoto.size}`);
     } catch(error) {record("Checks completed",false,error.message);}
-    finally {$("run").disabled=false;$("report").disabled=!!link;}
+    finally {$("run").disabled=!!link;$("report").disabled=!!link;}
 });
 $("expiry").addEventListener("click",checkExpiry);
 $("report").addEventListener("click",()=>{
-    const report={probe_version:2,checked_at:new Date().toISOString(),project:"guvzuufdmnvurshknsnq",shop:context.shop_id===target.shopId?"Test A":"Test B",role:context.role,results:rows};
+    const report={probe_version:3,checked_at:new Date().toISOString(),project:"guvzuufdmnvurshknsnq",shop:context.shop_id===target.shopId?"Test A":"Test B",role:context.role,results:rows};
     const url=URL.createObjectURL(new Blob([JSON.stringify(report,null,2)],{type:"application/json"}));const a=document.createElement("a");a.href=url;a.download=`long-shift-security-${report.shop.replace(" ","-")}-${context.role}.json`;a.click();URL.revokeObjectURL(url);
 });
 init().catch(error=>{$("identity").textContent=error.message;});
