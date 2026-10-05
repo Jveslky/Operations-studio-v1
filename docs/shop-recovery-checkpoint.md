@@ -30,3 +30,9 @@ Test-only `qa/shop-security.html` runs from the current browser Test session. It
 Run as Test A owner, Tech, then Test B owner. Owner also checks the issued 30-second signed link after 45 seconds using the expiry button. Download each JSON report and upload for review. Reports contain no session tokens, signed links, photo bytes or user IDs. Existing signed links are bearer links until expiry, not immediately invalidated by reassignment.
 
 The browser connection failed earlier; real signed-in probe runs remain pending. Local mock tests verify the test-page expectations only. Team documents/settings/notifications remain excluded from recovery; do not call this a complete platform backup or full security certification.
+
+## Signed-in probe reports received
+
+October 4, 22:29 Eastern: Test A Owner, Test A Technician and Test B Owner report successful expected UUID record access/denial, photo signing authorization, restore permissions and anonymous RO denial. Owner photo-byte positive control passed. Tech/Test B/anonymous direct SDK-download denial checks failed with no error details retained. No conclusion about byte exposure is possible from these reports. Owner signed-link expiry is absent.
+
+Probe v2 performs a raw authenticated Storage HTTP read and records status plus photo bytes received, retaining SDK error name/status as a separate comparison. It never puts bearer credentials or signed links into reports. Owner signed-link expiry runs automatically after 45 seconds and report download stays disabled until the attempt finishes. Rerun all three sessions; no SQL or policy changes are made by this diagnostic correction.
