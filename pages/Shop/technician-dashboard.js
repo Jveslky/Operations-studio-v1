@@ -28,6 +28,10 @@
     }
     function empty(container, text) { container.replaceChildren(); const p=document.createElement("p"); p.textContent=text; container.append(p); }
     function isAssigned(order) {
+        // Phase 1 enforces immutable assignment IDs only in the verified Live QA shops.
+        if (["b40cf910-b4df-4558-bb46-1eb18a4f4cb8", "322f19e9-f0ce-492e-ada7-9f3298c16376"].includes(context.shopId)) {
+            return [order.technicianUserId, order.additionalTechnicianUserId].includes(context.user.id);
+        }
         const email = context.user.email.toLowerCase();
         return [order.technician, order.additionalTechnician].some((value) => String(value || "").toLowerCase() === email);
     }

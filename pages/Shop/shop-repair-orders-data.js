@@ -29,6 +29,8 @@
             id: String(row.ro_number),
             recordId: row.id,
             legacyLocalId: row.legacy_local_id,
+            technicianUserId: row.technician_user_id || null,
+            additionalTechnicianUserId: row.additional_technician_user_id || null,
             customerId: row.customer_id || "",
             unitId: row.unit_id || "",
             customer: row.customer_name || "",
