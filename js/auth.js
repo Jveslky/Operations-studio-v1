@@ -7,9 +7,8 @@
     const requiredFeature = document.documentElement.dataset.feature || "";
     const rolePermissions = {
         owner: ["*"],
-        admin: ["customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "repair_orders.assign", "repair_orders.update_work", "invoices.read", "invoices.write", "expenses.read", "expenses.write", "schedule.manage", "inspections.work", "requests.review", "team_documents.manage", "data.export", "data.import", "settings.manage", "users.manage"],
-        service_writer: ["customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "repair_orders.assign", "repair_orders.update_work", "invoices.read", "invoices.write", "schedule.manage", "inspections.work", "requests.review", "data.export"],
-        foreman: ["repair_orders.read", "repair_orders.assign", "repair_orders.update_work", "inspections.work"],
+        admin: ["customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "repair_orders.update_work", "invoices.read", "invoices.write", "expenses.read", "expenses.write", "schedule.manage", "inspections.work", "requests.review", "team_documents.manage", "data.export", "data.import", "settings.manage", "users.manage"],
+        service_writer: ["customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "invoices.read", "invoices.write", "schedule.manage", "inspections.work", "requests.review", "data.export"],
         technician: ["repair_orders.read", "repair_orders.update_work", "inspections.work"],
         read_only: ["customers.read", "repair_orders.read", "invoices.read", "expenses.read", "data.export"]
     };
@@ -172,17 +171,10 @@
         return context;
     }
 
-    // Cloudflare Pages serves HTML routes without the .html suffix.
-    // Normalize both forms before comparing role access and navigation links.
-    function shopPageName(pathname) {
-        const name = pathname.replace(/\/+$/, "").split("/").pop().toLowerCase();
-        return name && !name.endsWith(".html") ? name + ".html" : name;
-    }
-
     function applyShopPageAccess(context) {
-        const page = shopPageName(window.location.pathname);
+        const page = window.location.pathname.split("/").pop().toLowerCase();
         const rootPath = loginPath.replace(/login\.html(?:\?.*)?$/, "");
-        const dashboard = ["technician", "foreman"].includes(context.role)
+        const dashboard = context.role === "technician"
             ? `${rootPath}pages/Shop/technician-dashboard.html`
             : `${rootPath}pages/Shop/shop-dashboard.html`;
         // The Shop brand is workspace navigation for signed-in staff.
@@ -209,10 +201,10 @@
         }
 
         document.querySelectorAll(".app-nav a").forEach(function (link) {
-            const linkedPage = shopPageName(new URL(link.href, window.location.href).pathname);
+            const linkedPage = new URL(link.href, window.location.href).pathname.split("/").pop().toLowerCase();
             if (linkedPage === "accounts-payable.html" && !canUseAccountsPayable) link.remove();
         });
-        if (!["technician", "foreman"].includes(context.role)) return true;
+        if (context.role !== "technician") return true;
 
         const technicianPages = new Set([
             "technician-dashboard.html",
@@ -225,7 +217,7 @@
         }
 
         document.querySelectorAll(".app-nav a").forEach(function (link) {
-            const linkedPage = shopPageName(new URL(link.href, window.location.href).pathname);
+            const linkedPage = new URL(link.href, window.location.href).pathname.split("/").pop().toLowerCase();
             if (linkedPage === "shop-dashboard.html" ||
                 linkedPage === "technician-dashboard.html") {
                 link.href = dashboard;

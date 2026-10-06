@@ -28,7 +28,12 @@
     }
     function empty(container, text) { container.replaceChildren(); const p=document.createElement("p"); p.textContent=text; container.append(p); }
     function isAssigned(order) {
-        return context.role === "foreman" || [order.technicianUserId, order.additionalTechnicianUserId].includes(context.user.id);
+        // Phase 1 enforces immutable assignment IDs only in the verified Live QA shops.
+        if (["b40cf910-b4df-4558-bb46-1eb18a4f4cb8", "322f19e9-f0ce-492e-ada7-9f3298c16376"].includes(context.shopId)) {
+            return [order.technicianUserId, order.additionalTechnicianUserId].includes(context.user.id);
+        }
+        const email = context.user.email.toLowerCase();
+        return [order.technician, order.additionalTechnician].some((value) => String(value || "").toLowerCase() === email);
     }
     function renderOrders(orders) {
         const active = orders.filter((order) => !order.archived && isAssigned(order) && !["Closed", "Complete"].includes(order.status));
@@ -36,18 +41,18 @@
         document.getElementById("tech-waiting-approval").textContent = active.filter((order) => ["Sent", "Pending", "Waiting Approval"].includes(order.estimateApprovalStatus) || order.status === "Waiting Approval").length;
         roList.replaceChildren();
         active.forEach((order) => {
-            const item = row(`RO #${order.id} · ${order.unit || "Unit not listed"}`, `${order.customer || "Customer"}${context.role === "foreman" ? ` · Assigned: ${order.technician || "Unassigned"}` : ""} · Authorization: ${order.estimateApprovalStatus || "Draft"}`, order.status, "");
+            const item = row(`RO #${order.id} · ${order.unit || "Unit not listed"}`, `${order.customer || "Customer"} · Authorization: ${order.estimateApprovalStatus || "Draft"}`, order.status, "");
             const link = document.createElement("a"); link.href=`repair-order-details.html?id=${encodeURIComponent(order.id)}`; link.textContent="Open repair order"; item.append(link); roList.append(item);
         });
-        if (!active.length) empty(roList, "No open repair orders available.");
+        if (!active.length) empty(roList, "No open repair orders are assigned to your email.");
     }
     function renderSchedule(appointments) {
         const email=context.user.email.toLowerCase(), today=dateOnly(new Date().toISOString());
-        const assigned=(appointments||[]).filter((item)=>(context.role==="foreman" || String(item.technician||"").toLowerCase()===email) && item.status!=="Cancelled" && item.scheduled_on>=today);
+        const assigned=(appointments||[]).filter((item)=>String(item.technician||"").toLowerCase()===email && item.status!=="Cancelled" && item.scheduled_on>=today).slice(0,10);
         document.getElementById("tech-today-count").textContent=assigned.filter((item)=>item.scheduled_on===today).length;
         scheduleList.replaceChildren();
-        assigned.slice(0,10).forEach((item)=>scheduleList.append(row(`${formatDate(item.scheduled_on)} · ${String(item.start_time).slice(0,5)}`, `${item.customer}${item.unit ? ` · ${item.unit}`:""}${item.description ? ` · ${item.description}`:""}`, item.status, "")));
-        if(!assigned.length) empty(scheduleList, context.role === "foreman" ? "No upcoming shop appointments." : "No upcoming appointments assigned to you.");
+        assigned.forEach((item)=>scheduleList.append(row(`${formatDate(item.scheduled_on)} · ${String(item.start_time).slice(0,5)}`, `${item.customer}${item.unit ? ` · ${item.unit}`:""}${item.description ? ` · ${item.description}`:""}`, item.status, "")));
+        if(!assigned.length) empty(scheduleList,"No upcoming appointments are assigned to your email.");
     }
     function renderRequests(requests) {
         requestList.replaceChildren();
@@ -78,47 +83,5 @@
     async function loadRequests(){const result=await client.from("shop_requests").select("*").eq("shop_id",context.shopId).eq("requested_by",context.user.id).order("created_at",{ascending:false});if(result.error)throw result.error;renderRequests(result.data);}
     requestType.addEventListener("change",updateRequestDates);
     requestForm.addEventListener("submit",async(event)=>{event.preventDefault();if(requestStart.value&&requestEnd.value<requestStart.value){requestMessage.textContent="End date cannot be before the start date.";return;}const button=document.getElementById("tech-request-submit");button.disabled=true;requestMessage.textContent="Submitting…";const result=await client.from("shop_requests").insert({shop_id:context.shopId,requested_by:context.user.id,request_type:requestType.value,title:document.getElementById("tech-request-title").value.trim(),details:document.getElementById("tech-request-details").value.trim()||null,starts_on:requestStart.value||null,ends_on:requestEnd.value||null});button.disabled=false;if(result.error){requestMessage.textContent=`Request could not be submitted: ${result.error.message}`;return;}requestForm.reset();requestType.value="pto";updateRequestDates();requestMessage.textContent="Request submitted for office review.";await loadRequests();});
-    function applyForemanLabels() {
-        document.title = "Foreman Workspace | Long Shift";
-        document.querySelector(".brand-module").textContent = "Foreman";
-        document.querySelector(".dashboard-eyebrow").textContent = "SHOP FLOOR";
-        document.querySelector("h1").textContent = "Floor Overview";
-        document.querySelector(".shop-dashboard-intro p:last-child").textContent =
-            "Shop work, assignments, authorization, and upcoming appointments.";
-        document.querySelector(".shop-kpi-label").textContent = "Open ROs";
-        document.querySelector(".technician-card h2").textContent = "Shop Repair Orders";
-        document.querySelectorAll(".technician-card h2")[1].textContent = "Shop Upcoming Schedule";
-    }
-
-    window.trackRightAuthReady.then(async function (authContext) {
-        if (!authContext) return;
-        context = authContext;
-        if (!["technician", "foreman"].includes(context.role)) {
-            window.location.replace("shop-dashboard.html");
-            return;
-        }
-        if (context.role === "foreman") applyForemanLabels();
-        updateRequestDates();
-        const today = dateOnly(new Date().toISOString());
-        const [orders, appointments, requests, documents] = await Promise.all([
-            window.trackRightRepairOrders.list(),
-            client.from("shop_appointments").select("*").eq("shop_id", context.shopId)
-                .gte("scheduled_on", today).order("scheduled_on").order("start_time"),
-            client.from("shop_requests").select("*").eq("shop_id", context.shopId)
-                .eq("requested_by", context.user.id).order("created_at", { ascending: false }),
-            client.from("shop_team_documents").select("*").eq("shop_id", context.shopId)
-                .eq("subject_user_id", context.user.id).eq("visible_to_subject", true)
-                .order("expires_on", { ascending: true, nullsFirst: false })
-        ]);
-        if (appointments.error) throw appointments.error;
-        if (requests.error) throw requests.error;
-        if (documents.error) throw documents.error;
-        renderOrders(orders);
-        renderSchedule(appointments.data);
-        renderRequests(requests.data);
-        renderDocuments(documents.data);
-    }).catch(function (error) {
-        console.error("Floor dashboard could not load", error);
-        empty(roList, "Workspace data could not be loaded. Refresh or sign in again.");
-    });
+    window.trackRightAuthReady.then(async(authContext)=>{context=authContext;if(context.role!=="technician"){window.location.replace("shop-dashboard.html");return;}updateRequestDates();const today=dateOnly(new Date().toISOString());const [orders,appointments,requests,documents]=await Promise.all([window.trackRightRepairOrders.list(),client.from("shop_appointments").select("*").eq("shop_id",context.shopId).gte("scheduled_on",today).order("scheduled_on").order("start_time"),client.from("shop_requests").select("*").eq("shop_id",context.shopId).eq("requested_by",context.user.id).order("created_at",{ascending:false}),client.from("shop_team_documents").select("*").eq("shop_id",context.shopId).eq("subject_user_id",context.user.id).eq("visible_to_subject",true).order("expires_on",{ascending:true,nullsFirst:false})]);if(appointments.error)throw appointments.error;if(requests.error)throw requests.error;if(documents.error)throw documents.error;renderOrders(orders);renderSchedule(appointments.data);renderRequests(requests.data);renderDocuments(documents.data);}).catch((error)=>{console.error("Technician dashboard could not load",error);empty(roList,"Technician workspace data could not be loaded. Refresh or sign in again.");});
 }());

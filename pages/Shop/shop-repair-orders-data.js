@@ -157,21 +157,6 @@
             return toModel(data);
         }
 
-        if (authContext.role === "foreman") {
-            const { data, error } = await client.rpc("update_shop_repair_order_floor", {
-                target_id: order.recordId,
-                new_technician: order.technician || "Unassigned",
-                new_additional_technician: order.additionalTechnician || "",
-                new_priority: order.priority,
-                new_status: order.status,
-                new_technician_notes: order.technicianNotes || "",
-                new_labor_hours: number(order.laborHours),
-                new_additional_work: order.additionalWorkPerformed || ""
-            });
-            if (error) throw error;
-            return toModel(data);
-        }
-
         const { data, error } = await client
             .from("shop_repair_orders")
             .update(toRow(order, authContext, false))
@@ -186,7 +171,6 @@
 
     async function migrateBrowserOrders() {
         const authContext = await context();
-        if (!window.trackRightCan("repair_orders.write")) return { migrated: 0, skipped: 0 };
         const candidates = [];
         const completedKey = `track-right-ro-migrated:${authContext.shopId}`;
         const dismissedKey = `track-right-ro-migration-dismissed:${authContext.shopId}`;

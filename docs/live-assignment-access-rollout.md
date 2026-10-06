@@ -1,30 +1,26 @@
-# Draft Live assignment-access promotion
+# Live QA assignment-access rollout — PR #87
 
-## Observed gap
+## Cause confirmed
 
-Jon reported Live TRQ&A RO #1003 remained visible to Tech with its photo after assignment removal on October 5, 2026. Live repository code still uses broad same-shop RO permissions. PR #86 only ports private-media cache mitigation. Installed Live database policies have not yet been inspected.
+The October 5 Live preflight supplied by Jon shows membership-only SELECT policies on ROs, inspections, items, media and private inspection Storage. The work-save RPC checks same-shop role, not assignment. Only text assignment columns exist. No unresolved assignment labels were reported. These explain access surviving unassignment; PR #86's cache mitigation alone cannot revoke authorization.
 
-## Draft contents
+## Scope
 
-Frontend is the tested PR #78 floor-role implementation, including extensionless route guards inherited from Test. It adds Foreman navigation/assignment workflow and immutable technician assignment identities. This does not bring inline intake, recovery, Test connection settings, or diagnostic fixtures into Live.
+Phase 1 enforces assigned-only Tech access in TRQ&A (`b40cf910-b4df-4558-bb46-1eb18a4f4cb8`) and 2TRQ&A (`322f19e9-f0ce-492e-ada7-9f3298c16376`). It adds immutable Auth assignment IDs, QA-only backfill, restrictive RO/child/Storage boundaries and assignment checks in work/inspection RPCs. Other shops keep their existing membership/role behavior; their ROs are not backfilled. A transaction-local fingerprint rolls back the migration if any non-QA RO record changes. Existing role presets, invitations, schedule, other buckets, PFleet and Snow are unchanged.
 
-The SQL candidate is the tested floor-role migration with the corrected direct-row SELECT policy for INSERT RETURNING. It is deliberately blocked by an unconditional STOP before any changes. Do not remove the STOP or run it as an installation script. It contains a whole-Shop assignment backfill and role preset changes that require review; it must not be applied while protected data scope is unresolved.
+The draft's broad floor-role candidate and unrelated frontend changes were removed. Foreman/global floor-role promotion is deferred to a separately reviewed rollout. The small frontend change exposes Auth assignment IDs and uses them on the QA Tech dashboard; non-QA dashboards retain email matching.
 
-## Required next input
+## Apply and verify
 
-Run `supabase/live-assignment-access-preflight.sql` in Live project `amikoqrqutnpojtcyjlx` and return its single JSON result. This is read-only: installed policies/functions/triggers, assignment column presence, shop identity/role counts, unresolved legacy assignment counts and private bucket status. It does not include customer notes or photo bytes.
+1. In Supabase project **amikoqrqutnpojtcyjlx**, run the entire `supabase/live-qa-assignment-access.sql` file. Never substitute Shop Test fixture scripts. Expected single result: `QA assignment enforcement installed; non-QA RO records unchanged`.
+2. Keep #87 draft until the SQL success is confirmed. SQL enforcement can be verified before the frontend merge. Merge only after database success; then hard refresh.
+3. In TRQ&A, Owner/Writer assigns a harmless QA RO to Tech. Tech reads it, saves notes, attaches an inspection/photo and refreshes. Owner retains the photo.
+4. Owner removes both primary and additional Tech assignments. After Tech refreshes, list and direct RO URL must deny access; new inspection/photo requests and work saves must fail. Owner still sees the RO/photo. Reassigning as additional Tech restores access.
+5. 2TRQ&A must not read TRQ&A UUID records or new private photo requests. Reused display RO numbers can resolve that shop's own RO; UUIDs distinguish records.
+6. Existing signed URLs can remain usable until expiry. Evaluate newly authorized requests, not an already-issued link or bytes already downloaded. The #86 no-store transport remains in place.
 
-Review the result before replacing the candidate with an approved migration. Confirm QA shop IDs, existing function signatures, permissive policy interactions, assignment labels and any ambiguous legacy references. Do not modify Del-Mobile or PFleet tester business records. Decide whether a QA-scoped staged rollout is required before global Shop role behavior changes.
+## Local validation
 
-## Release gates
+`tests/live-qa-assignment-access.mjs` runs against disposable PGlite PostgreSQL with Auth/Storage stubs and the repository baseline migrations. It tests primary/additional assignment, unassignment and inactive/cross-shop denial across RO/inspection/item/media/Storage/work; Owner photo retention; Writer INSERT RETURNING; rerun safety; unchanged protected records/timestamps, role presets and legacy bucket policies; and protected Tech legacy workflow. QA dashboard identity and non-QA email fallback are tested as well. It is not a hosted Supabase API or CDN test.
 
-- Keep this PR draft until installed Live state is verified and the migration/backfill scope is concrete.
-- Test the finalized migration against a disposable representative schema, including inactive users, primary/additional assignment, removed assignment, child/media access, UUID cross-shop denial and owner/writer operations.
-- Apply approved SQL before frontend deployment; code expects the assignment columns and floor RPC.
-- Do not run rollback-only Test fixture scripts against Live.
-- After deployment, verify Live QA owner -> assigned Tech -> removed Tech -> other QA shop. Use only synthetic QA records.
-- Previously issued signed links remain usable until expiry; judge revocation with new authorized requests after a refresh.
-
-## Validation so far
-
-Frontend syntax and floor interface tests run locally. The candidate preserves the already-tested SQL implementation, but its compatibility with installed Live policies is unverified. The Live cache client from PR #86 remains intact. No Live database was queried or changed by this preparation.
+No Live database was modified by the agent. The uploaded preflight is user-supplied evidence; actual enforcement still needs the SQL installation and real signed-in QA retest above.

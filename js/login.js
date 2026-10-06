@@ -27,7 +27,7 @@
         const [platform, personal, shop] = await Promise.all([
             client.from("platform_users").select("role").eq("user_id", userId).maybeSingle(),
             client.from("personal_fleet_members").select("account_id").eq("user_id", userId).eq("is_active", true).limit(1).maybeSingle(),
-            client.from("shop_members").select("shop_id,role").eq("user_id", userId).eq("is_active", true).limit(1).maybeSingle()
+            client.from("shop_members").select("shop_id").eq("user_id", userId).eq("is_active", true).limit(1).maybeSingle()
         ]);
         // Preserve deep links only when the signed-in account belongs to
         // the requested workspace. A returnTo from a previous account must
@@ -42,8 +42,7 @@
         }
         if (platform.data) return "pages/Admin/development-dashboard.html";
         if (personal.data) return "pages/PersonalFleet/Personaldashboard.html";
-        if (shop.data) return ["technician", "foreman"].includes(shop.data.role)
-            ? "pages/Shop/technician-dashboard.html" : "pages/Shop/shop-dashboard.html";
+        if (shop.data) return "pages/Shop/shop-dashboard.html";
         return "account-required.html";
     }
 

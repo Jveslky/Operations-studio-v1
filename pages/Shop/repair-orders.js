@@ -1624,11 +1624,7 @@ startCustomerRepairOrderButton?.addEventListener(
 
 async function initializeRepairOrders() {
     try {
-        await window.trackRightAuthReady;
-        const canCreate = window.trackRightCan("repair_orders.write");
-        newRepairOrderButton.hidden = !canCreate;
-        if (!canCreate) newRepairOrderForm.hidden = true;
-        if (canCreate) await window.trackRightRepairOrders.migrateBrowserOrders();
+        await window.trackRightRepairOrders.migrateBrowserOrders();
         const cloudOrders = await window.trackRightRepairOrders.list();
         repairOrders.splice(0, repairOrders.length, ...cloudOrders);
         renderRepairOrders();
