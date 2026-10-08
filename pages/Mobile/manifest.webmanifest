@@ -1,5 +1,5 @@
 {
-  "id": "/pages/Mobile/",
+  "id": "./",
   "name": "Long Shift Mobile",
   "short_name": "Mobile",
   "start_url": "./MobileDashboard.html",
