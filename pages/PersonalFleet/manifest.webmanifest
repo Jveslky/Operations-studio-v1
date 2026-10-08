@@ -1,5 +1,5 @@
 {
-  "id": "/pages/PersonalFleet/",
+  "id": "./",
   "name": "Long Shift PFleet",
   "short_name": "PFleet",
   "start_url": "./Personaldashboard.html",
