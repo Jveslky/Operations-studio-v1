@@ -1,5 +1,5 @@
 {
-  "id": "/pages/Shop/",
+  "id": "./",
   "name": "Long Shift Shop",
   "short_name": "Shop",
   "start_url": "./shop-dashboard.html",
