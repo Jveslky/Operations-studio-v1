@@ -1,0 +1,30 @@
+{
+  "id": "/pages/SnowDesk/",
+  "name": "Long Shift Snow",
+  "short_name": "Snow",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "browser",
+  "background_color": "#1e2428",
+  "theme_color": "#1e2428",
+  "icons": [
+    {
+      "src": "./icons/snow-v2-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/snow-v2-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/snow-v2-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
