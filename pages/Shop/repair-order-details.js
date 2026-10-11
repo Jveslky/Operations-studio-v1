@@ -43,6 +43,9 @@ if (!repairOrder) {
     const saveButton =
         document.querySelector("#save-button");
 
+    const bottomSaveButton = document.querySelector("#save-bottom-button");
+    bottomSaveButton.addEventListener("click", () => { if (!saveButton.disabled) saveButton.click(); });
+
     const closeButton =
         document.querySelector("#close-button");
 
@@ -509,6 +512,7 @@ if (!repairOrder) {
     });
 
     saveButton.hidden = !canWriteRepairOrder && !canUpdateWork;
+    bottomSaveButton.hidden = saveButton.hidden;
     createInvoiceButton.hidden = !window.trackRightCan("invoices.write");
     sendEstimateButton.hidden = !canWriteRepairOrder;
 
@@ -542,7 +546,9 @@ if (!repairOrder) {
     ========================= */
 
     saveButton.addEventListener("click", async function () {
+        if (saveButton.disabled) return;
         saveButton.disabled = true;
+        bottomSaveButton.disabled = true;
         repairOrder.customer =
             repairOrder.customer || "";
 
@@ -659,6 +665,7 @@ if (!repairOrder) {
             console.error("Could not save repair order:", error);
             alert(error?.message || "Could not save this repair order. Please retry.");
             saveButton.disabled = false;
+            bottomSaveButton.disabled = false;
         }
     });
 

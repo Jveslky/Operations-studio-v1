@@ -122,7 +122,8 @@ button {
 }
 
 #close-button,
-#save-button {
+#save-button,
+#save-bottom-button {
     transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -131,7 +132,8 @@ button {
         transform: translateY(-1px);
     }
 
-    #save-button:hover {
+    #save-button:hover,
+#save-bottom-button:hover {
         background: #c65325;
         transform: translateY(-1px);
     }
@@ -142,7 +144,8 @@ button {
 }
 
     #close-button:active,
-    #save-button:active {
+    #save-button:active,
+#save-bottom-button:active {
         transform: translateY(0);
         box-shadow: none;
     }
@@ -729,6 +732,7 @@ textarea {
     .app-nav,
     .detail-actions,
     #save-button,
+#save-bottom-button,
     #close-button,
     #send-estimate-button,
     #print-estimate-button,
@@ -1014,7 +1018,8 @@ textarea {
     }
 }
 #close-button,
-#save-button {
+#save-button,
+#save-bottom-button {
    
     box-shadow: 0 2px 5px rgba(37, 42, 48, 0.12);
     transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
@@ -1023,13 +1028,15 @@ textarea {
 }
 
 #close-button:hover,
-#save-button:hover {
+#save-button:hover,
+#save-bottom-button:hover {
     transform: translateY(-1px);
     box-shadow: 0 5px 10px rgba(37, 42, 48, 0.22);
 }
 
 #close-button:active,
-#save-button:active {
+#save-button:active,
+#save-bottom-button:active {
     transform: translateY(0);
     box-shadow: 0 2px 5px rgba(37, 42, 48, 0.12);
 }
@@ -1114,3 +1121,5 @@ textarea {
 .authorization-summary { margin-top: 18px; padding: 16px; background: #eef5f6; border: 1px solid #cbd5df; border-radius: 8px; }
 .authorization-summary h4 { margin: 0 0 12px; }
 .authorization-summary p { margin: 6px 0; }
+
+.detail-bottom-actions { justify-content: flex-end; margin: 24px 0; }
