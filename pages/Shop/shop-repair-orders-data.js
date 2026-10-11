@@ -59,6 +59,8 @@
             estimateTotal: number(row.estimate_total),
             estimateApprovalStatus: row.estimate_approval_status || "Draft",
             estimateNotes: row.estimate_notes || "",
+            estimateVersion: row.estimate_version || 1,
+            approvalAuditAvailable: row.estimate_version !== undefined,
             archived: row.archived === true,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
@@ -98,6 +100,8 @@
             estimate_notes: order.estimateNotes || "",
             archived: order.archived === true
         };
+
+        if (order.approvalRequest) row.approval_request = order.approvalRequest;
 
         if (includeIdentity) {
             row.shop_id = authContext.shopId;

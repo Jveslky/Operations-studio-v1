@@ -1,0 +1,8 @@
+{
+  "name": "long-shift-shop-qa-tests",
+  "private": true,
+  "scripts": {
+    "test": "node shop-inline-intake.mjs && node shop-workflow.mjs && node shop-estimate-approval-ui.mjs && node shop-estimate-approvals.mjs"
+  },
+  "devDependencies": { "@electric-sql/pglite": "0.5.8" }
+}

@@ -299,7 +299,7 @@ if (!repairOrder) {
             });
     }
 
-    let approvalAdvancedStatus = false;
+    const approvalAudit = window.createEstimateApprovalAudit(repairOrder);
 
     function renderEstimateStatus() {
         const status =
@@ -329,15 +329,7 @@ if (!repairOrder) {
 
     estimateApprovalStatusInput.addEventListener(
         "change",
-        function () {
-            renderEstimateStatus();
-            const nextStatus = window.shopWorkflow.approvedStatus(statusSelect.value, estimateApprovalStatusInput.value);
-            if (nextStatus !== statusSelect.value) {
-                approvalAdvancedStatus = true;
-                statusSelect.value = nextStatus;
-                statusDisplay.textContent = nextStatus;
-            }
-        }
+        renderEstimateStatus
     );
 
     /* =========================
@@ -523,6 +515,11 @@ if (!repairOrder) {
         });
     });
 
+    document.querySelectorAll('#approval-fields input, #approval-fields select, #approval-fields textarea, #approval-repeat').forEach(field => {
+        field.addEventListener('input', () => { hasUnsavedChanges = true; });
+        field.addEventListener('change', () => { hasUnsavedChanges = true; });
+    });
+
     statusSelect.addEventListener("change", function () {
         statusDisplay.textContent =
             statusSelect.value;
@@ -613,10 +610,6 @@ if (!repairOrder) {
         repairOrder.estimateTotal =
             Math.max(0, calculateEstimateTotal());
 
-        const nextApprovedStatus = window.shopWorkflow.approvedStatus(repairOrder.status, estimateApprovalStatusInput.value);
-        approvalAdvancedStatus = approvalAdvancedStatus || nextApprovedStatus !== repairOrder.status;
-        repairOrder.status = nextApprovedStatus;
-        statusSelect.value = nextApprovedStatus;
         repairOrder.estimateApprovalStatus =
             estimateApprovalStatusInput.value;
 
@@ -638,7 +631,7 @@ if (!repairOrder) {
         if (
             repairOrder.status === "In Progress" &&
             repairOrder.technician === "Unassigned" &&
-            !approvalAdvancedStatus
+            repairOrder.estimateApprovalStatus !== "Approved"
         ) {
             repairOrder.status = "Needs Info";
             statusSelect.value = "Needs Info";
@@ -647,6 +640,7 @@ if (!repairOrder) {
 
 
         try {
+            repairOrder.approvalRequest = await approvalAudit.prepare(repairOrder);
             repairOrder = await window.trackRightRepairOrders.update(repairOrder);
             hasUnsavedChanges = false;
             window.location.href = "./repair-orders.html";
