@@ -52,7 +52,7 @@ window.createEstimateApprovalAudit = function (originalOrder) {
     dialog.addEventListener('cancel', event => { event.preventDefault(); cancelApproval(); });
     el('approval-confirm').addEventListener('click', () => {
         try {
-            if (!ready) throw new Error('Approval history is unavailable. Refresh before recording authorization.');
+            if (!ready) throw new Error(message.textContent || 'Approval history is still loading. Try again in a moment.');
             const auth = authorization(); confirmed = true; dialog.close();
             message.textContent = `Authorization ready: ${auth.contact} · ${auth.scopeValue === 'entire' ? 'Entire estimate' : auth.scopeDetails}. Save the repair order to record it.`;
         } catch (error) { el('approval-dialog-error').textContent = error.message; }
@@ -80,7 +80,7 @@ window.createEstimateApprovalAudit = function (originalOrder) {
         if (!originalOrder.approvalAuditAvailable) { message.textContent = 'Approval history is unavailable until the database update is installed.'; return; }
         const context = await window.trackRightAuthReady;
         const {data,error} = await client.from('shop_estimate_approvals').select('*').eq('shop_id',context.shopId).eq('repair_order_id',originalOrder.recordId).order('recorded_at',{ascending:false});
-        if (error) { message.textContent = 'Could not load approval history. Refresh before recording approval.'; return; }
+        if (error) { message.textContent = `Could not load approval history: ${error.message}. Refresh before recording approval.`; return; }
         history = data || []; ready = true;
         message.textContent = `Estimate version ${originalOrder.estimateVersion}. ${history.length ? 'Prior authorizations are preserved below.' : originalOrder.estimateApprovalStatus === 'Approved' ? 'Existing approval predates this history; its authorizer and time were not recorded.' : 'No customer authorization recorded.'}`;
         const list = el('approval-history'); list.replaceChildren();
