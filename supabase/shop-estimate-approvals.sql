@@ -122,5 +122,6 @@ create policy "office reads approval evidence" on storage.objects for select to 
         and public.has_shop_role(a.shop_id,array['owner','admin','service_writer'])
     )
 );
+notify pgrst, 'reload schema';
 -- No client update/delete policy: an approval and its evidence stay preserved.
 commit;

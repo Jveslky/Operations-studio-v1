@@ -79,7 +79,7 @@ window.createEstimateApprovalAudit = function (originalOrder) {
         if (!canWrite) { message.textContent = 'Customer authorization history is available to office staff.'; return; }
         if (!originalOrder.approvalAuditAvailable) { message.textContent = 'Approval history is unavailable until the database update is installed.'; return; }
         const context = await window.trackRightAuthReady;
-        const {data,error} = await client.from('shop_estimate_approvals').select('*').eq('shop_id',context.shopId).eq('repair_order_id',originalOrder.recordId).order('recorded_at',{ascending:false});
+        const {data,error} = await client.from('shop_estimate_approvals').select('*,approval_scope,approval_scope_details').eq('shop_id',context.shopId).eq('repair_order_id',originalOrder.recordId).order('recorded_at',{ascending:false});
         if (error) { message.textContent = `Could not load approval history: ${error.message}. Refresh before recording approval.`; return; }
         history = data || []; ready = true;
         message.textContent = `Estimate version ${originalOrder.estimateVersion}. ${history.length ? 'Prior authorizations are preserved below.' : originalOrder.estimateApprovalStatus === 'Approved' ? 'Existing approval predates this history; its authorizer and time were not recorded.' : 'No customer authorization recorded.'}`;
@@ -88,7 +88,7 @@ window.createEstimateApprovalAudit = function (originalOrder) {
             const row = document.createElement('article'); row.className = 'approval-history-entry';
             const title = document.createElement('strong');
             title.textContent = `Version ${approval.estimate_version} · Estimate total ${Number(approval.approved_amount).toLocaleString(undefined,{style:'currency',currency:'USD'})} · ${approval.method}`;
-            const scopeLine = document.createElement('p'); scopeLine.textContent = `Approved work: ${approval.approval_scope && approval.approval_scope !== 'entire' ? approval.approval_scope + ' — ' + approval.approval_scope_details : 'Entire estimate'}`;
+            const scopeLine = document.createElement('p'); scopeLine.textContent = `Approved work: ${approval.approval_scope === 'entire' ? 'Entire estimate' : approval.approval_scope ? approval.approval_scope + ' — ' + (approval.approval_scope_details || 'Description not recorded') : 'Scope not recorded'}`;
             const contact = document.createElement('p'); contact.textContent = `Authorized by ${approval.customer_contact}`;
             const actor = document.createElement('p'); actor.textContent = `Recorded by ${approval.recorded_by_email || approval.recorded_by} · ${new Date(approval.recorded_at).toLocaleString()}`;
             const note = document.createElement('p'); note.textContent = approval.notes;
