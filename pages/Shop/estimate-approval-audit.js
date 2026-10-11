@@ -39,7 +39,13 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
         el('approval-relationship-help').textContent = linked ? 'Enter the complete resulting scope and amount. This replaces the selected authorization; other authorizations remain unchanged.' : history.length ? 'Additional work keeps earlier authorizations unchanged. Enter only the newly authorized scope and amount.' : '';
         el('approval-summary-relationship').textContent = history.length ? `${relationship.value || 'Choose relationship'}${linked ? ' — ' + (related.options?.[related.selectedIndex]?.textContent || related.value || 'Select earlier authorization') : ''}` : 'Initial authorization';
     }
-    relationship.addEventListener('change', () => { confirmed = false; relationshipFields(); });
+    relationship.addEventListener('change', () => {
+        confirmed = false;
+        const entire = Array.from(scope.options || []).find(option => option.value === 'entire');
+        if (entire) entire.disabled = relationship.value === 'additional';
+        if (relationship.value === 'additional') { scope.value = 'custom'; amount.value = ''; selectionFields(); }
+        relationshipFields();
+    });
     related.addEventListener('change', () => { confirmed = false; relationshipFields(); });
     const amount = el('approval-authorized-amount');
     const money = value => Number(value).toLocaleString('en-US', {style:'currency',currency:'USD'});
@@ -50,7 +56,7 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
         el('approval-summary-total').textContent = money(summary.total);
         amount.readOnly = scope.value === 'entire';
         if (amount.readOnly) amount.value = summary.total.toFixed(2);
-        el('approval-amount-help').textContent = amount.readOnly ? 'The entire estimate amount will be recorded.' : 'Enter the agreed amount for this scope only. The full estimate is preserved separately.';
+        el('approval-amount-help').textContent = relationship.value === 'additional' ? 'Enter the additional estimate amount only. Earlier authorizations stay unchanged.' : amount.readOnly ? 'The entire estimate amount will be recorded.' : 'Enter the agreed amount for this scope only. The full estimate is preserved separately.';
     }
     function selectionFields() {
         el('approval-contact-label').hidden = contactChoice.value !== 'other';
@@ -69,6 +75,7 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
         if (!['entire','custom','other'].includes(scopeValue) || (scopeValue !== 'entire' && !scopeDetails)) throw new Error('Describe the custom or other work the customer approved.');
         if (method === 'verbal' && !notes) throw new Error('Add a note describing the verbal authorization.');
         const relation = history.length ? relationship.value : 'initial';
+        if (relation === 'additional' && scopeValue === 'entire') throw new Error('Additional work requires its own description and amount; choose Custom or Other.');
         const relatedId = ['replacement','amendment'].includes(relation) ? related.value : null;
         const relationshipNotes = el('approval-relationship-notes').value.trim();
         if (!['initial','additional','replacement','amendment'].includes(relation)) throw new Error('Choose how this authorization relates to earlier authorizations.');

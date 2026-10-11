@@ -22,7 +22,7 @@ await db.exec(`set role authenticated; select set_config('test.user','${writer}'
 const ro=(await db.query(`insert into shop_repair_orders(shop_id,complaint,estimate_total) values('${A}','Replace brakes',460) returning *`)).rows[0];
 let seq=0;
 function request(row,extra={}) {return {id:`44444444-4444-4444-4444-${String(++seq).padStart(12,'0')}`,method:'verbal',customer_contact:'Jon',notes:'Customer authorized by phone',expected_version:row.estimate_version,expected_updated_at:row.updated_at,...extra};}
-async function approve(row,extra={},status='Approved'){const prior=(await db.query('select id from shop_estimate_approvals where repair_order_id=$1',[row.id])).rows; extra={authorization_relationship:prior.length?'additional':'initial',...extra};return (await db.query('update shop_repair_orders set estimate_approval_status=$1, approval_request=$2 where id=$3 returning *',[status,JSON.stringify(request(row,extra)),row.id])).rows[0];}
+async function approve(row,extra={},status='Approved'){const prior=(await db.query('select id from shop_estimate_approvals where repair_order_id=$1',[row.id])).rows; extra={...(prior.length?{authorization_relationship:'additional',approval_scope:'custom',approval_scope_details:'Additional work',authorized_amount:row.estimate_total}:{authorization_relationship:'initial'}),...extra};return (await db.query('update shop_repair_orders set estimate_approval_status=$1, approval_request=$2 where id=$3 returning *',[status,JSON.stringify(request(row,extra)),row.id])).rows[0];}
 await assert.rejects(db.query(`update shop_repair_orders set estimate_approval_status='Approved' where id='${ro.id}'`),/authorization/);
 await assert.rejects(approve(ro,{notes:''}),/verbal/);
 let current=await approve(ro,{recorded_by:other,recorded_at:'1999-01-01',approved_amount:1});
@@ -49,14 +49,15 @@ for (const stage of ['In Progress','Waiting Parts','Ready for Pickup','Ready for
 }
 await assert.rejects(approve(current,{approval_scope:'custom',approval_scope_details:''}),/custom/);
 current=await approve(current,{method:'written',approval_scope:'custom',approval_scope_details:'Front brakes only',authorized_amount:220});
-const scoped=(await db.query("select * from shop_estimate_approvals where approval_scope='custom'")).rows;
+const scoped=(await db.query("select * from shop_estimate_approvals where approval_scope_details='Front brakes only'")).rows;
 assert.equal(scoped.length,1);assert.equal(scoped[0].approval_scope_details,'Front brakes only');assert.equal(Number(scoped[0].approved_amount),220);
 assert.equal(Number(scoped[0].authorization_amount),220);assert.equal(Number(scoped[0].estimate_snapshot.estimate_total),600);
 await assert.rejects(approve(current,{approval_scope:'custom',approval_scope_details:'Brakes',authorized_amount:-1}),/authorized amount/);
 await assert.rejects(approve(current,{approval_scope:'custom',approval_scope_details:'Brakes',authorized_amount:'1.001'}),/authorized amount/);
 await assert.rejects(approve(current,{expected_authorized_version:999}),/revision/);
-current=await approve(current,{authorized_amount:1});
+current=await approve(current,{authorization_relationship:'replacement',related_authorization_id:audits[0].id,approval_scope:'entire',authorized_amount:1});
 assert.equal(Number((await db.query('select authorization_amount from shop_estimate_approvals order by recorded_at desc limit 1')).rows[0].authorization_amount),600);
+await assert.rejects(approve(current,{authorization_relationship:'additional',approval_scope:'entire'}),/Additional work requires/);
 // Relationships are explicit and append-only; invalid replacements cannot create records.
 const predecessor=scoped[0].id;
 await assert.rejects(approve(current,{authorization_relationship:null}),/Choose how/);

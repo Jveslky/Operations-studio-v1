@@ -59,3 +59,8 @@ followup.node('approval-relationship-notes').value='Complete revised scope';foll
 const amendment=await followup.controller.prepare({estimateApprovalStatus:'Approved'});
 assert.equal(amendment.authorization_relationship,'amendment');assert.equal(amendment.related_authorization_id,'prior');assert.equal(amendment.relationship_notes,'Complete revised scope');
 console.log('Authorization relationship UI: explicit choice, target and amendment explanation passed.');
+
+followup.node('approval-relationship').value='additional';followup.node('approval-relationship').dispatchEvent({type:'change'});
+assert.equal(followup.node('approval-scope').value,'custom');assert.equal(followup.node('approval-authorized-amount').value,'');assert.equal(followup.node('approval-authorized-amount').readOnly,false);
+followup.node('approval-scope-details').value='Replace tire';followup.node('approval-authorized-amount').value='150';followup.node('approval-confirm').click();
+const additional=await followup.controller.prepare({estimateApprovalStatus:'Approved'});assert.equal(additional.authorized_amount,150);assert.equal(additional.related_authorization_id,null);assert.equal(additional.authorization_relationship,'additional');

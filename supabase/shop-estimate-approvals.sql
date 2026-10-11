@@ -95,6 +95,9 @@ begin
         if relation is null or relation not in ('initial','additional','replacement','amendment') then
             raise exception 'Choose how this authorization relates to earlier authorizations.';
         end if;
+        if relation = 'additional' and coalesce(req->>'approval_scope','entire') = 'entire' then
+            raise exception 'Additional work requires its own description and amount.';
+        end if;
         if relation = 'initial' and exists(select 1 from public.shop_estimate_approvals where shop_id=old.shop_id and repair_order_id=old.id) then
             raise exception 'Earlier authorizations exist. Choose additional work, replacement or amendment.';
         end if;
