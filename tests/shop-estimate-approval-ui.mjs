@@ -2,13 +2,13 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const source=fs.readFileSync(new URL('../pages/Shop/estimate-approval-audit.js',import.meta.url),'utf8');
-async function fixture({available=true,allowed=true,failUpload=false,originalStatus='Draft'}={}) {
+async function fixture({available=true,allowed=true,failUpload=false,originalStatus='Draft',history=[]}={}) {
  const nodes=new Map(), uploads=[];
  const node=id=>{if(!nodes.has(id)) nodes.set(id,{value:'',textContent:'',checked:false,hidden:false,disabled:false,files:[],tagName:'INPUT',listeners:{},children:[],addEventListener(e,f){this.listeners[e]=f;},dispatchEvent(e){this.listeners[e.type]?.(e);},querySelectorAll(){return [];},replaceChildren(){this.children=[];},append(...items){this.children.push(...items);},click(){this.listeners.click?.();},showModal(){this.open=true;},close(){this.open=false;},});return nodes.get(id);};
  node('estimate-approval-status').value=originalStatus;
  const original={recordId:'ro-a',estimateApprovalStatus:originalStatus,estimateVersion:1,updatedAt:'2026-10-11T18:00:00Z',estimateTotal:460,approvalAuditAvailable:available};
  let counter=0;
- const context={window:{trackRightRepairOrders:{approvalSnapshot:order=>({estimate_total:order.estimateTotal ?? 460,estimate_parts_total:order.estimatePartsTotal ?? 0})},trackRightCan:()=>allowed,trackRightAuthReady:Promise.resolve({shopId:'shop-a'}),trackRightSupabase:{from(){return {select(){return this;},eq(){return this;},order:async()=>({data:[],error:null})};},storage:{from(){return {upload:async(path,file)=>{uploads.push({path,file});return {error:failUpload?{message:'Upload failed'}:null};}};}}}},document:{getElementById:node,querySelectorAll:()=>[node('estimate-parts-total')],createElement:node},crypto:{randomUUID:()=>`uuid-${++counter}`},setTimeout:f=>f(),URL:{},Event:function(type){this.type=type;}};
+ const context={window:{trackRightRepairOrders:{approvalSnapshot:order=>({estimate_total:order.estimateTotal ?? 460,estimate_parts_total:order.estimatePartsTotal ?? 0})},trackRightCan:()=>allowed,trackRightAuthReady:Promise.resolve({shopId:'shop-a'}),trackRightSupabase:{from(){return {select(){return this;},eq(){return this;},order:async()=>({data:history,error:null})};},storage:{from(){return {upload:async(path,file)=>{uploads.push({path,file});return {error:failUpload?{message:'Upload failed'}:null};}};}}}},document:{getElementById:node,querySelectorAll:()=>[node('estimate-parts-total')],createElement:node},crypto:{randomUUID:()=>`uuid-${++counter}`},setTimeout:f=>f(),URL:{},Event:function(type){this.type=type;}};
  vm.runInNewContext(source,context);
  const controller=context.window.createEstimateApprovalAudit(original,()=>original);
  await new Promise(resolve=>setImmediate(resolve));
@@ -47,3 +47,15 @@ assert.equal(revision.node('approval-summary-version').textContent,'Rev. 2');
 const revisionRequest=await revision.controller.prepare({...revision.original,estimateApprovalStatus:'Approved'});assert.equal(revisionRequest.expected_authorized_version,2);
 revision.original.estimatePartsTotal=0;revision.node('approval-confirm').click();assert.equal(revision.node('approval-summary-version').textContent,'Rev. 1');
 console.log('Approval UI: baseline preservation, required fields, revision invalidation, evidence types, upload failure/retry and migration gate passed.');
+
+const followup=await fixture({history:[{id:'prior',estimate_version:1,authorization_amount:450,approved_amount:450,method:'verbal',customer_contact:'Jon',recorded_at:'2026-10-11T18:00:00Z',estimate_snapshot:{},authorization_relationship:null}]});
+followup.node('approval-method').value='written';followup.node('approval-contact').value='Jon';
+await assert.rejects(followup.controller.prepare({estimateApprovalStatus:'Approved'}),/Choose how/);
+followup.node('approval-relationship').value='amendment';followup.node('approval-relationship').dispatchEvent({type:'change'});
+await assert.rejects(followup.controller.prepare({estimateApprovalStatus:'Approved'}),/Select an earlier/);
+followup.node('approval-related').value='prior';
+await assert.rejects(followup.controller.prepare({estimateApprovalStatus:'Approved'}),/Explain the amendment/);
+followup.node('approval-relationship-notes').value='Complete revised scope';followup.node('approval-confirm').click();
+const amendment=await followup.controller.prepare({estimateApprovalStatus:'Approved'});
+assert.equal(amendment.authorization_relationship,'amendment');assert.equal(amendment.related_authorization_id,'prior');assert.equal(amendment.relationship_notes,'Complete revised scope');
+console.log('Authorization relationship UI: explicit choice, target and amendment explanation passed.');

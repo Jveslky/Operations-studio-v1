@@ -23,6 +23,9 @@ create table if not exists public.shop_estimate_approvals (
 alter table public.shop_estimate_approvals add column if not exists approval_scope text not null default 'entire' check (approval_scope in ('entire','custom','other'));
 alter table public.shop_estimate_approvals add column if not exists approval_scope_details text not null default '' check (length(approval_scope_details) <= 2000);
 alter table public.shop_estimate_approvals add column if not exists authorization_amount numeric(12,2);
+alter table public.shop_estimate_approvals add column if not exists authorization_relationship text check (authorization_relationship in ('initial','additional','replacement','amendment'));
+alter table public.shop_estimate_approvals add column if not exists related_authorization_id uuid references public.shop_estimate_approvals(id);
+alter table public.shop_estimate_approvals add column if not exists relationship_notes text not null default '' check (length(relationship_notes) <= 2000);
 create index if not exists shop_estimate_approvals_ro_idx on public.shop_estimate_approvals(shop_id,repair_order_id,recorded_at desc);
 alter table public.shop_estimate_approvals enable row level security;
 revoke all on public.shop_estimate_approvals from anon, authenticated;
@@ -40,7 +43,7 @@ $$;
 
 create or replace function public.audit_shop_estimate_approval()
 returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
-declare snapshot jsonb; changed boolean; req jsonb; file_path text; actor_email text; scope_amount numeric(12,2);
+declare snapshot jsonb; changed boolean; req jsonb; file_path text; actor_email text; scope_amount numeric(12,2); relation text; related_id uuid;
 begin
     snapshot := public.shop_estimate_snapshot(to_jsonb(new));
     if tg_op = 'INSERT' then
@@ -87,6 +90,27 @@ begin
             end if;
             scope_amount := (req->>'authorized_amount')::numeric;
         end if;
+        relation := req->>'authorization_relationship';
+        related_id := nullif(req->>'related_authorization_id','')::uuid;
+        if relation is null or relation not in ('initial','additional','replacement','amendment') then
+            raise exception 'Choose how this authorization relates to earlier authorizations.';
+        end if;
+        if relation = 'initial' and exists(select 1 from public.shop_estimate_approvals where shop_id=old.shop_id and repair_order_id=old.id) then
+            raise exception 'Earlier authorizations exist. Choose additional work, replacement or amendment.';
+        end if;
+        if relation <> 'initial' and not exists(select 1 from public.shop_estimate_approvals where shop_id=old.shop_id and repair_order_id=old.id) then
+            raise exception 'No earlier authorization exists.';
+        end if;
+        if relation in ('replacement','amendment') then
+            if not exists(select 1 from public.shop_estimate_approvals a where a.id=related_id and a.shop_id=old.shop_id and a.repair_order_id=old.id
+                and not exists(select 1 from public.shop_estimate_approvals successor where successor.related_authorization_id=a.id and successor.authorization_relationship in ('replacement','amendment'))) then
+                raise exception 'Select an earlier authorization that has not already been superseded.';
+            end if;
+        elsif related_id is not null then raise exception 'Only replacements and amendments link an earlier authorization.';
+        end if;
+        if relation = 'amendment' and coalesce(length(trim(req->>'relationship_notes')),0) not between 1 and 2000 then
+            raise exception 'Explain the amendment. Its amount and scope must describe the resulting authorization.';
+        end if;
         file_path := nullif(req->>'evidence_path','');
         if file_path is not null then
             if split_part(file_path,'/',1) <> old.shop_id::text or split_part(file_path,'/',2) <> old.id::text
@@ -95,8 +119,8 @@ begin
             end if;
         end if;
         select coalesce(email,'') into actor_email from auth.users where id = auth.uid();
-        insert into public.shop_estimate_approvals(id,shop_id,repair_order_id,estimate_version,estimate_snapshot,approved_amount,authorization_amount,method,customer_contact,notes,approval_scope,approval_scope_details,evidence_path,evidence_name,recorded_by,recorded_by_email)
-        values ((req->>'id')::uuid,old.shop_id,old.id,new.estimate_version,snapshot,scope_amount,scope_amount,req->>'method',trim(req->>'customer_contact'),coalesce(req->>'notes',''),coalesce(req->>'approval_scope','entire'),case when coalesce(req->>'approval_scope','entire') = 'entire' then '' else trim(req->>'approval_scope_details') end,file_path,nullif(req->>'evidence_name',''),auth.uid(),coalesce(actor_email,''));
+        insert into public.shop_estimate_approvals(id,shop_id,repair_order_id,estimate_version,estimate_snapshot,approved_amount,authorization_amount,method,customer_contact,notes,approval_scope,approval_scope_details,evidence_path,evidence_name,recorded_by,recorded_by_email,authorization_relationship,related_authorization_id,relationship_notes)
+        values ((req->>'id')::uuid,old.shop_id,old.id,new.estimate_version,snapshot,scope_amount,scope_amount,req->>'method',trim(req->>'customer_contact'),coalesce(req->>'notes',''),coalesce(req->>'approval_scope','entire'),case when coalesce(req->>'approval_scope','entire') = 'entire' then '' else trim(req->>'approval_scope_details') end,file_path,nullif(req->>'evidence_name',''),auth.uid(),coalesce(actor_email,''),relation,related_id,coalesce(trim(req->>'relationship_notes'),''));
         -- Use the stored RO stage, not a stale browser stage. Never move later work backward.
         if old.status in ('Open','Intake','Scheduled','Waiting Approval','Needs Info') then
             new.status := 'In Progress';

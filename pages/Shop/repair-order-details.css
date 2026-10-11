@@ -1097,7 +1097,8 @@ textarea {
 
 .approval-audit { margin-top: 20px; padding-top: 16px; border-top: 1px solid #c9d2d4; }
 .approval-audit [hidden] { display: none; }
-.approval-history-entry { padding: 12px 0; border-bottom: 1px solid #c9d2d4; }
+.approval-history-entry { padding: 12px; margin: 12px 0; border: 1px solid #c9d2d4; border-radius: 4px; }
+.authorization-status { font-weight: 700; }
 .approval-history-entry p { margin: 6px 0; overflow-wrap: anywhere; }
 .approval-history-entry pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
 

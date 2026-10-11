@@ -22,7 +22,7 @@ await db.exec(`set role authenticated; select set_config('test.user','${writer}'
 const ro=(await db.query(`insert into shop_repair_orders(shop_id,complaint,estimate_total) values('${A}','Replace brakes',460) returning *`)).rows[0];
 let seq=0;
 function request(row,extra={}) {return {id:`44444444-4444-4444-4444-${String(++seq).padStart(12,'0')}`,method:'verbal',customer_contact:'Jon',notes:'Customer authorized by phone',expected_version:row.estimate_version,expected_updated_at:row.updated_at,...extra};}
-async function approve(row,extra={},status='Approved'){return (await db.query('update shop_repair_orders set estimate_approval_status=$1, approval_request=$2 where id=$3 returning *',[status,JSON.stringify(request(row,extra)),row.id])).rows[0];}
+async function approve(row,extra={},status='Approved'){const prior=(await db.query('select id from shop_estimate_approvals where repair_order_id=$1',[row.id])).rows; extra={authorization_relationship:prior.length?'additional':'initial',...extra};return (await db.query('update shop_repair_orders set estimate_approval_status=$1, approval_request=$2 where id=$3 returning *',[status,JSON.stringify(request(row,extra)),row.id])).rows[0];}
 await assert.rejects(db.query(`update shop_repair_orders set estimate_approval_status='Approved' where id='${ro.id}'`),/authorization/);
 await assert.rejects(approve(ro,{notes:''}),/verbal/);
 let current=await approve(ro,{recorded_by:other,recorded_at:'1999-01-01',approved_amount:1});
@@ -57,6 +57,18 @@ await assert.rejects(approve(current,{approval_scope:'custom',approval_scope_det
 await assert.rejects(approve(current,{expected_authorized_version:999}),/revision/);
 current=await approve(current,{authorized_amount:1});
 assert.equal(Number((await db.query('select authorization_amount from shop_estimate_approvals order by recorded_at desc limit 1')).rows[0].authorization_amount),600);
+// Relationships are explicit and append-only; invalid replacements cannot create records.
+const predecessor=scoped[0].id;
+await assert.rejects(approve(current,{authorization_relationship:null}),/Choose how/);
+await assert.rejects(approve(current,{authorization_relationship:'initial'}),/Earlier authorizations/);
+await assert.rejects(approve(current,{authorization_relationship:'replacement',related_authorization_id:'99999999-9999-9999-9999-999999999999'}),/Select an earlier/);
+current=await approve(current,{authorization_relationship:'replacement',related_authorization_id:predecessor});
+assert.equal((await db.query('select authorization_relationship from shop_estimate_approvals where id=$1',[predecessor])).rows[0].authorization_relationship,'additional');
+await assert.rejects(approve(current,{authorization_relationship:'replacement',related_authorization_id:predecessor}),/already been superseded/);
+const replacement=(await db.query("select * from shop_estimate_approvals where authorization_relationship='replacement'")).rows[0];
+await assert.rejects(approve(current,{authorization_relationship:'amendment',related_authorization_id:replacement.id}),/Explain the amendment/);
+current=await approve(current,{authorization_relationship:'amendment',related_authorization_id:replacement.id,relationship_notes:'Customer changed scope; this is the complete resulting authorization.'});
+assert.equal((await db.query("select count(*)::int as n from shop_estimate_approvals where authorization_relationship='amendment'")).rows[0].n,1);
 await db.exec(`select set_config('test.user','${other}',false);`);
 assert.equal((await db.query('select * from shop_estimate_approvals')).rows.length,0);
 assert.equal((await db.query('select * from shop_repair_orders')).rows.length,0);

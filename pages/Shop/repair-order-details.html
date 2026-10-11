@@ -462,6 +462,10 @@
         <h3 id="approval-dialog-title">Record customer authorization</h3>
         <p>Confirm who approved the work and what they authorized.</p>
                     <div id="approval-fields" class="estimate-bottom-grid">
+                        <label id="approval-relationship-label" hidden>How does this relate to earlier authorizations?<select id="approval-relationship" class="detail-input"><option value="">Select relationship</option><option value="replacement">Replace previous authorization</option><option value="additional">Authorize additional work</option><option value="amendment">Amend previous authorization</option></select></label>
+                        <label id="approval-related-label" hidden>Earlier authorization<select id="approval-related" class="detail-input"></select></label>
+                        <label id="approval-relationship-notes-label" hidden>Explain the amendment<textarea id="approval-relationship-notes" class="detail-input" maxlength="2000" rows="3"></textarea></label>
+                        <p id="approval-relationship-help"></p>
                         <label>Approval method<select id="approval-method" class="detail-input"><option value="">Select method</option><option value="verbal">Verbal</option><option value="written">Written</option><option value="digital">Digital</option></select></label>
                         <label>Who approved the work?<select id="approval-contact-choice" class="detail-input"><option value="customer">RO customer</option><option value="other">Other</option></select></label>
                         <label id="approval-contact-label" hidden>Other contact name<input id="approval-contact" class="detail-input" maxlength="200"></label>
@@ -478,7 +482,7 @@
                 <p>Full estimate total<br><strong id="approval-summary-total"></strong></p>
                 <label>Amount being authorized<input id="approval-authorized-amount" class="detail-input" type="number" min="0" max="9999999999.99" step="0.01" placeholder="Enter amount for approved work"></label>
             </div>
-            <p id="approval-amount-help"></p>
+            <p id="approval-amount-help"></p><p id="approval-summary-relationship"></p>
         </section>
         <p id="approval-dialog-error" role="alert"></p>
         <div class="approval-dialog-actions"><button id="approval-cancel" type="button">Cancel</button><button id="approval-confirm" type="button">Confirm authorization</button></div>

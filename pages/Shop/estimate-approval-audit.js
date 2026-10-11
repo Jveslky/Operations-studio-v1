@@ -30,6 +30,17 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
     const otherOption = document.createElement('option'); otherOption.value = 'other'; otherOption.textContent = 'Other'; contactChoice.append(otherOption);
     contactChoice.value = originalOrder.customer ? 'customer' : 'other';
     scope.value = 'entire';
+    const relationship = el('approval-relationship'), related = el('approval-related');
+    const superseded = id => history.some(a => a.related_authorization_id === id && ['replacement','amendment'].includes(a.authorization_relationship));
+    function relationshipFields() {
+        const linked = ['replacement','amendment'].includes(relationship.value);
+        el('approval-related-label').hidden = !linked;
+        el('approval-relationship-notes-label').hidden = relationship.value !== 'amendment';
+        el('approval-relationship-help').textContent = linked ? 'Enter the complete resulting scope and amount. This replaces the selected authorization; other authorizations remain unchanged.' : history.length ? 'Additional work keeps earlier authorizations unchanged. Enter only the newly authorized scope and amount.' : '';
+        el('approval-summary-relationship').textContent = history.length ? `${relationship.value || 'Choose relationship'}${linked ? ' — ' + (related.options?.[related.selectedIndex]?.textContent || related.value || 'Select earlier authorization') : ''}` : 'Initial authorization';
+    }
+    relationship.addEventListener('change', () => { confirmed = false; relationshipFields(); });
+    related.addEventListener('change', () => { confirmed = false; relationshipFields(); });
     const amount = el('approval-authorized-amount');
     const money = value => Number(value).toLocaleString('en-US', {style:'currency',currency:'USD'});
     function renderSummary() {
@@ -57,14 +68,20 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
         if (!['verbal','written','digital'].includes(method) || !contact) throw new Error('Choose an approval method and enter the customer/contact who authorized the work.');
         if (!['entire','custom','other'].includes(scopeValue) || (scopeValue !== 'entire' && !scopeDetails)) throw new Error('Describe the custom or other work the customer approved.');
         if (method === 'verbal' && !notes) throw new Error('Add a note describing the verbal authorization.');
+        const relation = history.length ? relationship.value : 'initial';
+        const relatedId = ['replacement','amendment'].includes(relation) ? related.value : null;
+        const relationshipNotes = el('approval-relationship-notes').value.trim();
+        if (!['initial','additional','replacement','amendment'].includes(relation)) throw new Error('Choose how this authorization relates to earlier authorizations.');
+        if (['replacement','amendment'].includes(relation) && !history.some(a => a.id === relatedId && !superseded(a.id))) throw new Error('Select an earlier authorization that has not already been superseded.');
+        if (relation === 'amendment' && !relationshipNotes) throw new Error('Explain the amendment and enter its complete resulting scope and amount.');
         const rawAmount = scopeValue === 'entire' ? estimateSummary().total.toFixed(2) : amount.value.trim();
         if (!/^\d+(\.\d{1,2})?$/.test(rawAmount) || Number(rawAmount) > 9999999999.99) throw new Error('Enter an authorized amount of zero or more with no more than two decimal places.');
-        return {authorizedAmount: Number(rawAmount),method, contact, notes, scopeValue, scopeDetails: scopeValue === 'entire' ? '' : scopeDetails};
+        return {relation,relatedId,relationshipNotes,authorizedAmount: Number(rawAmount),method, contact, notes, scopeValue, scopeDetails: scopeValue === 'entire' ? '' : scopeDetails};
     }
     function openDialog() {
         if (!canWrite) return;
         el('approval-dialog-error').textContent = '';
-        renderSummary();
+        renderSummary(); relationshipFields();
         if (!dialog.open) dialog.showModal();
     }
     function cancelApproval() {
@@ -104,9 +121,17 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
         if (!canWrite) { message.textContent = 'Customer authorization history is available to office staff.'; return; }
         if (!originalOrder.approvalAuditAvailable) { message.textContent = 'Approval history is unavailable until the database update is installed.'; return; }
         const context = await window.trackRightAuthReady;
-        const {data,error} = await client.from('shop_estimate_approvals').select('*,approval_scope,approval_scope_details,authorization_amount').eq('shop_id',context.shopId).eq('repair_order_id',originalOrder.recordId).order('recorded_at',{ascending:false});
+        const {data,error} = await client.from('shop_estimate_approvals').select('*,approval_scope,approval_scope_details,authorization_amount,authorization_relationship,related_authorization_id,relationship_notes').eq('shop_id',context.shopId).eq('repair_order_id',originalOrder.recordId).order('recorded_at',{ascending:false});
         if (error) { message.textContent = `Could not load approval history: ${error.message}. Refresh before recording approval.`; return; }
         history = data || []; ready = true;
+        el('approval-relationship-label').hidden = !history.length;
+        related.replaceChildren();
+        const placeholder = document.createElement('option'); placeholder.value = ''; placeholder.textContent = 'Select earlier authorization'; related.append(placeholder);
+        for (const a of history.filter(a => !superseded(a.id))) {
+            const option = document.createElement('option'); option.value = a.id;
+            option.textContent = `Rev. ${a.estimate_version} · ${money(a.authorization_amount ?? a.approved_amount)} · ${a.customer_contact} · ${new Date(a.recorded_at).toLocaleString()}`; related.append(option);
+        }
+        related.value = ''; relationshipFields();
         message.textContent = `Estimate version ${originalOrder.estimateVersion}. ${history.length ? 'Prior authorizations are preserved below.' : originalOrder.estimateApprovalStatus === 'Approved' ? 'Existing approval predates this history; its authorizer and time were not recorded.' : 'No customer authorization recorded.'}`;
         const list = el('approval-history'); list.replaceChildren();
         for (const approval of history) {
@@ -117,7 +142,12 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
             const contact = document.createElement('p'); contact.textContent = `Authorized by ${approval.customer_contact}`;
             const actor = document.createElement('p'); actor.textContent = `Recorded by ${approval.recorded_by_email || approval.recorded_by} · ${new Date(approval.recorded_at).toLocaleString()}`;
             const note = document.createElement('p'); note.textContent = `Customer acknowledgment / authorization notes: ${approval.notes || 'None recorded'}`;
-            row.append(title,contact,scopeLine,actor,note);
+            const indicator = document.createElement('p'); indicator.className = 'authorization-status';
+            indicator.textContent = superseded(approval.id) ? 'Superseded' : approval.authorization_relationship ? 'Active authorization' : 'Relationship not recorded — confirm which authorization governs the work';
+            const relationLine = document.createElement('p');
+            const predecessor = history.find(a => a.id === approval.related_authorization_id);
+            relationLine.textContent = approval.authorization_relationship ? `${approval.authorization_relationship}${predecessor ? ' of authorization recorded ' + new Date(predecessor.recorded_at).toLocaleString() : ''}${approval.relationship_notes ? ': ' + approval.relationship_notes : ''}` : '';
+            row.append(title,indicator,relationLine,contact,scopeLine,actor,note);
             const details = document.createElement('details'), summary = document.createElement('summary'), snapshot = document.createElement('div');
             summary.textContent = 'Full estimate snapshot';
             const labels = {complaint:'Work requested',parts_needed:'Parts needed',customer_name:'Customer',unit_name:'Vehicle',estimate_labor_hours:'Labor hours',estimate_labor_rate:'Labor rate',estimate_parts_total:'Parts',estimate_other_charges:'Other charges',estimate_shop_supplies:'Shop supplies',estimate_environmental_fee:'Environmental fee',estimate_misc_fee_label:'Other fee description',estimate_discount:'Discount',estimate_total:'Estimate total',estimate_notes:'Estimate notes',estimate_shop_supplies_taxable:'Shop supplies taxable',estimate_environmental_fee_taxable:'Environmental fee taxable',estimate_misc_fee_taxable:'Other fee taxable'};
@@ -150,7 +180,7 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
         const requiresApproval = revised || originalOrder.estimateApprovalStatus !== 'Approved' || repeat.checked;
         if (!requiresApproval) return null;
         if (!ready) throw new Error('Approval history is unavailable. Install the database update or refresh before recording authorization.');
-        const {method,contact,notes,scopeValue,scopeDetails,authorizedAmount} = authorization();
+        const {method,contact,notes,scopeValue,scopeDetails,authorizedAmount,relation,relatedId,relationshipNotes} = authorization();
         if (!confirmed) { openDialog(); throw new Error('Confirm customer authorization in the popup before saving.'); }
         const savingSummary = estimateSummary(order);
         if (savingSummary.currentSnapshot !== confirmedSnapshot || savingSummary.version !== confirmedVersion) {
@@ -166,6 +196,6 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
             if (result.error) throw result.error;
             uploaded = path; uploadedFile = file;
         }
-        return {id:requestId,method,customer_contact:contact,notes,approval_scope:scopeValue,approval_scope_details:scopeDetails,authorized_amount:authorizedAmount,expected_authorized_version:confirmedVersion,evidence_path:file ? uploaded : null,evidence_name:file ? file.name : null,expected_version:originalOrder.estimateVersion,expected_updated_at:originalOrder.updatedAt};
+        return {id:requestId,authorization_relationship:relation,related_authorization_id:relatedId,relationship_notes:relationshipNotes,method,customer_contact:contact,notes,approval_scope:scopeValue,approval_scope_details:scopeDetails,authorized_amount:authorizedAmount,expected_authorized_version:confirmedVersion,evidence_path:file ? uploaded : null,evidence_name:file ? file.name : null,expected_version:originalOrder.estimateVersion,expected_updated_at:originalOrder.updatedAt};
     }};
 };
