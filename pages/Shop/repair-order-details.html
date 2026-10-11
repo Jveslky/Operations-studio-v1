@@ -467,9 +467,19 @@
                         <label id="approval-contact-label" hidden>Other contact name<input id="approval-contact" class="detail-input" maxlength="200"></label>
                         <label>Approved work<select id="approval-scope" class="detail-input"><option value="entire">Entire estimate</option><option value="custom">Custom</option><option value="other">Other</option></select></label>
                         <label id="approval-scope-label" hidden>Describe the approved work<textarea id="approval-scope-details" class="detail-input" rows="3" maxlength="2000" placeholder="List the work the customer authorized."></textarea></label>
-                        <label>Authorization notes<textarea id="approval-notes" class="detail-input" rows="3" maxlength="4000" placeholder="For verbal approval, describe the authorization received."></textarea></label>
+                        <label>Customer acknowledgment / authorization notes<textarea id="approval-notes" class="detail-input" rows="3" maxlength="4000" placeholder="Record the customer’s acknowledgment, including any limitations explained. Required for verbal approval."></textarea></label>
                         <label>Document or photo (optional)<input id="approval-evidence" class="detail-input" type="file" accept="application/pdf,image/jpeg,image/png,image/webp"><span>PDF, JPG, PNG or WebP; up to 10 MB.</span></label>
                     </div>
+        <section class="authorization-summary" aria-labelledby="authorization-summary-title">
+            <h4 id="authorization-summary-title">Authorization summary</h4>
+            <div class="estimate-bottom-grid">
+                <p>Estimate revision<br><strong id="approval-summary-version"></strong></p>
+                <p>Approved scope<br><strong id="approval-summary-scope"></strong></p>
+                <p>Full estimate total<br><strong id="approval-summary-total"></strong></p>
+                <label>Amount being authorized<input id="approval-authorized-amount" class="detail-input" type="number" min="0" max="9999999999.99" step="0.01" placeholder="Enter amount for approved work"></label>
+            </div>
+            <p id="approval-amount-help"></p>
+        </section>
         <p id="approval-dialog-error" role="alert"></p>
         <div class="approval-dialog-actions"><button id="approval-cancel" type="button">Cancel</button><button id="approval-confirm" type="button">Confirm authorization</button></div>
         <p>Authorization is recorded when you save the repair order.</p>

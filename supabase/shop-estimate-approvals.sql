@@ -22,6 +22,7 @@ create table if not exists public.shop_estimate_approvals (
 -- Safe to rerun after the initial approval migration.
 alter table public.shop_estimate_approvals add column if not exists approval_scope text not null default 'entire' check (approval_scope in ('entire','custom','other'));
 alter table public.shop_estimate_approvals add column if not exists approval_scope_details text not null default '' check (length(approval_scope_details) <= 2000);
+alter table public.shop_estimate_approvals add column if not exists authorization_amount numeric(12,2);
 create index if not exists shop_estimate_approvals_ro_idx on public.shop_estimate_approvals(shop_id,repair_order_id,recorded_at desc);
 alter table public.shop_estimate_approvals enable row level security;
 revoke all on public.shop_estimate_approvals from anon, authenticated;
@@ -39,7 +40,7 @@ $$;
 
 create or replace function public.audit_shop_estimate_approval()
 returns trigger language plpgsql security definer set search_path = public, pg_temp as $$
-declare snapshot jsonb; changed boolean; req jsonb; file_path text; actor_email text;
+declare snapshot jsonb; changed boolean; req jsonb; file_path text; actor_email text; scope_amount numeric(12,2);
 begin
     snapshot := public.shop_estimate_snapshot(to_jsonb(new));
     if tg_op = 'INSERT' then
@@ -75,6 +76,17 @@ begin
             or (coalesce(req->>'approval_scope','entire') <> 'entire' and coalesce(length(trim(req->>'approval_scope_details')),0) not between 1 and 2000) then
             raise exception 'Describe the custom or other work the customer approved.';
         end if;
+        if req->>'expected_authorized_version' is not null and (req->>'expected_authorized_version')::integer <> new.estimate_version then
+            raise exception 'Estimate revision does not match the authorization summary. Refresh and review.';
+        end if;
+        if coalesce(req->>'approval_scope','entire') = 'entire' then
+            scope_amount := new.estimate_total;
+        else
+            if coalesce(req->>'authorized_amount','') !~ '^[0-9]+([.][0-9]{1,2})?$' or (req->>'authorized_amount')::numeric > 9999999999.99 then
+                raise exception 'Enter an authorized amount for the custom or other approved work.';
+            end if;
+            scope_amount := (req->>'authorized_amount')::numeric;
+        end if;
         file_path := nullif(req->>'evidence_path','');
         if file_path is not null then
             if split_part(file_path,'/',1) <> old.shop_id::text or split_part(file_path,'/',2) <> old.id::text
@@ -83,8 +95,8 @@ begin
             end if;
         end if;
         select coalesce(email,'') into actor_email from auth.users where id = auth.uid();
-        insert into public.shop_estimate_approvals(id,shop_id,repair_order_id,estimate_version,estimate_snapshot,approved_amount,method,customer_contact,notes,approval_scope,approval_scope_details,evidence_path,evidence_name,recorded_by,recorded_by_email)
-        values ((req->>'id')::uuid,old.shop_id,old.id,new.estimate_version,snapshot,new.estimate_total,req->>'method',trim(req->>'customer_contact'),coalesce(req->>'notes',''),coalesce(req->>'approval_scope','entire'),case when coalesce(req->>'approval_scope','entire') = 'entire' then '' else trim(req->>'approval_scope_details') end,file_path,nullif(req->>'evidence_name',''),auth.uid(),coalesce(actor_email,''));
+        insert into public.shop_estimate_approvals(id,shop_id,repair_order_id,estimate_version,estimate_snapshot,approved_amount,authorization_amount,method,customer_contact,notes,approval_scope,approval_scope_details,evidence_path,evidence_name,recorded_by,recorded_by_email)
+        values ((req->>'id')::uuid,old.shop_id,old.id,new.estimate_version,snapshot,scope_amount,scope_amount,req->>'method',trim(req->>'customer_contact'),coalesce(req->>'notes',''),coalesce(req->>'approval_scope','entire'),case when coalesce(req->>'approval_scope','entire') = 'entire' then '' else trim(req->>'approval_scope_details') end,file_path,nullif(req->>'evidence_name',''),auth.uid(),coalesce(actor_email,''));
         -- Use the stored RO stage, not a stale browser stage. Never move later work backward.
         if old.status in ('Open','Intake','Scheduled','Waiting Approval','Needs Info') then
             new.status := 'In Progress';

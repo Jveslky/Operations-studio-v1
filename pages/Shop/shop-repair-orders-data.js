@@ -239,6 +239,12 @@
         get,
         create,
         update,
-        migrateBrowserOrders
+        migrateBrowserOrders,
+        approvalSnapshot(order) {
+            const row = toRow(order, {}, false);
+            return Object.fromEntries(Object.entries(row).filter(([key]) =>
+                (key.startsWith('estimate_') && key !== 'estimate_approval_status') ||
+                ['complaint','parts_needed','customer_id','unit_id','customer_name','unit_name'].includes(key)).map(([key,value]) => [key, typeof value === 'number' ? Number(value.toFixed(2)) : value]));
+        }
     };
 }());

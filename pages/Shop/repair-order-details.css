@@ -1109,3 +1109,7 @@ textarea {
 .approval-dialog-actions button { padding: 10px 16px; cursor: pointer; }
 #approval-confirm { background: #d86b2c; color: white; border: 0; border-radius: 6px; }
 #approval-dialog-error { color: #b42318; }
+
+.authorization-summary { margin-top: 18px; padding: 16px; background: #eef5f6; border: 1px solid #cbd5df; border-radius: 8px; }
+.authorization-summary h4 { margin: 0 0 12px; }
+.authorization-summary p { margin: 6px 0; }

@@ -6,11 +6,11 @@ async function fixture({available=true,allowed=true,failUpload=false,originalSta
  const nodes=new Map(), uploads=[];
  const node=id=>{if(!nodes.has(id)) nodes.set(id,{value:'',textContent:'',checked:false,hidden:false,disabled:false,files:[],tagName:'INPUT',listeners:{},children:[],addEventListener(e,f){this.listeners[e]=f;},dispatchEvent(e){this.listeners[e.type]?.(e);},querySelectorAll(){return [];},replaceChildren(){this.children=[];},append(...items){this.children.push(...items);},click(){this.listeners.click?.();},showModal(){this.open=true;},close(){this.open=false;},});return nodes.get(id);};
  node('estimate-approval-status').value=originalStatus;
- const original={recordId:'ro-a',estimateApprovalStatus:originalStatus,estimateVersion:1,updatedAt:'2026-10-11T18:00:00Z',approvalAuditAvailable:available};
+ const original={recordId:'ro-a',estimateApprovalStatus:originalStatus,estimateVersion:1,updatedAt:'2026-10-11T18:00:00Z',estimateTotal:460,approvalAuditAvailable:available};
  let counter=0;
- const context={window:{trackRightCan:()=>allowed,trackRightAuthReady:Promise.resolve({shopId:'shop-a'}),trackRightSupabase:{from(){return {select(){return this;},eq(){return this;},order:async()=>({data:[],error:null})};},storage:{from(){return {upload:async(path,file)=>{uploads.push({path,file});return {error:failUpload?{message:'Upload failed'}:null};}};}}}},document:{getElementById:node,querySelectorAll:()=>[node('estimate-parts-total')],createElement:node},crypto:{randomUUID:()=>`uuid-${++counter}`},setTimeout:f=>f(),URL:{},Event:function(type){this.type=type;}};
+ const context={window:{trackRightRepairOrders:{approvalSnapshot:order=>({estimate_total:order.estimateTotal ?? 460,estimate_parts_total:order.estimatePartsTotal ?? 0})},trackRightCan:()=>allowed,trackRightAuthReady:Promise.resolve({shopId:'shop-a'}),trackRightSupabase:{from(){return {select(){return this;},eq(){return this;},order:async()=>({data:[],error:null})};},storage:{from(){return {upload:async(path,file)=>{uploads.push({path,file});return {error:failUpload?{message:'Upload failed'}:null};}};}}}},document:{getElementById:node,querySelectorAll:()=>[node('estimate-parts-total')],createElement:node},crypto:{randomUUID:()=>`uuid-${++counter}`},setTimeout:f=>f(),URL:{},Event:function(type){this.type=type;}};
  vm.runInNewContext(source,context);
- const controller=context.window.createEstimateApprovalAudit(original);
+ const controller=context.window.createEstimateApprovalAudit(original,()=>original);
  await new Promise(resolve=>setImmediate(resolve));
  return {node,controller,original,uploads};
 }
@@ -34,8 +34,16 @@ legacy.node('estimate-approval-status').value='Approved';legacy.node('estimate-p
 const popup=await fixture();
 popup.node('estimate-approval-status').value='Approved';popup.node('estimate-approval-status').dispatchEvent({type:'change'});assert.equal(popup.node('approval-dialog').open,true);
 popup.node('approval-cancel').click();assert.equal(popup.node('estimate-approval-status').value,'Draft');assert.equal(popup.node('approval-dialog').open,false);
-popup.node('approval-method').value='written';popup.node('approval-contact').value='Other customer';popup.node('approval-scope').value='custom';
+popup.node('approval-method').value='written';popup.node('approval-contact').value='Other customer';popup.node('approval-scope').value='custom';popup.node('approval-scope').dispatchEvent({type:'change'});
 await assert.rejects(popup.controller.prepare({estimateApprovalStatus:'Approved'}),/custom/);
-popup.node('approval-scope-details').value='Front brakes only';popup.node('approval-confirm').click();
-const partial=await popup.controller.prepare({estimateApprovalStatus:'Approved'});assert.equal(partial.approval_scope,'custom');assert.equal(partial.approval_scope_details,'Front brakes only');
+popup.node('approval-scope-details').value='Front brakes only';
+await assert.rejects(popup.controller.prepare({estimateApprovalStatus:'Approved'}),/authorized amount/);
+popup.node('approval-authorized-amount').value='220.00';popup.node('approval-confirm').click();
+const partial=await popup.controller.prepare({estimateApprovalStatus:'Approved'});assert.equal(partial.authorized_amount,220);assert.equal(partial.expected_authorized_version,1);assert.equal(partial.approval_scope,'custom');assert.equal(partial.approval_scope_details,'Front brakes only');
+assert.equal(f.node('approval-summary-version').textContent,'Rev. 1');assert.equal(f.node('approval-summary-total').textContent,'$460.00');
+await assert.rejects(f.controller.prepare({estimateApprovalStatus:'Approved',estimateTotal:700}),/changed after confirmation/);
+const revision=await fixture();revision.original.estimatePartsTotal=20;revision.node('approval-method').value='written';revision.node('approval-contact').value='Jon';revision.node('approval-confirm').click();
+assert.equal(revision.node('approval-summary-version').textContent,'Rev. 2');
+const revisionRequest=await revision.controller.prepare({...revision.original,estimateApprovalStatus:'Approved'});assert.equal(revisionRequest.expected_authorized_version,2);
+revision.original.estimatePartsTotal=0;revision.node('approval-confirm').click();assert.equal(revision.node('approval-summary-version').textContent,'Rev. 1');
 console.log('Approval UI: baseline preservation, required fields, revision invalidation, evidence types, upload failure/retry and migration gate passed.');

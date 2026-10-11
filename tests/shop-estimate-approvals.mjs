@@ -16,6 +16,8 @@ insert into shops values('${A}'),('${B}'); insert into auth.users values('${writ
 insert into test_members values('${A}','${writer}','service_writer'),('${B}','${other}','owner'),('${A}','${tech}','technician');`);
 await db.exec(fs.readFileSync(new URL('../supabase/shop-repair-orders.sql',import.meta.url),'utf8'));
 await db.exec(fs.readFileSync(new URL('../supabase/shop-estimate-approvals.sql',import.meta.url),'utf8'));
+const scopeRepair=await db.exec(fs.readFileSync(new URL('../supabase/shop-approval-scope-repair-20261011.sql',import.meta.url),'utf8'));
+assert.deepEqual(scopeRepair.at(-1).rows[0],{scope_column_installed:true,description_column_installed:true,scope_save_installed:true});
 await db.exec(`set role authenticated; select set_config('test.user','${writer}',false);`);
 const ro=(await db.query(`insert into shop_repair_orders(shop_id,complaint,estimate_total) values('${A}','Replace brakes',460) returning *`)).rows[0];
 let seq=0;
@@ -46,9 +48,15 @@ for (const stage of ['In Progress','Waiting Parts','Ready for Pickup','Ready for
  current=await approve(current,{method:'digital'}); assert.equal(current.status,stage);
 }
 await assert.rejects(approve(current,{approval_scope:'custom',approval_scope_details:''}),/custom/);
-current=await approve(current,{method:'written',approval_scope:'custom',approval_scope_details:'Front brakes only'});
+current=await approve(current,{method:'written',approval_scope:'custom',approval_scope_details:'Front brakes only',authorized_amount:220});
 const scoped=(await db.query("select * from shop_estimate_approvals where approval_scope='custom'")).rows;
-assert.equal(scoped.length,1);assert.equal(scoped[0].approval_scope_details,'Front brakes only');assert.equal(Number(scoped[0].approved_amount),600);
+assert.equal(scoped.length,1);assert.equal(scoped[0].approval_scope_details,'Front brakes only');assert.equal(Number(scoped[0].approved_amount),220);
+assert.equal(Number(scoped[0].authorization_amount),220);assert.equal(Number(scoped[0].estimate_snapshot.estimate_total),600);
+await assert.rejects(approve(current,{approval_scope:'custom',approval_scope_details:'Brakes',authorized_amount:-1}),/authorized amount/);
+await assert.rejects(approve(current,{approval_scope:'custom',approval_scope_details:'Brakes',authorized_amount:'1.001'}),/authorized amount/);
+await assert.rejects(approve(current,{expected_authorized_version:999}),/revision/);
+current=await approve(current,{authorized_amount:1});
+assert.equal(Number((await db.query('select authorization_amount from shop_estimate_approvals order by recorded_at desc limit 1')).rows[0].authorization_amount),600);
 await db.exec(`select set_config('test.user','${other}',false);`);
 assert.equal((await db.query('select * from shop_estimate_approvals')).rows.length,0);
 assert.equal((await db.query('select * from shop_repair_orders')).rows.length,0);

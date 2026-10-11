@@ -299,7 +299,18 @@ if (!repairOrder) {
             });
     }
 
-    const approvalAudit = window.createEstimateApprovalAudit(repairOrder);
+    function currentApprovalEstimate() {
+        return {...repairOrder,
+            complaint: complaintInput.value.trim(), partsNeeded: partsNeededInput.value.trim(),
+            estimateLaborHours: getNumberValue(estimateLaborHoursInput), estimateLaborRate: getNumberValue(estimateLaborRateInput),
+            estimatePartsTotal: getNumberValue(estimatePartsTotalInput), estimateOtherCharges: getNumberValue(estimateOtherChargesInput),
+            estimateShopSupplies: getNumberValue(estimateShopSuppliesInput), estimateShopSuppliesTaxable: estimateShopSuppliesTaxableInput.checked,
+            estimateEnvironmentalFee: getNumberValue(estimateEnvironmentalFeeInput), estimateEnvironmentalFeeTaxable: estimateEnvironmentalFeeTaxableInput.checked,
+            estimateMiscFeeLabel: estimateMiscFeeLabelInput.value.trim(), estimateMiscFeeTaxable: estimateMiscFeeTaxableInput.checked,
+            estimateDiscount: getNumberValue(estimateDiscountInput), estimateTotal: Math.max(0, calculateEstimateTotal()),
+            estimateNotes: estimateNotesInput.value.trim()};
+    }
+    const approvalAudit = window.createEstimateApprovalAudit(repairOrder, currentApprovalEstimate);
 
     function renderEstimateStatus() {
         const status =
@@ -515,7 +526,7 @@ if (!repairOrder) {
         });
     });
 
-    document.querySelectorAll('#approval-fields input, #approval-fields select, #approval-fields textarea, #approval-repeat').forEach(field => {
+    document.querySelectorAll('#approval-fields input, #approval-fields select, #approval-fields textarea, #approval-repeat, #approval-authorized-amount').forEach(field => {
         field.addEventListener('input', () => { hasUnsavedChanges = true; });
         field.addEventListener('change', () => { hasUnsavedChanges = true; });
     });
