@@ -1,0 +1,24 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const source=fs.readFileSync(new URL('../pages/Shop/shop-supplemental-estimates.js',import.meta.url),'utf8');
+async function fixture({locked=false,allowed=true,dirty=false}={}) {
+ const nodes=new Map(), calls=[],state={supplements:[],history:[],dirty,reloads:0};
+ function element(id='') {return {id,value:'',checked:false,hidden:false,disabled:false,files:[],children:[],listeners:{},textContent:'',open:false,className:'',addEventListener(event,fn){this.listeners[event]=fn;},async fire(event='click'){if(!this.disabled)return await this.listeners[event]?.({});},append(...n){this.children.push(...n);},replaceChildren(){this.children=[];},querySelector(){return element();},querySelectorAll(){return [];},showModal(){this.open=true;},close(){this.open=false;},select(){}};}
+ const node=id=>{if(!nodes.has(id))nodes.set(id,element(id));return nodes.get(id);};
+ let index=0;
+ const ctx={window:{trackRightCan:()=>allowed,trackRightAuthReady:Promise.resolve({shopId:'shop-a'}),trackRightInvoices:{list:async()=>locked?[{repairOrderRecordId:'ro-a'}]:[]},location:{reload(){state.reloads++;}},trackRightSupabase:{from(table){return {select(){return this;},eq(){return this;},order:async()=>({data:table==='shop_supplemental_estimates'?state.supplements:state.history,error:null})};},async rpc(name,params){calls.push({name,params});if(name==='save_shop_supplement'){const existing=state.supplements.find(s=>s.id===params.p_id);const s={id:existing?.id||'supp-'+ ++index,supplement_number:existing?.supplement_number||index,revision:existing?.revision||1,updated_at:'2026-10-11T20:00:00Z',...params.p_estimate};s.total=ctx.window.trackRightSupplements.financials(s).subtotal;state.supplements=state.supplements.filter(x=>x.id!==s.id).concat(s);return {data:s,error:null};}return {data:{status:'Approved'},error:null};}}},document:{getElementById:node,createElement:()=>element()},navigator:{clipboard:{writeText:async()=>{}}},setTimeout(){},URL:{},crypto:{randomUUID:()=> 'random'}};
+ vm.runInNewContext(source,ctx);ctx.window.createSupplementalEstimates({id:'1001',recordId:'ro-a',customer:'Jon',estimateLaborRate:150},()=>state.dirty);await new Promise(r=>setImmediate(r));return {node,calls,state,api:ctx.window.trackRightSupplements};
+}
+const f=await fixture();await f.node('supplement-add').fire();assert.equal(f.node('supplement-editor').open,true);assert.equal(f.node('supplement-labor_rate').value,150);
+f.node('supplement-description').value='Replace tire';f.node('supplement-labor_hours').value='1';f.node('supplement-labor_rate').value='100';f.node('supplement-parts_total').value='150';f.node('supplement-other_charges').value='0';f.node('supplement-discount').value='0';f.node('supplement-status').value='Draft';
+await f.node('supplement-save').fire();assert.equal(f.calls.length,1);assert.equal(f.calls[0].params.p_ro,'ro-a');assert.equal(f.calls[0].params.p_estimate.description,'Replace tire');assert.equal(f.state.supplements[0].total,250);assert.equal(f.node('supplement-editor').open,false);
+const article=f.node('supplement-list').children[0],actions=article.children.find(x=>x.className==='detail-actions');await actions.children.find(x=>x.textContent==='Record approval').fire();
+assert.equal(f.node('supplement-approval-dialog').open,true);assert.match(f.node('supplement-approval-summary').textContent,/Rev. 1.*\$250.00/);
+f.node('supplement-method').value='verbal';await f.node('supplement-approve').fire();assert.match(f.node('supplement-approval-error').textContent,/verbal/);assert.equal(f.calls.length,1);
+f.node('supplement-authorization-notes').value='Customer approved tire';await f.node('supplement-approve').fire();assert.equal(f.calls[1].params.p_authorization.customer_contact,'Jon');assert.equal(f.calls[1].params.p_revision,1);assert.equal(f.state.reloads,1);
+const locked=await fixture({locked:true});assert.equal(locked.node('supplement-add').disabled,true);
+const dirty=await fixture({dirty:true});await dirty.node('supplement-add').fire();assert.equal(dirty.node('supplement-editor').open,false);assert.match(dirty.node('supplement-message').textContent,/Save the repair order/);
+const tech=await fixture({allowed:false});assert.equal(tech.node('supplemental-estimates').hidden,true);
+const financial=f.api.financials({labor_hours:1.25,labor_rate:99.99,parts_total:100,other_charges:20,other_taxable:false,discount:10});assert.equal(financial.subtotal,234.99);assert.equal(financial.taxableBase,214.99);
+console.log('Supplement UI: separate editor, pricing, approval summary, verbal acknowledgment, customer identity, dirty-page protection and invoiced locks passed.');

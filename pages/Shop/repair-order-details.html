@@ -455,11 +455,62 @@
 
         </section>
 
+        <section id="supplemental-estimates" class="detail-card">
+            <h2>Supplemental estimates</h2>
+            <p>Price additional work separately from the original estimate. Totals are before invoice tax.</p>
+            <button id="supplement-add" type="button" class="primary-btn">Add supplemental estimate</button>
+            <p id="supplement-message" role="status" aria-live="polite">Loading supplemental estimates…</p>
+            <div id="supplement-list"></div>
+        </section>
         <div class="detail-actions detail-bottom-actions">
             <button id="save-bottom-button" type="button" class="primary-btn">Save repair order</button>
         </div>
     </main>
 
+
+
+    <dialog id="supplement-editor" class="approval-dialog" aria-labelledby="supplement-editor-title">
+        <h3 id="supplement-editor-title">Add supplemental estimate</h3>
+        <p id="supplement-editor-help"></p>
+        <div class="estimate-bottom-grid">
+            <label>Additional work<textarea id="supplement-description" class="detail-input" rows="3" maxlength="2000"></textarea></label>
+            <label>Status<select id="supplement-status" class="detail-input"><option>Draft</option><option>Sent</option><option>Declined</option></select></label>
+            <label>Labor hours<input id="supplement-labor_hours" class="detail-input" type="number" min="0" step="0.01" value="0"></label>
+            <label>Labor rate<input id="supplement-labor_rate" class="detail-input" type="number" min="0" step="0.01" value="0"></label>
+            <label>Parts total<input id="supplement-parts_total" class="detail-input" type="number" min="0" step="0.01" value="0"></label>
+            <label>Other charges<input id="supplement-other_charges" class="detail-input" type="number" min="0" step="0.01" value="0"></label>
+            <label>Discount<input id="supplement-discount" class="detail-input" type="number" min="0" step="0.01" value="0"></label>
+            <label><input id="supplement-other-taxable" type="checkbox"> Other charges taxable</label>
+            <label>Estimate notes<textarea id="supplement-notes" class="detail-input" rows="3" maxlength="4000"></textarea></label>
+        </div>
+        <p>Supplement total before invoice tax: <strong id="supplement-total"></strong></p>
+        <p id="supplement-editor-error" role="alert"></p>
+        <div class="approval-dialog-actions"><button type="button" data-close>Cancel</button><button id="supplement-save" type="button" class="primary-btn">Save supplemental estimate</button></div>
+        <p>Saves this supplement immediately. The original estimate remains separate.</p>
+    </dialog>
+    <dialog id="supplement-approval-dialog" class="approval-dialog" aria-labelledby="supplement-approval-title">
+        <h3 id="supplement-approval-title">Authorize supplement</h3>
+        <div class="estimate-bottom-grid">
+            <label>Approval method<select id="supplement-method" class="detail-input"><option value="">Select method</option><option value="verbal">Verbal</option><option value="written">Written</option><option value="digital">Digital</option></select></label>
+            <label>Who approved the work?<select id="supplement-contact-choice" class="detail-input"><option id="supplement-contact-customer" value="customer">RO customer</option><option value="other">Other</option></select></label>
+            <label id="supplement-contact-label" hidden>Other contact name<input id="supplement-contact" class="detail-input" maxlength="200"></label>
+            <label>Customer acknowledgment / authorization notes<textarea id="supplement-authorization-notes" class="detail-input" rows="3" maxlength="4000"></textarea></label>
+            <label>Document or photo (optional)<input id="supplement-evidence" type="file" class="detail-input" accept="application/pdf,image/jpeg,image/png,image/webp"><span>PDF, JPG, PNG or WebP; up to 10 MB.</span></label>
+        </div>
+        <section class="authorization-summary"><h4>Authorization summary</h4><p id="supplement-approval-summary"></p><p>Approves this entire supplement only. Earlier estimates and authorizations remain unchanged.</p></section>
+        <p id="supplement-approval-error" role="alert"></p>
+        <div class="approval-dialog-actions"><button type="button" data-close>Cancel</button><button id="supplement-approve" type="button" class="primary-btn">Record supplement approval</button></div>
+        <p>Records authorization immediately and refreshes the repair order.</p>
+    </dialog>
+    <dialog id="supplement-send-dialog" class="approval-dialog" aria-labelledby="supplement-send-title">
+        <h3 id="supplement-send-title">Send supplemental estimate</h3>
+        <label>Customer email<input id="supplement-send-email" class="detail-input" type="email"></label>
+        <label>Customer phone<input id="supplement-send-phone" class="detail-input" type="tel"></label>
+        <label>Message<textarea id="supplement-send-message" class="detail-input" rows="12" readonly></textarea></label>
+        <p>Email and Text open your app to complete sending. Mark Sent after you finish sending.</p>
+        <p id="supplement-send-error" role="status"></p>
+        <div class="approval-dialog-actions"><button type="button" data-close>Close</button><button id="supplement-copy-button" type="button">Copy</button><button id="supplement-send-email-button" type="button">Email</button><button id="supplement-send-text-button" type="button">Text</button><button id="supplement-mark-sent" type="button">I sent it — Mark Sent</button></div>
+    </dialog>
 
     <dialog id="approval-dialog" class="approval-dialog" aria-labelledby="approval-dialog-title">
         <h3 id="approval-dialog-title">Record customer authorization</h3>
@@ -568,6 +619,7 @@
     <script src="./shop-invoices-data.js"></script>
     <script src="./shop-workflow.js"></script>
     <script src="./estimate-approval-audit.js"></script>
+    <script src="./shop-supplemental-estimates.js"></script>
     <script src="./repair-order-details.js"></script>
     <script src="./repair-order-media.js"></script>
 </body>

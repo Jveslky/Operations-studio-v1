@@ -308,7 +308,14 @@ function renderInvoiceBreakdown(invoice) {
         return Number(row.amount) !== 0;
     });
 
-    rows.forEach(function (row) {
+    for (const supplement of fees.supplements || []) {
+        const financials = window.trackRightSupplements.financials(supplement);
+        rows.push({label:`Supplement ${supplement.supplement_number} · Rev. ${supplement.revision}: ${supplement.description} — Labor (${supplement.labor_hours} hrs × ${formatCurrency(supplement.labor_rate)})`,amount:financials.laborTotal,taxable:true});
+        rows.push({label:`Supplement ${supplement.supplement_number}: Parts`,amount:supplement.parts_total,taxable:true});
+        rows.push({label:`Supplement ${supplement.supplement_number}: Other charges`,amount:supplement.other_charges,taxable:supplement.other_taxable});
+        rows.push({label:`Supplement ${supplement.supplement_number}: Discount`,amount:-Number(supplement.discount),discount:true});
+    }
+    rows.filter(row => Number(row.amount) !== 0).forEach(function (row) {
         const item = document.createElement("div");
         item.className = "invoice-breakdown-row";
 

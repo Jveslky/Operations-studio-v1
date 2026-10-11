@@ -468,6 +468,7 @@ if (!repairOrder) {
     ========================= */
 
     let hasUnsavedChanges = false;
+    window.createSupplementalEstimates(repairOrder, () => hasUnsavedChanges);
 
     const editableFields = [
         complaintInput,

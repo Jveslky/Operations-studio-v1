@@ -170,6 +170,22 @@ function getAllRepairOrders() {
     );
 }
 
+async function previewInvoiceSupplements() {
+    const id = invoiceRepairOrderInput.value;
+    const preview = document.getElementById('invoice-supplement-preview');
+    const order = repairOrders.find(ro => String(ro.id) === id);
+    if (!order || invoiceSourceTypeInput.value === 'one-off') {preview.textContent='';return;}
+    preview.textContent='Loading supplemental estimates…';
+    try {
+        const supplements = await window.trackRightSupplements.list(order.recordId);
+        if (invoiceRepairOrderInput.value !== id) return;
+        const approved = supplements.filter(s => s.status === 'Approved');
+        const additional = approved.reduce((sum,s) => sum + window.trackRightSupplements.financials(s).subtotal,0);
+        preview.textContent = `Original estimate: ${formatCurrency(getRepairOrderFinancials(order).subtotal)}. Approved supplements: ${formatCurrency(additional)}${approved.length ? ' (' + approved.map(s => `Supplement ${s.supplement_number}, Rev. ${s.revision}`).join('; ') + ')' : ''}. Combined subtotal before tax: ${formatCurrency(getRepairOrderFinancials(order).subtotal + additional)}. Unapproved supplements are excluded; invoicing locks estimates.`;
+    } catch(error) {preview.textContent=error.message;}
+}
+invoiceRepairOrderInput.addEventListener('change',previewInvoiceSupplements);
+
 function getRepairOrderFinancials(order) {
     const laborHours = Number(order.estimateLaborHours) || 0;
     const laborRate = Number(order.estimateLaborRate) || 0;
@@ -185,7 +201,7 @@ function getRepairOrderFinancials(order) {
         shopSupplies +
         environmentalFee +
         miscellaneousFee;
-    const subtotal = Math.max(0, grossSubtotal - discount);
+    const subtotal = Math.round(Math.max(0, grossSubtotal - discount) * 100) / 100;
     const taxableBeforeDiscount =
         laborTotal +
         partsTotal +
@@ -365,6 +381,7 @@ async function loadCustomerUnits(customerId) {
 function updateInvoiceSourceFields() {
     const isOneOff =
         invoiceSourceTypeInput.value === "one-off";
+    document.getElementById("invoice-supplement-preview").textContent = "";
 
     invoiceRepairOrderField.hidden = isOneOff;
     invoiceCustomerField.hidden = !isOneOff;
@@ -430,6 +447,7 @@ async function openInvoiceForm() {
     });
 
     invoiceRepairOrderInput.focus();
+    previewInvoiceSupplements();
 }
 
 function closeInvoiceForm() {
@@ -546,6 +564,15 @@ createInvoiceForm.addEventListener(
             return;
         }
 
+        let approvedSupplements = [];
+        if (!isOneOff) {
+            try {
+                const supplements = await window.trackRightSupplements.list(selectedRepairOrder.recordId);
+                approvedSupplements = supplements.filter(s => s.status === 'Approved');
+                const pending = supplements.filter(s => ['Draft','Sent'].includes(s.status));
+                if (pending.length && !window.confirm(`${pending.length} supplemental estimate(s) are not approved and will be excluded. Creating the invoice locks supplemental estimates. Continue?`)) return;
+            } catch (error) { invoiceCreateMessage.textContent = error.message; return; }
+        }
         let context;
         let shopTax;
         let customerTax = null;
@@ -589,6 +616,13 @@ createInvoiceForm.addEventListener(
         const repairOrderFinancials = isOneOff
             ? null
             : getRepairOrderFinancials(selectedRepairOrder);
+        if (repairOrderFinancials) {
+            repairOrderFinancials.supplements = approvedSupplements;
+            repairOrderFinancials.originalSubtotal = repairOrderFinancials.subtotal;
+            repairOrderFinancials.supplementSubtotal = approvedSupplements.reduce((sum,s) => sum + window.trackRightSupplements.financials(s).subtotal,0);
+            repairOrderFinancials.subtotal = Math.round((repairOrderFinancials.subtotal + repairOrderFinancials.supplementSubtotal) * 100) / 100;
+            repairOrderFinancials.taxableBase = Math.round((repairOrderFinancials.taxableBase + approvedSupplements.reduce((sum,s) => sum + window.trackRightSupplements.financials(s).taxableBase,0)) * 100) / 100;
+        }
         const subtotal = isOneOff
             ? oneOffSubtotal
             : repairOrderFinancials.subtotal;
@@ -1083,6 +1117,7 @@ async function initializeInvoices() {
         if (matchingOption) {
             invoiceRepairOrderInput.value =
                 requestedRepairOrderId;
+            previewInvoiceSupplements();
         } else {
             invoiceCreateMessage.textContent =
                 "That repair order is already invoiced or is no longer available.";
