@@ -909,9 +909,9 @@ function renderInvoices() {
         invoices.filter(
             function (invoice) {
                 const matchesStatus =
-                    selectedStatus === "All" ||
-                    getInvoiceDisplayStatus(invoice) ===
-                    selectedStatus;
+                    (selectedStatus === "All" ||
+                    getInvoiceDisplayStatus(invoice) === selectedStatus) &&
+                    (new URLSearchParams(window.location.search).get("scope") !== "open" || invoice.status !== "Paid");
 
                 const searchableText = [
                     invoice.id,
@@ -1092,3 +1092,18 @@ async function initializeInvoices() {
 }
 
 initializeInvoices();
+
+(function showDashboardScope() {
+    const scope = new URLSearchParams(window.location.search).get('scope');
+    const labels = {open:'Open invoices'};
+    if (!labels[scope]) return;
+    const heading = document.querySelector('main h1');
+    if (!heading) return;
+    const notice = document.createElement('p');
+    notice.append(document.createTextNode(labels[scope] + ' · '));
+    const reset = document.createElement('a');
+    reset.href = './invoices.html';
+    reset.textContent = 'Show all';
+    notice.append(reset);
+    heading.insertAdjacentElement('afterend', notice);
+})();

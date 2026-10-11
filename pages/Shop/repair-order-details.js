@@ -299,6 +299,8 @@ if (!repairOrder) {
             });
     }
 
+    let approvalAdvancedStatus = false;
+
     function renderEstimateStatus() {
         const status =
             estimateApprovalStatusInput.value;
@@ -327,7 +329,15 @@ if (!repairOrder) {
 
     estimateApprovalStatusInput.addEventListener(
         "change",
-        renderEstimateStatus
+        function () {
+            renderEstimateStatus();
+            const nextStatus = window.shopWorkflow.approvedStatus(statusSelect.value, estimateApprovalStatusInput.value);
+            if (nextStatus !== statusSelect.value) {
+                approvalAdvancedStatus = true;
+                statusSelect.value = nextStatus;
+                statusDisplay.textContent = nextStatus;
+            }
+        }
     );
 
     /* =========================
@@ -603,6 +613,10 @@ if (!repairOrder) {
         repairOrder.estimateTotal =
             Math.max(0, calculateEstimateTotal());
 
+        const nextApprovedStatus = window.shopWorkflow.approvedStatus(repairOrder.status, estimateApprovalStatusInput.value);
+        approvalAdvancedStatus = approvalAdvancedStatus || nextApprovedStatus !== repairOrder.status;
+        repairOrder.status = nextApprovedStatus;
+        statusSelect.value = nextApprovedStatus;
         repairOrder.estimateApprovalStatus =
             estimateApprovalStatusInput.value;
 
@@ -623,7 +637,8 @@ if (!repairOrder) {
 
         if (
             repairOrder.status === "In Progress" &&
-            repairOrder.technician === "Unassigned"
+            repairOrder.technician === "Unassigned" &&
+            !approvalAdvancedStatus
         ) {
             repairOrder.status = "Needs Info";
             statusSelect.value = "Needs Info";

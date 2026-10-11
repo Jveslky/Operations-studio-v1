@@ -87,21 +87,10 @@ function renderKpis(
     invoices,
     bills
 ) {
-    const finishedStatuses =
-        new Set([
-            "Complete",
-            "Ready for Pickup",
-            "Ready for Payment",
-            "Awaiting Payment",
-            "Closed"
-        ]);
-
     const openOrders =
         repairOrders.filter(
             function (order) {
-                return !finishedStatuses.has(
-                    order.status
-                );
+                return window.shopWorkflow.matchesOrder(order, 'open');
             }
         );
 
@@ -109,8 +98,7 @@ function renderKpis(
         repairOrders.filter(
             function (order) {
                 return (
-                    order.status ===
-                    "Waiting Approval"
+                    window.shopWorkflow.matchesOrder(order, 'approval')
                 );
             }
         );
@@ -119,12 +107,7 @@ function renderKpis(
         repairOrders.filter(
             function (order) {
                 return (
-                    order.status ===
-                    "Ready for Pickup" ||
-                    order.status ===
-                    "Ready for Payment" ||
-                    order.status ===
-                    "Awaiting Payment"
+                    window.shopWorkflow.matchesOrder(order, 'pickup')
                 );
             }
         );
