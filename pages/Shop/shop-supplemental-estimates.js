@@ -46,7 +46,7 @@
         }
         function preview() {try{el('supplement-total').textContent=money(financials(readEditor()).subtotal);}catch{el('supplement-total').textContent='Complete the work description and pricing.';}}
         function addLine(parent,text,tag='p') {const n=document.createElement(tag);n.textContent=text;parent.append(n);return n;}
-        function button(parent,label,action,readOnly=false) {const n=document.createElement('button');n.type='button';n.textContent=label;n.className='secondary-btn';n.disabled=locked&&!readOnly;n.addEventListener('click',()=>{try{if(!readOnly)assertClean();action();}catch(e){message(e);}});parent.append(n);}
+        function button(parent,label,action,readOnly=false) {const n=document.createElement('button');n.type='button';n.textContent=label;n.className='secondary-btn';n.disabled=false;if(locked&&!readOnly){n.textContent=label+' — Locked';n.setAttribute('aria-disabled','true');n.title='This repair order has been invoiced. Supplemental changes and sending are locked.';}n.addEventListener('click',()=>{try{if(locked&&!readOnly){const notice='This repair order has been invoiced. Supplemental estimates are locked to preserve the invoice snapshot. Printing and approval evidence remain available.';message(notice);window.alert(notice);return;}if(!readOnly)assertClean();action();}catch(e){message(e);}});parent.append(n);}
         function openEditor(s=null) {
             editing=s;el('supplement-editor-title').textContent=s?`Edit Supplement ${s.supplement_number} · Rev. ${s.revision}`:'Add supplemental estimate';
             el('supplement-description').value=s?.description || '';el('supplement-notes').value=s?.notes || '';
