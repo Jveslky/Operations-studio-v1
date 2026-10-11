@@ -19,6 +19,9 @@ create table if not exists public.shop_estimate_approvals (
     recorded_by_email text not null,
     recorded_at timestamptz not null default now()
 );
+-- Safe to rerun after the initial approval migration.
+alter table public.shop_estimate_approvals add column if not exists approval_scope text not null default 'entire' check (approval_scope in ('entire','custom','other'));
+alter table public.shop_estimate_approvals add column if not exists approval_scope_details text not null default '' check (length(approval_scope_details) <= 2000);
 create index if not exists shop_estimate_approvals_ro_idx on public.shop_estimate_approvals(shop_id,repair_order_id,recorded_at desc);
 alter table public.shop_estimate_approvals enable row level security;
 revoke all on public.shop_estimate_approvals from anon, authenticated;
@@ -68,6 +71,10 @@ begin
         if req->>'method' = 'verbal' and coalesce(length(trim(req->>'notes')),0) = 0 then
             raise exception 'Add a note describing the verbal authorization.';
         end if;
+        if coalesce(req->>'approval_scope','entire') not in ('entire','custom','other')
+            or (coalesce(req->>'approval_scope','entire') <> 'entire' and coalesce(length(trim(req->>'approval_scope_details')),0) not between 1 and 2000) then
+            raise exception 'Describe the custom or other work the customer approved.';
+        end if;
         file_path := nullif(req->>'evidence_path','');
         if file_path is not null then
             if split_part(file_path,'/',1) <> old.shop_id::text or split_part(file_path,'/',2) <> old.id::text
@@ -76,8 +83,8 @@ begin
             end if;
         end if;
         select coalesce(email,'') into actor_email from auth.users where id = auth.uid();
-        insert into public.shop_estimate_approvals(id,shop_id,repair_order_id,estimate_version,estimate_snapshot,approved_amount,method,customer_contact,notes,evidence_path,evidence_name,recorded_by,recorded_by_email)
-        values ((req->>'id')::uuid,old.shop_id,old.id,new.estimate_version,snapshot,new.estimate_total,req->>'method',trim(req->>'customer_contact'),coalesce(req->>'notes',''),file_path,nullif(req->>'evidence_name',''),auth.uid(),coalesce(actor_email,''));
+        insert into public.shop_estimate_approvals(id,shop_id,repair_order_id,estimate_version,estimate_snapshot,approved_amount,method,customer_contact,notes,approval_scope,approval_scope_details,evidence_path,evidence_name,recorded_by,recorded_by_email)
+        values ((req->>'id')::uuid,old.shop_id,old.id,new.estimate_version,snapshot,new.estimate_total,req->>'method',trim(req->>'customer_contact'),coalesce(req->>'notes',''),coalesce(req->>'approval_scope','entire'),case when coalesce(req->>'approval_scope','entire') = 'entire' then '' else trim(req->>'approval_scope_details') end,file_path,nullif(req->>'evidence_name',''),auth.uid(),coalesce(actor_email,''));
         -- Use the stored RO stage, not a stale browser stage. Never move later work backward.
         if old.status in ('Open','Intake','Scheduled','Waiting Approval','Needs Info') then
             new.status := 'In Progress';

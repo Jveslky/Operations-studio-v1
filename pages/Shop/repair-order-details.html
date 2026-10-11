@@ -448,20 +448,32 @@
                 <section class="approval-audit" aria-labelledby="approval-audit-title">
                     <h3 id="approval-audit-title">Customer authorization</h3>
                     <p id="approval-audit-message" role="status" aria-live="polite"></p>
-                    <div id="approval-fields" class="estimate-bottom-grid" hidden>
-                        <label>Approval method<select id="approval-method" class="detail-input"><option value="">Select method</option><option value="verbal">Verbal</option><option value="written">Written</option><option value="digital">Digital</option></select></label>
-                        <label>Customer / contact who authorized work<input id="approval-contact" class="detail-input" maxlength="200"></label>
-                        <label>Authorization notes<textarea id="approval-notes" class="detail-input" rows="3" maxlength="4000" placeholder="For verbal approval, describe the authorization received."></textarea></label>
-                        <label>Document or photo (optional)<input id="approval-evidence" class="detail-input" type="file" accept="application/pdf,image/jpeg,image/png,image/webp"><span>PDF, JPG, PNG or WebP; up to 10 MB.</span></label>
-                    </div>
                     <label id="approval-repeat-label" hidden><input id="approval-repeat" type="checkbox"> Record another authorization for this estimate</label>
-                    <p>Choose Approved and save to record authorization. Staff member, time, amount and estimate version are recorded automatically.</p>
+                    <p>Choose Approved to record customer authorization. Staff member, time and estimate version are recorded automatically.</p>
                     <div id="approval-history"></div>
                 </section>
 
         </section>
 
     </main>
+
+
+    <dialog id="approval-dialog" class="approval-dialog" aria-labelledby="approval-dialog-title">
+        <h3 id="approval-dialog-title">Record customer authorization</h3>
+        <p>Confirm who approved the work and what they authorized.</p>
+                    <div id="approval-fields" class="estimate-bottom-grid">
+                        <label>Approval method<select id="approval-method" class="detail-input"><option value="">Select method</option><option value="verbal">Verbal</option><option value="written">Written</option><option value="digital">Digital</option></select></label>
+                        <label>Who approved the work?<select id="approval-contact-choice" class="detail-input"><option value="customer">RO customer</option><option value="other">Other</option></select></label>
+                        <label id="approval-contact-label" hidden>Other contact name<input id="approval-contact" class="detail-input" maxlength="200"></label>
+                        <label>Approved work<select id="approval-scope" class="detail-input"><option value="entire">Entire estimate</option><option value="custom">Custom</option><option value="other">Other</option></select></label>
+                        <label id="approval-scope-label" hidden>Describe the approved work<textarea id="approval-scope-details" class="detail-input" rows="3" maxlength="2000" placeholder="List the work the customer authorized."></textarea></label>
+                        <label>Authorization notes<textarea id="approval-notes" class="detail-input" rows="3" maxlength="4000" placeholder="For verbal approval, describe the authorization received."></textarea></label>
+                        <label>Document or photo (optional)<input id="approval-evidence" class="detail-input" type="file" accept="application/pdf,image/jpeg,image/png,image/webp"><span>PDF, JPG, PNG or WebP; up to 10 MB.</span></label>
+                    </div>
+        <p id="approval-dialog-error" role="alert"></p>
+        <div class="approval-dialog-actions"><button id="approval-cancel" type="button">Cancel</button><button id="approval-confirm" type="button">Confirm authorization</button></div>
+        <p>Authorization is recorded when you save the repair order.</p>
+    </dialog>
 
     <div id="send-estimate-modal"
          class="send-estimate-modal"

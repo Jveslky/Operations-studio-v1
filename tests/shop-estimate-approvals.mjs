@@ -45,6 +45,10 @@ for (const stage of ['In Progress','Waiting Parts','Ready for Pickup','Ready for
  current=(await db.query('update shop_repair_orders set status=$1 where id=$2 returning *',[stage,ro.id])).rows[0];
  current=await approve(current,{method:'digital'}); assert.equal(current.status,stage);
 }
+await assert.rejects(approve(current,{approval_scope:'custom',approval_scope_details:''}),/custom/);
+current=await approve(current,{method:'written',approval_scope:'custom',approval_scope_details:'Front brakes only'});
+const scoped=(await db.query("select * from shop_estimate_approvals where approval_scope='custom'")).rows;
+assert.equal(scoped.length,1);assert.equal(scoped[0].approval_scope_details,'Front brakes only');assert.equal(Number(scoped[0].approved_amount),600);
 await db.exec(`select set_config('test.user','${other}',false);`);
 assert.equal((await db.query('select * from shop_estimate_approvals')).rows.length,0);
 assert.equal((await db.query('select * from shop_repair_orders')).rows.length,0);

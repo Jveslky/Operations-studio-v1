@@ -1100,3 +1100,12 @@ textarea {
 .approval-history-entry { padding: 12px 0; border-bottom: 1px solid #c9d2d4; }
 .approval-history-entry p { margin: 6px 0; overflow-wrap: anywhere; }
 .approval-history-entry pre { white-space: pre-wrap; overflow-wrap: anywhere; font-size: 12px; }
+
+.approval-dialog { width: min(760px, calc(100vw - 40px)); max-height: 85vh; overflow: auto; border: 1px solid #cbd5df; border-radius: 12px; padding: 24px; color: #1f2933; background: #fff; }
+.approval-dialog::backdrop { background: rgb(0 0 0 / 55%); }
+.approval-dialog [hidden] { display: none !important; }
+.approval-dialog .detail-input { width: 100%; box-sizing: border-box; }
+.approval-dialog-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 16px; }
+.approval-dialog-actions button { padding: 10px 16px; cursor: pointer; }
+#approval-confirm { background: #d86b2c; color: white; border: 0; border-radius: 6px; }
+#approval-dialog-error { color: #b42318; }
