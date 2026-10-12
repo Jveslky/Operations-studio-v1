@@ -1,25 +1,26 @@
 begin;
 -- Bounded customer lookups use existing RLS and explicit office-role checks.
 create index if not exists customers_shop_name_desk_idx on public."Customers"(shop_id,name,id) where archived is not true;
+create index if not exists customers_shop_recent_desk_idx on public."Customers"(shop_id,created_at desc,id) where archived is not true;
 create index if not exists customer_units_shop_customer_desk_idx on public.customer_units(shop_id,customer_id) where archived is not true;
 create index if not exists shop_ro_customer_desk_idx on public.shop_repair_orders(shop_id,customer_id,created_at desc) where archived is not true;
 create index if not exists shop_invoice_customer_desk_idx on public.shop_invoices(shop_id,customer_id,created_at desc);
 
-create or replace function public.shop_customer_directory(p_shop uuid,p_search text default '',p_page integer default 0,p_size integer default 25)
+create or replace function public.shop_customer_directory(p_shop uuid,p_search text default '',p_page integer default 0,p_size integer default 10)
 returns jsonb language plpgsql security invoker set search_path=public,pg_temp as $$
 declare result jsonb; needle text := lower(trim(coalesce(p_search,''))); digits text := regexp_replace(coalesce(p_search,''),'[^0-9]','','g');
 begin
  if not public.has_shop_role(p_shop,array['owner','admin','service_writer']) then raise exception 'Your role cannot open the customer desk.'; end if;
  if p_page is null or p_page<0 or p_page>100000 or p_size is null or p_size<1 or p_size>50 or length(needle)>200 then raise exception 'Invalid customer search or page.'; end if;
  with matched as (
-  select c.id,c.name,c.contact_name,c.phone,c.email from public."Customers" c
+  select c.id,c.name,c.contact_name,c.phone,c.email,c.created_at from public."Customers" c
   where c.shop_id=p_shop and c.archived is not true and (
    needle='' or strpos(lower(concat_ws(' ',c.name,c.contact_name,c.phone,c.email)),needle)>0
    or (length(digits)>=3 and needle !~ '[a-z]' and strpos(regexp_replace(coalesce(c.phone,''),'[^0-9]','','g'),digits)>0)
    or exists(select 1 from public.customer_units u where u.shop_id=p_shop and u.customer_id=c.id and u.archived is not true
      and strpos(lower(concat_ws(' ',u.name,u.year,u.make,u.model,u.serial)),needle)>0)
   )
- ), page_rows as (select * from matched order by lower(name),id limit p_size offset p_page*p_size)
+ ), page_rows as (select * from matched order by created_at desc nulls last,id limit p_size offset p_page*p_size)
  select jsonb_build_object(
   'count',(select count(*) from matched),
   'summary',jsonb_build_object(
@@ -31,7 +32,7 @@ begin
    'vehicles',(select count(*) from public.customer_units u where u.shop_id=p_shop and u.customer_id=c.id and u.archived is not true),
    'open_orders',(select count(*) from public.shop_repair_orders r where r.shop_id=p_shop and r.customer_id=c.id::text and r.archived is not true and r.status not in ('Complete','Closed','Paid')),
    'balance',coalesce((select sum(i.total) from public.shop_invoices i where i.shop_id=p_shop and i.customer_id=c.id::text and i.status='Sent'),0)
-  ) order by lower(c.name),c.id) from page_rows c),'[]'::jsonb)
+  ) order by c.created_at desc nulls last,c.id) from page_rows c),'[]'::jsonb)
  ) into result;
  return result;
 end $$;

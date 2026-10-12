@@ -8,12 +8,13 @@ create function auth.uid() returns text language sql stable as $$select current_
 create table members(shop_id uuid,user_id text,role text);
 create function has_shop_role(s uuid,r text[]) returns boolean language sql stable security definer as $$select exists(select 1 from members where shop_id=s and user_id=auth.uid() and role=any(r))$$;
 insert into members values('${A}','writer','service_writer'),('${B}','other','owner'),('${A}','tech','technician');
-create table "Customers"(id uuid primary key,shop_id uuid,name text,contact_name text,phone text,email text,archived boolean default false);
+create table "Customers"(id uuid primary key,shop_id uuid,name text,contact_name text,phone text,email text,archived boolean default false,created_at timestamptz default now());
 create table customer_units(id uuid primary key,shop_id uuid,customer_id uuid,name text,year integer,make text,model text,serial text,archived boolean default false);
 create table shop_repair_orders(id uuid primary key,shop_id uuid,customer_id text,ro_number bigint,legacy_local_id text,status text,unit_name text,complaint text,created_at timestamptz default now(),archived boolean default false);
 create table shop_invoices(id uuid primary key,shop_id uuid,customer_id text,invoice_number bigint,legacy_local_id text,status text,total numeric,due_date date,paid_at timestamptz,created_at timestamptz default now());
-insert into "Customers" select gen_random_uuid(),'${A}','Customer '||lpad(g::text,4,'0'),null,null,null,false from generate_series(1,2500)g;
-insert into "Customers" values('11111111-1111-1111-1111-111111111111','${A}','Jon','Office','(302) 555-1234','jon@test.invalid',false),('22222222-2222-2222-2222-222222222222','${B}','Other Shop',null,null,null,false),('33333333-3333-3333-3333-333333333333','${A}','Archived',null,null,null,true);
+insert into "Customers" (id,shop_id,name,contact_name,phone,email,archived) select gen_random_uuid(),'${A}','Customer '||lpad(g::text,4,'0'),null,null,null,false from generate_series(1,2500)g;
+insert into "Customers" (id,shop_id,name,contact_name,phone,email,archived) values('11111111-1111-1111-1111-111111111111','${A}','Jon','Office','(302) 555-1234','jon@test.invalid',false),('22222222-2222-2222-2222-222222222222','${B}','Other Shop',null,null,null,false),('33333333-3333-3333-3333-333333333333','${A}','Archived',null,null,null,true);
+update "Customers" set created_at='2099-10-12' where name='Jon';
 insert into customer_units values(gen_random_uuid(),'${A}','11111111-1111-1111-1111-111111111111','Field truck',1990,'Honda','Civic','VIN-UNIQUE',false), (gen_random_uuid(),'${B}','22222222-2222-2222-2222-222222222222','Other truck',2005,'Ford','F350','SECRET-VIN',false);
 insert into shop_repair_orders select gen_random_uuid(),'${A}','11111111-1111-1111-1111-111111111111',1000+g,null,case when g=1 then 'Open' else 'Complete' end,'Honda','Repair',now()+g*interval '1 second',false from generate_series(1,30)g;
 insert into shop_invoices select gen_random_uuid(),'${A}','11111111-1111-1111-1111-111111111111',2000+g,null,case when g=1 then 'Sent' when g=2 then 'Draft' else 'Paid' end,100,'2026-11-01',null,now()+g*interval '1 second' from generate_series(1,30)g;`);
@@ -22,7 +23,8 @@ await db.exec(fs.readFileSync(new URL('../supabase/shop-customer-desk-20261012.s
 await db.exec(`set role authenticated;select set_config('test.user','writer',false);`);
 const directory=async(search='',page=0,shop=A,size=25)=>(await db.query('select shop_customer_directory($1,$2,$3,$4) as data',[shop,search,page,size])).rows[0].data;
 const activity=async(customer='11111111-1111-1111-1111-111111111111',page=0)=>(await db.query('select shop_customer_activity($1,$2,$3,$3) as data',[A,customer,page])).rows[0].data;
-let result=await directory();assert.equal(result.count,2501);assert.equal(result.rows.length,25);assert.equal(result.summary.customers,2501);assert.equal(result.summary.vehicles,1);assert.equal(result.summary.open_orders,1);assert.equal(Number(result.summary.balance),100);
+let result=await directory();assert.equal(result.rows[0].name,'Jon');assert.equal(result.count,2501);assert.equal(result.rows.length,25);assert.equal(result.summary.customers,2501);assert.equal(result.summary.vehicles,1);assert.equal(result.summary.open_orders,1);assert.equal(Number(result.summary.balance),100);
+const ten=await directory('',0,A,10);assert.equal(ten.rows.length,10);const tenNext=await directory('',1,A,10);assert(!tenNext.rows.some(r=>ten.rows.some(first=>first.id===r.id)));
 const next=await directory('',1);assert(!next.rows.some(r=>result.rows.some(first=>first.id===r.id)));
 for(const term of ['Jon','Office','3025551234','jon@test.invalid','Honda','Civic','VIN-UNIQUE','Field truck']){result=await directory(term);assert.equal(result.rows.length,1,term);assert.equal(result.rows[0].name,'Jon');}
 for(const term of ['Other Shop','SECRET-VIN','Archived',"%_' OR true --"]){assert.equal((await directory(term)).count,0);}

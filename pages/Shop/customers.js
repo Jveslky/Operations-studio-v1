@@ -619,12 +619,16 @@ async function openCustomerRecord(
     renderCustomerRepairHistory();
 
     customerRecordPanel.hidden = false;
+    customerRecordName.focus({ preventScroll: true });
+    customerRecordPanel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function closeCustomerRecord() {
     ++customerRecordRequest;
     window.shopCustomerDesk.cancelActivity();
     customerRecordPanel.hidden = true;
     selectedCustomerId = null;
+    customerSearchInput.focus({ preventScroll: true });
+    customerSearchInput.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 closeCustomerRecordButton.addEventListener(

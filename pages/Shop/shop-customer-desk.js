@@ -3,7 +3,7 @@
     const el=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('en-US',{style:'currency',currency:'USD'});
     const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     let page=0,total=0,search='',directoryRequest=0,activityRequest=0,activeCustomer=null,ordersPage=0,invoicesPage=0;
-    const size=25;
+    let size=10;
     async function rpc(name,args) {
         const context=await window.trackRightAuthReady;
         const result=await window.trackRightSupabase.rpc(name,{p_shop:context.shopId,...args});
@@ -11,9 +11,10 @@
         return result.data;
     }
     function pager(prefix,current,count,busy=false) {
+        const pageSize=prefix==='customer-directory'?size:25;
         el(prefix+'-previous').disabled=busy||current===0;
-        el(prefix+'-next').disabled=busy||(current+1)*size>=count;
-        el(prefix+'-page-label').textContent=count?`${current*size+1}–${Math.min((current+1)*size,count)} of ${count}`:'0 records';
+        el(prefix+'-next').disabled=busy||(current+1)*pageSize>=count;
+        el(prefix+'-page-label').textContent=count?`${current*pageSize+1}–${Math.min((current+1)*pageSize,count)} of ${count}`:'0 records';
     }
     async function directory(openRecord) {
         const request=++directoryRequest,list=el('customer-directory-list');
@@ -32,7 +33,7 @@
                 row.innerHTML=`<span class="customer-desk-identity"><strong>${escape(customer.name||'Unnamed customer')}</strong><span>${escape(customer.contact_name||'')}</span></span><span class="customer-desk-contact"><span>${escape(customer.phone||'—')}</span><span>${escape(customer.email||'—')}</span></span><span class="customer-desk-metrics"><span>${customer.vehicles} vehicles · ${customer.open_orders} open ROs</span><strong>${money(customer.balance)} A/R</strong></span>`;
                 row.addEventListener('click',()=>openRecord(customer.id));list.append(row);
             }
-            el('customer-directory-message').textContent=total?(search?`Matches for “${search}”`:'Customers A–Z'):(search?'No matching customers. Try a name, phone, email, vehicle or VIN.':'No customers added yet.');
+            el('customer-directory-message').textContent=total?(search?`Matches for “${search}”`:'Newest customers first'):(search?'No matching customers. Try a name, phone, email, vehicle or VIN.':'No customers added yet.');
             pager('customer-directory',page,total);return true;
         }catch(error){if(request!==directoryRequest)return false;list.replaceChildren();el('customer-directory-message').textContent=`Could not load customer desk: ${error.message}. Install the customer desk database update if it is missing.`;return false;}
         finally{if(request===directoryRequest)list.setAttribute('aria-busy','false');}
@@ -58,8 +59,13 @@
     }
     window.shopCustomerDesk={directory,activity,cancelActivity(){++activityRequest;activeCustomer=null;},initialize(openRecord){
         let timer;
+        el('customer-page-size').addEventListener('change',()=>{
+            const selected=Number(el('customer-page-size').value);
+            if(![10,25,50].includes(selected))return;
+            clearTimeout(timer);size=selected;page=0;search=el('customer-search-input').value.trim();return directory(openRecord);
+        });
         el('customer-search-input').addEventListener('input',()=>{clearTimeout(timer);++directoryRequest;pager('customer-directory',page,total,true);timer=setTimeout(()=>{search=el('customer-search-input').value.trim();page=0;directory(openRecord);},250);});
-        for(const [id,delta]of [['customer-directory-previous',-1],['customer-directory-next',1]])el(id).addEventListener('click',()=>{page=Math.max(0,page+delta);directory(openRecord);});
+        for(const [id,delta]of [['customer-directory-previous',-1],['customer-directory-next',1]])el(id).addEventListener('click',()=>{page=Math.max(0,page+delta);return directory(openRecord);});
         for(const [prefix,kind]of [['customer-orders','orders'],['customer-invoices','invoices']])for(const [suffix,delta]of [['previous',-1],['next',1]])el(prefix+'-'+suffix).addEventListener('click',()=>{if(!activeCustomer)return;if(kind==='orders')ordersPage=Math.max(0,ordersPage+delta);else invoicesPage=Math.max(0,invoicesPage+delta);activity(activeCustomer,false);});
     }};
 })();
