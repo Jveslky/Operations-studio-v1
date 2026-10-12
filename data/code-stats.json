@@ -1,10 +1,18 @@
 {
-  "total": 49090,
+  "total": 49106,
   "files": 226,
-  "application": 44180,
+  "application": 44196,
   "database": 4419,
   "tests": 491,
+  "modules": {
+    "Shop": 22527,
+    "Mobile": 9364,
+    "PersonalFleet": 6689,
+    "CommercialFleet": 495,
+    "SnowDesk": 471,
+    "Shared": 4650
+  },
   "branch": "feat/dev-code-counter",
-  "updated_at": "2026-10-12T02:50:53.187451+00:00",
-  "commit": "d40409aa271a9d72f89884b5dc9502d61f9c35f3"
+  "updated_at": "2026-10-12T02:53:49.319952+00:00",
+  "commit": "8a9f5f6d46f4b704196ad0426d0cda169fc59d1b"
 }

@@ -238,6 +238,9 @@
                 if (!Number.isSafeInteger(stats[key]) || stats[key] < 0) throw new Error("Invalid source count");
             }
             if (stats.total !== stats.application + stats.database + stats.tests || !Number.isFinite(Date.parse(stats.updated_at))) throw new Error("Invalid source count");
+            const modules = ["Shop", "Mobile", "PersonalFleet", "CommercialFleet", "SnowDesk", "Shared"];
+            if (stats.modules && (modules.some(key => !Number.isSafeInteger(stats.modules[key]) || stats.modules[key] < 0) || modules.reduce((sum,key) => sum + stats.modules[key],0) !== stats.application)) throw new Error("Invalid module counts");
+            for (const key of modules) byId(`code-module-${key}`).textContent = stats.modules ? stats.modules[key].toLocaleString() : "—";
             byId("code-line-total").textContent = stats.total.toLocaleString();
             byId("code-file-total").textContent = `${stats.files.toLocaleString()} source files`;
             byId("code-application-total").textContent = stats.application.toLocaleString();
