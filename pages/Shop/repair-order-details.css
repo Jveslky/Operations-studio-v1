@@ -1316,3 +1316,6 @@ textarea {
 @media print {
     .ro-media-upload-disclosure { display: none; }
 }
+.inspection-row-header { flex-wrap: wrap; }
+.inspection-row-header > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; min-width: 0; }
+.inspection-row-header > div > strong, .inspection-row-header > div > span { overflow-wrap: anywhere; }
