@@ -1206,3 +1206,6 @@ textarea.new-ro-input {
     box-shadow: 0 2px 4px rgb(37 42 48 / 12%);
 }
 .intake-shortcuts button:hover:not(:disabled) { background: #378c9c; }
+
+.intake-shortcuts button { background: #db6128; border-color: #db6128; color: #fff; }
+.intake-shortcuts button:hover:not(:disabled) { background: #c95420; }

@@ -144,17 +144,25 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
         for (const approval of history) {
             const row = document.createElement('article'); row.className = 'approval-history-entry';
             const title = document.createElement('strong');
-            title.textContent = `Version ${approval.estimate_version} · ${approval.authorization_amount != null ? 'Authorized ' + money(approval.authorization_amount) : 'Estimate total ' + money(approval.approved_amount) + (approval.approval_scope !== 'entire' ? ' (scope amount not recorded)' : '')} · ${approval.method}`;
+            title.textContent = `Version ${approval.estimate_version} · ${approval.authorization_amount != null ? 'Authorized ' + money(approval.authorization_amount) : 'Estimate total ' + money(approval.approved_amount) + (approval.approval_scope !== 'entire' ? ' (scope amount not recorded)' : '')}`;
             const scopeLine = document.createElement('p'); scopeLine.textContent = `Approved work: ${approval.approval_scope === 'entire' ? 'Entire estimate' : approval.approval_scope ? approval.approval_scope + ' — ' + (approval.approval_scope_details || 'Description not recorded') : 'Scope not recorded'}`;
             const contact = document.createElement('p'); contact.textContent = `Authorized by ${approval.customer_contact}`;
-            const actor = document.createElement('p'); actor.textContent = `Recorded by ${approval.recorded_by_email || approval.recorded_by} · ${new Date(approval.recorded_at).toLocaleString()}`;
-            const note = document.createElement('p'); note.textContent = `Customer acknowledgment / authorization notes: ${approval.notes || 'None recorded'}`;
+            const actor = document.createElement('p'); actor.className = 'authorization-metadata'; actor.textContent = `Recorded by ${approval.recorded_by_email || approval.recorded_by} · ${new Date(approval.recorded_at).toLocaleString()}`;
+            const note = document.createElement(approval.notes?.length > 160 ? 'details' : 'p'); note.className = 'authorization-note';
+            if (approval.notes?.length > 160) {
+                const preview = document.createElement('summary'); preview.textContent = `Customer acknowledgment: ${approval.notes.slice(0, 120)}…`;
+                const full = document.createElement('p'); full.textContent = approval.notes; note.append(preview, full);
+            } else note.textContent = `Customer acknowledgment: ${approval.notes || 'None recorded'}`;
             const indicator = document.createElement('p'); indicator.className = 'authorization-status';
             indicator.textContent = superseded(approval.id) ? 'Superseded' : approval.authorization_relationship ? 'Active authorization' : 'Relationship not recorded — confirm which authorization governs the work';
-            const relationLine = document.createElement('p');
+            const relationLine = document.createElement('p'); relationLine.className = 'authorization-metadata';
             const predecessor = history.find(a => a.id === approval.related_authorization_id);
             relationLine.textContent = approval.authorization_relationship ? `${approval.authorization_relationship}${predecessor ? ' of authorization recorded ' + new Date(predecessor.recorded_at).toLocaleString() : ''}${approval.relationship_notes ? ': ' + approval.relationship_notes : ''}` : '';
-            row.append(title,indicator,relationLine,contact,scopeLine,actor,note);
+            const header = document.createElement('header'); header.className = 'authorization-record-header'; const method = document.createElement('span'); method.className = 'authorization-metadata'; method.textContent = approval.method; header.append(title, method, indicator);
+            if (!approval.authorization_relationship && !superseded(approval.id)) indicator.className += ' authorization-warning';
+            row.append(header,contact,scopeLine);
+            if (relationLine.textContent) row.append(relationLine);
+            row.append(actor,note);
             const details = document.createElement('details'), summary = document.createElement('summary'), snapshot = document.createElement('div');
             summary.textContent = 'Full estimate snapshot';
             const labels = {complaint:'Work requested',parts_needed:'Parts needed',customer_name:'Customer',unit_name:'Vehicle',estimate_labor_hours:'Labor hours',estimate_labor_rate:'Labor rate',estimate_parts_total:'Parts',estimate_other_charges:'Other charges',estimate_shop_supplies:'Shop supplies',estimate_environmental_fee:'Environmental fee',estimate_misc_fee_label:'Other fee description',estimate_discount:'Discount',estimate_total:'Estimate total',estimate_notes:'Estimate notes',estimate_shop_supplies_taxable:'Shop supplies taxable',estimate_environmental_fee_taxable:'Environmental fee taxable',estimate_misc_fee_taxable:'Other fee taxable'};
