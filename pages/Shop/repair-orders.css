@@ -1209,3 +1209,10 @@ textarea.new-ro-input {
 
 .intake-shortcuts button { background: #db6128; border-color: #db6128; color: #fff; }
 .intake-shortcuts button:hover:not(:disabled) { background: #c95420; }
+/* Reserve orange for the final RO action within intake. */
+.intake-shortcuts button { background: #409fb0; border-color: #378c9c; color: #fff; }
+.intake-shortcuts button:hover:not(:disabled) { background: #378c9c; }
+.quick-intake button { align-self: end; min-height: 42px; padding: 10px 14px; }
+.quick-intake button[id$="-save"] { background: #394650; border-color: #394650; color: #fff; }
+.quick-intake button[id$="-save"]:hover:not(:disabled) { background: #252a30; }
+.quick-intake button[data-intake-close] { background: #fff; color: #52616a; }
