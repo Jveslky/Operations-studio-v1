@@ -1281,3 +1281,10 @@ textarea {
         background: #e2f1f4; color: #253d46;
     }
 }
+@media screen {
+    .detail-header .detail-customer-unit {
+        background: #e2f1f4; border-left: 3px solid #69b2bd;
+        padding: 10px 14px; border-radius: 0 7px 7px 0;
+    }
+    #customer-name { display: inline; padding: 0; border-radius: 0; background: transparent; }
+}
