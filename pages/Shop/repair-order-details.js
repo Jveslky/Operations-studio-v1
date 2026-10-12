@@ -43,6 +43,9 @@ if (!repairOrder) {
     const saveButton =
         document.querySelector("#save-button");
 
+    const bottomSaveButton = document.querySelector("#save-bottom-button");
+    bottomSaveButton.addEventListener("click", () => { if (!saveButton.disabled) saveButton.click(); });
+
     const closeButton =
         document.querySelector("#close-button");
 
@@ -299,6 +302,19 @@ if (!repairOrder) {
             });
     }
 
+    function currentApprovalEstimate() {
+        return {...repairOrder,
+            complaint: complaintInput.value.trim(), partsNeeded: partsNeededInput.value.trim(),
+            estimateLaborHours: getNumberValue(estimateLaborHoursInput), estimateLaborRate: getNumberValue(estimateLaborRateInput),
+            estimatePartsTotal: getNumberValue(estimatePartsTotalInput), estimateOtherCharges: getNumberValue(estimateOtherChargesInput),
+            estimateShopSupplies: getNumberValue(estimateShopSuppliesInput), estimateShopSuppliesTaxable: estimateShopSuppliesTaxableInput.checked,
+            estimateEnvironmentalFee: getNumberValue(estimateEnvironmentalFeeInput), estimateEnvironmentalFeeTaxable: estimateEnvironmentalFeeTaxableInput.checked,
+            estimateMiscFeeLabel: estimateMiscFeeLabelInput.value.trim(), estimateMiscFeeTaxable: estimateMiscFeeTaxableInput.checked,
+            estimateDiscount: getNumberValue(estimateDiscountInput), estimateTotal: Math.max(0, calculateEstimateTotal()),
+            estimateNotes: estimateNotesInput.value.trim()};
+    }
+    const approvalAudit = window.createEstimateApprovalAudit(repairOrder, currentApprovalEstimate);
+
     function renderEstimateStatus() {
         const status =
             estimateApprovalStatusInput.value;
@@ -452,6 +468,7 @@ if (!repairOrder) {
     ========================= */
 
     let hasUnsavedChanges = false;
+    window.createSupplementalEstimates(repairOrder, () => hasUnsavedChanges);
 
     const editableFields = [
         complaintInput,
@@ -496,6 +513,7 @@ if (!repairOrder) {
     });
 
     saveButton.hidden = !canWriteRepairOrder && !canUpdateWork;
+    bottomSaveButton.hidden = saveButton.hidden;
     createInvoiceButton.hidden = !window.trackRightCan("invoices.write");
     sendEstimateButton.hidden = !canWriteRepairOrder;
 
@@ -513,6 +531,11 @@ if (!repairOrder) {
         });
     });
 
+    document.querySelectorAll('#approval-fields input, #approval-fields select, #approval-fields textarea, #approval-repeat, #approval-authorized-amount').forEach(field => {
+        field.addEventListener('input', () => { hasUnsavedChanges = true; });
+        field.addEventListener('change', () => { hasUnsavedChanges = true; });
+    });
+
     statusSelect.addEventListener("change", function () {
         statusDisplay.textContent =
             statusSelect.value;
@@ -524,7 +547,9 @@ if (!repairOrder) {
     ========================= */
 
     saveButton.addEventListener("click", async function () {
+        if (saveButton.disabled) return;
         saveButton.disabled = true;
+        bottomSaveButton.disabled = true;
         repairOrder.customer =
             repairOrder.customer || "";
 
@@ -623,7 +648,8 @@ if (!repairOrder) {
 
         if (
             repairOrder.status === "In Progress" &&
-            repairOrder.technician === "Unassigned"
+            repairOrder.technician === "Unassigned" &&
+            repairOrder.estimateApprovalStatus !== "Approved"
         ) {
             repairOrder.status = "Needs Info";
             statusSelect.value = "Needs Info";
@@ -632,6 +658,7 @@ if (!repairOrder) {
 
 
         try {
+            repairOrder.approvalRequest = await approvalAudit.prepare(repairOrder);
             repairOrder = await window.trackRightRepairOrders.update(repairOrder);
             hasUnsavedChanges = false;
             window.location.href = "./repair-orders.html";
@@ -639,6 +666,7 @@ if (!repairOrder) {
             console.error("Could not save repair order:", error);
             alert(error?.message || "Could not save this repair order. Please retry.");
             saveButton.disabled = false;
+            bottomSaveButton.disabled = false;
         }
     });
 

@@ -59,6 +59,8 @@
             estimateTotal: number(row.estimate_total),
             estimateApprovalStatus: row.estimate_approval_status || "Draft",
             estimateNotes: row.estimate_notes || "",
+            estimateVersion: row.estimate_version || 1,
+            approvalAuditAvailable: row.estimate_version !== undefined,
             archived: row.archived === true,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
@@ -98,6 +100,8 @@
             estimate_notes: order.estimateNotes || "",
             archived: order.archived === true
         };
+
+        if (order.approvalRequest) row.approval_request = order.approvalRequest;
 
         if (includeIdentity) {
             row.shop_id = authContext.shopId;
@@ -235,6 +239,12 @@
         get,
         create,
         update,
-        migrateBrowserOrders
+        migrateBrowserOrders,
+        approvalSnapshot(order) {
+            const row = toRow(order, {}, false);
+            return Object.fromEntries(Object.entries(row).filter(([key]) =>
+                (key.startsWith('estimate_') && key !== 'estimate_approval_status') ||
+                ['complaint','parts_needed','customer_id','unit_id','customer_name','unit_name'].includes(key)).map(([key,value]) => [key, typeof value === 'number' ? Number(value.toFixed(2)) : value]));
+        }
     };
 }());

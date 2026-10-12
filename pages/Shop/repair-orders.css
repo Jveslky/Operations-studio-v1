@@ -1171,3 +1171,50 @@ textarea.new-ro-input {
             white-space: nowrap;
         }
 }
+
+.intake-shortcuts { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0; }
+.quick-intake { border:1px solid #ccd4da; border-radius:10px; padding:16px; margin:12px 0; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; background:#f5f8f9; }
+.quick-intake h3,.quick-intake p { grid-column:1/-1; margin:0; }
+.quick-intake label { display:grid; gap:6px; }
+.quick-intake input { min-width:0; width:100%; box-sizing:border-box; padding:10px; border:1px solid #bdc8d2; border-radius:6px; font:inherit; }
+.quick-intake[hidden],.intake-shortcuts[hidden] { display:none; }
+#quick-intake-message.error { color:#a32b15; }
+
+/* Intake controls share the shop form language. */
+.new-repair-order-form { border-top: 4px solid #6eb6c8; }
+.new-ro-grid label { min-width: 0; }
+.new-ro-input, .quick-intake input { font-weight: 400; min-height: 44px; }
+.intake-shortcuts button, .quick-intake button {
+    min-height: 42px; padding: 10px 16px; border: 1px solid #c9ced3;
+    border-radius: 7px; background: #fff; color: #252a30; font: inherit;
+    font-weight: 600; cursor: pointer;
+}
+.intake-shortcuts button { border-color: #559dac; color: #27647c; }
+.quick-intake button[id$="-save"] { background: #db6128; border-color: #db6128; color: #fff; }
+.quick-intake label { margin-bottom: 0; min-width: 0; }
+.quick-intake input:focus-visible, .intake-shortcuts button:focus-visible, .quick-intake button:focus-visible {
+    outline: 3px solid #6eb6c8; outline-offset: 2px;
+}
+.new-repair-order-form button:disabled { opacity: .6; cursor: not-allowed; }
+@media (max-width: 600px) {
+    .quick-intake { grid-template-columns: minmax(0, 1fr); }
+    .new-ro-actions button { flex: 1 1 auto; }
+}
+
+.intake-shortcuts button {
+    background: #409fb0; border-color: #378c9c; color: #fff;
+    box-shadow: 0 2px 4px rgb(37 42 48 / 12%);
+}
+.intake-shortcuts button:hover:not(:disabled) { background: #378c9c; }
+
+.intake-shortcuts button { background: #db6128; border-color: #db6128; color: #fff; }
+.intake-shortcuts button:hover:not(:disabled) { background: #c95420; }
+/* Reserve orange for the final RO action within intake. */
+.intake-shortcuts button { background: #409fb0; border-color: #378c9c; color: #fff; }
+.intake-shortcuts button:hover:not(:disabled) { background: #378c9c; }
+.quick-intake button { align-self: end; min-height: 42px; padding: 10px 14px; }
+.quick-intake button[id$="-save"] { background: #394650; border-color: #394650; color: #fff; }
+.quick-intake button[id$="-save"]:hover:not(:disabled) { background: #252a30; }
+.quick-intake button[data-intake-close] { background: #fff; color: #52616a; }
+.quick-intake button[id$="-save"] { background: #56816a; border-color: #4c735e; color: #fff; }
+.quick-intake button[id$="-save"]:hover:not(:disabled) { background: #486e59; }

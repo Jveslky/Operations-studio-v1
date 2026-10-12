@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const context={window:{}};
+vm.runInNewContext(fs.readFileSync(new URL('../pages/Shop/shop-workflow.js',import.meta.url),'utf8'),context);
+const {approvedStatus,matchesOrder}=context.window.shopWorkflow;
+for(const status of ['Open','Intake','Scheduled','Waiting Approval','Needs Info']) assert.equal(approvedStatus(status,'Approved'),'In Progress');
+for(const status of ['In Progress','Waiting Parts','Ready for Pickup','Ready for Payment','Awaiting Payment','Complete','Closed','Paid']) assert.equal(approvedStatus(status,'Approved'),status);
+for(const approval of ['Draft','Sent','Declined']) assert.equal(approvedStatus('Open',approval),'Open');
+assert.equal(matchesOrder({status:'Open'},'open'),true);
+assert.equal(matchesOrder({status:'Complete'},'open'),false);
+assert.equal(matchesOrder({status:'Open',archived:true},'open'),false);
+assert.equal(matchesOrder({status:'Waiting Approval'},'approval'),true);
+assert.equal(matchesOrder({status:'Waiting Parts'},'approval'),false);
+for(const status of ['Ready for Pickup','Ready for Payment','Awaiting Payment']) assert.equal(matchesOrder({status},'pickup'),true);
+assert.equal(matchesOrder({status:'Complete'},'pickup'),false);
+assert.equal(matchesOrder({status:'Open'},null),true);
+console.log('Shop workflow: approval transitions, later-status protection, and dashboard scopes passed.');
