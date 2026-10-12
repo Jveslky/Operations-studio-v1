@@ -37,7 +37,7 @@
         function readEditor() {
             const estimate={description:el('supplement-description').value.trim(),notes:el('supplement-notes').value.trim(),other_taxable:el('supplement-other-taxable').checked,status:el('supplement-status').value};
             for(const key of priceKeys) {
-                const raw=el('supplement-'+key).value.trim();
+                const raw=el('supplement-'+key).value.trim() || '0';
                 if(!/^\d+(\.\d{1,2})?$/.test(raw)) throw new Error('Enter nonnegative prices and hours with up to two decimal places.');
                 estimate[key]=Number(raw);
             }
@@ -50,7 +50,10 @@
         function openEditor(s=null) {
             editing=s;el('supplement-editor-title').textContent=s?`Edit Supplement ${s.supplement_number} · Rev. ${s.revision}`:'Add supplemental estimate';
             el('supplement-description').value=s?.description || '';el('supplement-notes').value=s?.notes || '';
-            for(const key of priceKeys) el('supplement-'+key).value=s?.[key] ?? (key==='labor_rate' ? order.estimateLaborRate || 0 : 0);
+            for(const key of priceKeys) {
+                const input=el('supplement-'+key), value=s?.[key] ?? (key==='labor_rate' ? order.estimateLaborRate || 0 : 0);
+                input.value=Number(value)===0?'':value; input.placeholder=key==='labor_hours'?'0':'0.00';
+            }
             el('supplement-other-taxable').checked=s?.other_taxable===true;
             el('supplement-status').value=s?.status==='Approved'?'Draft':s?.status || 'Draft';
             el('supplement-editor-help').textContent=s?.status==='Approved'?'Changing the approved work or pricing creates a new Draft revision. Earlier authorization is preserved.':'';
@@ -108,6 +111,11 @@
         el('supplement-add').disabled=true;
         el('supplement-add').addEventListener('click',()=>{try{assertClean();if(ready&&!locked)openEditor();}catch(e){message(e);}});
         for(const n of editor.querySelectorAll('input,textarea,select'))n.addEventListener('input',preview);
+        for(const key of priceKeys) {
+            const input=el('supplement-'+key);
+            input.addEventListener('focus',()=>{if(input.value!=='' && Number(input.value)===0)input.select();});
+            input.addEventListener('blur',()=>{input.value=input.value.replace(/^0+(?=\d)/,'');preview();});
+        }
         el('supplement-save').addEventListener('click',async()=>{
             if(busy)return;busy=true;el('supplement-save').disabled=true;
             try{assertClean();await save(order.recordId,editing,readEditor());editor.close();await load();}catch(e){el('supplement-editor-error').textContent=e.message;}finally{busy=false;el('supplement-save').disabled=false;}
