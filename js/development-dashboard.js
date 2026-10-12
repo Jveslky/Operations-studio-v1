@@ -218,6 +218,37 @@
         document.querySelectorAll(".dev-nav a").forEach((link) => link.addEventListener("click", () => sidebar.classList.remove("open")));
     }
 
+    async function refreshCodeCounter() {
+        const button = byId("refresh-code-counter"), status = byId("code-counter-status");
+        if (button.disabled) return;
+        button.disabled = true;
+        try {
+            const response = await fetch("../../data/code-stats.json", { cache: "no-store" });
+            if (!response.ok) throw new Error("Source count unavailable");
+            let stats = await response.json();
+            // Read the freshly generated branch count even before the next Pages deployment.
+            const branch = window.location.hostname.endsWith(".pages.dev") ? stats.branch : "master";
+            if (typeof branch === "string" && branch !== "HEAD") {
+                try {
+                    const latest = await fetch(`https://raw.githubusercontent.com/Jveslky/Operations-studio-v1/${encodeURIComponent(branch)}/data/code-stats.json?t=${Date.now()}`, { cache: "no-store" });
+                    if (latest.ok) stats = await latest.json();
+                } catch (_) { /* Keep the deployed snapshot when GitHub is unavailable. */ }
+            }
+            for (const key of ["total", "files", "application", "database", "tests"]) {
+                if (!Number.isSafeInteger(stats[key]) || stats[key] < 0) throw new Error("Invalid source count");
+            }
+            if (stats.total !== stats.application + stats.database + stats.tests || !Number.isFinite(Date.parse(stats.updated_at))) throw new Error("Invalid source count");
+            byId("code-line-total").textContent = stats.total.toLocaleString();
+            byId("code-file-total").textContent = `${stats.files.toLocaleString()} source files`;
+            byId("code-application-total").textContent = stats.application.toLocaleString();
+            byId("code-database-total").textContent = stats.database.toLocaleString();
+            byId("code-test-total").textContent = stats.tests.toLocaleString();
+            status.textContent = `Counted ${new Date(stats.updated_at).toLocaleString()} · updates with code pushes`;
+        } catch (error) {
+            status.textContent = "Could not refresh source count. Try again shortly.";
+        } finally { button.disabled = false; }
+    }
+
     async function initialize() {
         const context = await window.trackRightAuthReady;
         if (!context) return;
@@ -229,6 +260,9 @@
         }
         byId("current-date").textContent = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" }).format(new Date());
         renderProject(); setupNotes(); setupNavigation();
+        byId("refresh-code-counter").addEventListener("click", refreshCodeCounter);
+        refreshCodeCounter();
+        window.setInterval(() => { if (!document.hidden) refreshCodeCounter(); }, 300000);
         byId("refresh-health").addEventListener("click", checkHealth);
         await checkHealth();
     }

@@ -22,6 +22,12 @@
                 <article class="metric-card"><span class="metric-label">Protected pages</span><strong id="metric-protected">0</strong><small id="metric-protected-detail">0 still need coverage</small></article>
                 <article class="metric-card attention"><span class="metric-label">Open deployment checks</span><strong id="metric-open-checks">0</strong><small id="metric-open-checks-detail">0 launch blockers</small></article>
             </section>
+            <section class="code-counter" aria-labelledby="code-counter-heading">
+                <div><p class="eyebrow">THE MACHINE WE’RE BUILDING</p><h2 id="code-counter-heading">Lines in the machine</h2><p class="code-counter-caption">Tracked source, including comments and blank lines. Dependencies and assets excluded.</p></div>
+                <div class="code-counter-total"><strong id="code-line-total">—</strong><span id="code-file-total">Loading source count…</span></div>
+                <div class="code-counter-breakdown"><span>Application <b id="code-application-total">—</b></span><span>Database <b id="code-database-total">—</b></span><span>Tests <b id="code-test-total">—</b></span></div>
+                <div class="code-counter-footer"><small id="code-counter-status" role="status">Updates with code pushes</small><button class="secondary-button" id="refresh-code-counter" type="button">Refresh count</button></div>
+            </section>
             <section class="dashboard-grid">
                 <article class="panel attention-panel"><div class="panel-heading"><div><p class="eyebrow">ATTENTION NEEDED</p><h2>What needs work</h2></div><span class="count-badge" id="attention-count">0</span></div><div class="attention-list" id="attention-list"></div></article>
                 <article class="panel next-move-panel"><div class="panel-heading"><div><p class="eyebrow">NEXT MOVE</p><h2 id="next-move-title">Loading current priority</h2></div><span class="status-chip working" id="next-move-module">In progress</span></div><p class="next-task" id="next-move-task">Identifying the next incomplete deployment requirement.</p><div class="next-move-details"><div><span>Blocking dependency</span><strong id="next-move-dependency">None recorded</strong></div><div><span>Last completed</span><strong id="next-move-completed">Loading recent work</strong></div></div><div class="panel-actions"><a class="primary-action" id="next-move-link" href="#modules">Open work area</a><a href="#modules">View launch gates ↓</a></div></article>
