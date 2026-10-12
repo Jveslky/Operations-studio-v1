@@ -1,0 +1,31 @@
+name: Update source line counter
+on:
+  push:
+    paths-ignore:
+      - data/code-stats.json
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: code-stats-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  count:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - run: python scripts/update-code-stats.py
+      - name: Save updated counter
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add data/code-stats.json
+          if ! git diff --cached --quiet; then
+            git commit -m 'Update development source line counter'
+            git push
+          fi
