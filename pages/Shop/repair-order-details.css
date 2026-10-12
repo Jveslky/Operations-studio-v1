@@ -1275,3 +1275,9 @@ textarea {
     #customer-name { color: #252a30; font-size: 20px; font-weight: 700; line-height: 1.4; }
     #unit-name { color: #33454f; font-size: 17px; font-weight: 600; line-height: 1.4; }
 }
+@media screen {
+    #customer-name {
+        display: inline-block; padding: 4px 10px; border-radius: 6px;
+        background: #e2f1f4; color: #253d46;
+    }
+}
