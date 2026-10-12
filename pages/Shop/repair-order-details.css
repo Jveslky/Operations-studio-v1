@@ -1288,3 +1288,11 @@ textarea {
     }
     #customer-name { display: inline; padding: 0; border-radius: 0; background: transparent; }
 }
+@media screen {
+    .estimate-fees-grid { align-items: start; }
+    .estimate-fee-card { padding: 10px 12px; gap: 6px; }
+    .estimate-fee-card label { gap: 4px; }
+    .estimate-fee-card .detail-input { min-height: 34px; height: 34px; padding: 6px 10px; font-weight: 400; }
+    .estimate-fee-card .estimate-tax-toggle { display: flex !important; align-items: flex-start; gap: 7px; margin: 0; }
+    .estimate-fee-card .estimate-tax-toggle input { width: 15px; height: 15px; min-height: 0; margin: 1px 0 0; }
+}
