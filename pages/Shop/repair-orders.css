@@ -1216,3 +1216,5 @@ textarea.new-ro-input {
 .quick-intake button[id$="-save"] { background: #394650; border-color: #394650; color: #fff; }
 .quick-intake button[id$="-save"]:hover:not(:disabled) { background: #252a30; }
 .quick-intake button[data-intake-close] { background: #fff; color: #52616a; }
+.quick-intake button[id$="-save"] { background: #56816a; border-color: #4c735e; color: #fff; }
+.quick-intake button[id$="-save"]:hover:not(:disabled) { background: #486e59; }
