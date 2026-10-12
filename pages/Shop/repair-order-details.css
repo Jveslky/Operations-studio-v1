@@ -1260,23 +1260,12 @@ textarea {
     #supplement-list > p:only-child { background: rgb(255 255 255 / 65%); }
 }
 
+/* Give the customer identity a clear hierarchy within the existing header. */
 @media screen {
-    .detail-header { align-items: center; background: #fff8f2; border-color: #e0cdbf; border-left-color: #db6128; }
-    .detail-header > div:first-child { min-width: 0; flex: 1 1 auto; }
-    .detail-title-row { flex-wrap: wrap; }
-    .detail-header .detail-customer-unit { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 12px; line-height: 1.5; }
+    .detail-header > div:first-child { min-width: 0; }
+    .detail-header .detail-customer-unit { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 10px; line-height: 1.45; }
     .detail-customer-unit > span { min-width: 0; overflow-wrap: anywhere; }
-    .detail-meta-label { display: block; color: #687178; font-size: .7rem; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
-    .detail-header .detail-actions { flex: 0 1 auto; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
-    .ro-controls-panel { background: #f3f8f9; border-color: #c3d7dc; }
-    .ro-controls-panel select.detail-input { font-weight: 400; }
-}
-@media screen and (max-width: 700px) {
-    .detail-header { flex-direction: column; align-items: stretch; padding: 18px; gap: 18px; }
-    .detail-header .detail-actions { justify-content: flex-start; }
-    .detail-header .detail-actions button { flex: 1 1 auto; }
-    .ro-controls-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media screen and (max-width: 420px) {
-    .ro-controls-grid { grid-template-columns: minmax(0, 1fr); }
+    .detail-meta-label { display: block; margin-bottom: 2px; color: #687178; font-size: 10px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; }
+    #customer-name { color: #252a30; font-size: 16px; font-weight: 700; }
+    #unit-name { color: #607076; font-size: 14px; font-weight: 400; }
 }
