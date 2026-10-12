@@ -1233,3 +1233,29 @@ textarea {
     .authorization-record-header .authorization-superseded { color: #5a626b; background: #edf0f3; border-color: #cbd2d8; }
     .authorization-record-header .authorization-unconfirmed { color: #91420e; background: #fff3df; border-color: #e2bf80; border-radius: 6px; }
 }
+
+/* Soft shop accents distinguish approval surfaces from plain form fields. */
+@media screen {
+    .approval-audit.detail-card {
+        background: #f3f8f9; border-color: #c3d7dc;
+        border-top: 4px solid #6eb6c8;
+    }
+    #supplemental-estimates {
+        background: #fff8f2; border-color: #e0cdbf;
+        border-top: 4px solid #db6128;
+    }
+    #approval-history .approval-history-entry {
+        background: #f8fafb; border-left: 4px solid #aab8c3;
+    }
+    #approval-history .approval-history-entry:has(.authorization-active) {
+        background: #f1f8f3; border-left-color: #55946a;
+    }
+    #approval-history .approval-history-entry:has(.authorization-superseded) {
+        background: #edf0f3; border-left-color: #909aa5;
+    }
+    #approval-history .approval-history-entry:has(.authorization-unconfirmed) {
+        background: #fff8eb; border-left-color: #c99843;
+    }
+    #supplement-list .approval-history-entry { background: #fffdfb; border-left: 4px solid #db6128; }
+    #supplement-list > p:only-child { background: rgb(255 255 255 / 65%); }
+}
