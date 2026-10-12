@@ -1200,3 +1200,9 @@ textarea.new-ro-input {
     .quick-intake { grid-template-columns: minmax(0, 1fr); }
     .new-ro-actions button { flex: 1 1 auto; }
 }
+
+.intake-shortcuts button {
+    background: #409fb0; border-color: #378c9c; color: #fff;
+    box-shadow: 0 2px 4px rgb(37 42 48 / 12%);
+}
+.intake-shortcuts button:hover:not(:disabled) { background: #378c9c; }
