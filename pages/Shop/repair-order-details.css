@@ -1296,3 +1296,23 @@ textarea {
     .estimate-fee-card .estimate-tax-toggle { display: flex !important; align-items: flex-start; gap: 7px; margin: 0; }
     .estimate-fee-card .estimate-tax-toggle input { width: 15px; height: 15px; min-height: 0; margin: 1px 0 0; }
 }
+
+@media screen {
+    .ro-media-card { gap: 12px; }
+    .ro-media-header h2 { font-size: 1.2rem; }
+    .ro-media-header > div > p:last-child { font-size: .85rem; }
+    .inspection-media-message:empty, .inspection-list:empty, .ro-media-list:empty { display: none; }
+    .ro-media-upload-disclosure > summary {
+        display: list-item; width: fit-content; cursor: pointer;
+        padding: 9px 14px; border: 1px solid #378c9c; border-radius: 7px;
+        background: #409fb0; color: #fff; font-size: .9rem; font-weight: 700;
+    }
+    .ro-media-upload-disclosure > summary:hover { background: #378c9c; }
+    .ro-media-upload-disclosure > summary:focus-visible { outline: 3px solid #69b2bd; outline-offset: 3px; }
+    .ro-media-upload-disclosure[open] > summary { margin-bottom: 12px; }
+    .ro-media-form { padding: 14px; }
+    .ro-media-form-grid { gap: 10px; }
+}
+@media print {
+    .ro-media-upload-disclosure { display: none; }
+}
