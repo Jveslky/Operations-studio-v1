@@ -445,14 +445,15 @@
                     </label>
 
                 </div>
-                <section class="approval-audit" aria-labelledby="approval-audit-title">
-                    <h3 id="approval-audit-title">Customer authorization</h3>
-                    <p id="approval-audit-message" role="status" aria-live="polite"></p>
-                    <label id="approval-repeat-label" hidden><input id="approval-repeat" type="checkbox"> Record another authorization for this estimate</label>
-                    <p>Choose Approved to record customer authorization. Staff member, time and estimate version are recorded automatically.</p>
-                    <div id="approval-history"></div>
-                </section>
+        </section>
 
+        <section class="detail-card approval-audit" aria-labelledby="approval-audit-title">
+            <h2 id="approval-audit-title">Customer Approval</h2>
+            <button id="approval-record-button" type="button" class="primary-btn" hidden>Record authorization</button>
+            <p id="approval-audit-message" role="status" aria-live="polite"></p>
+            <label id="approval-repeat-label" hidden><input id="approval-repeat" type="checkbox"> Record another authorization for this estimate</label>
+            <p>Staff member, time and estimate revision are recorded with each authorization. Save the repair order after confirming approval.</p>
+            <div id="approval-history"></div>
         </section>
 
         <section id="supplemental-estimates" class="detail-card">

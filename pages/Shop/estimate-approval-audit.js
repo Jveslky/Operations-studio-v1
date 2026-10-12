@@ -107,12 +107,18 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
         } catch (error) { el('approval-dialog-error').textContent = error.message; }
     });
     function showFields() {
-        el('approval-repeat-label').hidden = !canWrite || originalOrder.estimateApprovalStatus !== 'Approved';
+        el('approval-repeat-label').hidden = true;
+        if (el('approval-record-button')) el('approval-record-button').hidden = !canWrite;
     }
     status.addEventListener('change', () => {
         showFields();
         if (status.value === 'Approved' && (revised || originalOrder.estimateApprovalStatus !== 'Approved') && !confirmed) openDialog();
         if (status.value !== 'Approved') { previousStatus = status.value; confirmed = false; }
+    });
+    el('approval-record-button')?.addEventListener('click', () => {
+        if (!canWrite) return;
+        if (!ready) { message.textContent = 'Approval history is unavailable. Refresh before recording authorization.'; return; }
+        repeat.checked = true; status.value = 'Approved'; status.dispatchEvent(new Event('change')); openDialog();
     });
     repeat.addEventListener('change', () => { if (repeat.checked) openDialog(); });
     for (const node of estimateInputs) node.addEventListener('input', () => {
@@ -153,7 +159,7 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
                 const preview = document.createElement('summary'); preview.textContent = `Customer acknowledgment: ${approval.notes.slice(0, 120)}…`;
                 const full = document.createElement('p'); full.textContent = approval.notes; note.append(preview, full);
             } else note.textContent = `Customer acknowledgment: ${approval.notes || 'None recorded'}`;
-            const indicator = document.createElement('p'); indicator.className = 'authorization-status';
+            const indicator = document.createElement('p'); indicator.className = 'authorization-status ' + (superseded(approval.id) ? 'authorization-superseded' : approval.authorization_relationship ? 'authorization-active' : 'authorization-unconfirmed');
             indicator.textContent = superseded(approval.id) ? 'Superseded' : approval.authorization_relationship ? 'Active authorization' : 'Relationship not recorded — confirm which authorization governs the work';
             const relationLine = document.createElement('p'); relationLine.className = 'authorization-metadata';
             const predecessor = history.find(a => a.id === approval.related_authorization_id);
