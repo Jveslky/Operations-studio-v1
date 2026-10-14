@@ -79,7 +79,7 @@
 
                 <button id="mark-paid-button"
                         type="button">
-                    Mark Paid
+                    Record Payment
                 </button>
             </div>
         </div>
@@ -167,9 +167,10 @@
             <section class="invoice-total-section">
                 <div><span>Subtotal</span><strong id="invoice-subtotal">$0.00</strong></div>
                 <div><span id="invoice-tax-label">Tax</span><strong id="invoice-tax">$0.00</strong></div>
-                <div class="invoice-grand-total"><span>Total Due</span><strong id="invoice-total">$0.00</strong></div>
+                <div class="invoice-grand-total"><span>Invoice Total</span><strong id="invoice-total">$0.00</strong></div>
             </section>
         </section>
+        <section id="invoice-payments" class="invoice-payments" hidden></section>
         <div id="send-invoice-modal"
              class="send-invoice-modal"
              hidden>
@@ -215,7 +216,7 @@
                     </div>
 
                     <div>
-                        <span>Total Due</span>
+                        <span>Invoice Total</span>
                         <strong id="send-invoice-total">
                             $0.00
                         </strong>
@@ -270,6 +271,7 @@
     <script src="../../js/shop-appearance.js"></script>
     <script src="shop-invoices-data.js"></script>
     <script src="shop-supplemental-estimates.js"></script>
+    <script src="shop-payments.js"></script>
     <script src="invoice-details.js"></script>
 </body>
 
