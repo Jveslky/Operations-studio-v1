@@ -262,6 +262,7 @@ function getInvoiceDisplayStatus(invoice) {
         return "Overdue";
     }
 
+    if (invoice.status === "Sent" && invoice.paidTotal > 0) return "Partially Paid";
     return invoice.status || "Draft";
 }
 
@@ -452,6 +453,7 @@ function renderInvoice() {
         "No invoice notes entered.";
 
     renderInvoiceBreakdown(currentInvoice);
+    window.shopPayments.bind(currentInvoice, renderInvoice);
 
     invoiceSubtotal.textContent = formatCurrency(
         currentInvoice.subtotal ?? currentInvoice.total
@@ -557,7 +559,7 @@ sendInvoiceButton.addEventListener(
                 `Invoice #${currentInvoice.id} is ready. Total due: ${formatCurrency(currentInvoice.total)}.`;
         } else {
             sendInvoiceMessage.value =
-                `Just a reminder that invoice #${currentInvoice.id} has an outstanding balance of ${formatCurrency(currentInvoice.total)}. Please let us know if you have any questions.`;
+                `Just a reminder that invoice #${currentInvoice.id} has an outstanding balance of ${formatCurrency(currentInvoice.balanceDue)}. Please let us know if you have any questions.`;
         }
 
         confirmInvoiceSentButton.hidden = currentInvoice.status === "Sent";
@@ -650,9 +652,7 @@ confirmInvoiceSentButton.addEventListener("click", async function () {
 markPaidButton.addEventListener(
     "click",
     async function () {
-        await updateCurrentInvoiceStatus(
-            "Paid"
-        );
+        window.shopPayments.open();
     }
 );
 

@@ -20,6 +20,7 @@
         customerEmail:row.customer_email||"",customerPhone:row.customer_phone||"",
         unitId:row.unit_id||"",unit:row.unit_name||"",complaint:row.complaint||"",
         subtotal:amount(row.subtotal),taxAmount:amount(row.tax_amount),total:amount(row.total),
+        paidTotal:amount(row.paid_total),balanceDue:row.balance_due==null?(row.status==="Paid"?0:amount(row.total)):amount(row.balance_due),
         taxSnapshot:row.tax_snapshot||{},feeSnapshot:row.fee_snapshot,
         status:row.status||"Draft",dueDate:row.due_date||"",notes:row.notes||"",
         sentAt:row.sent_at,paidAt:row.paid_at,createdAt:row.created_at,updatedAt:row.updated_at
@@ -64,5 +65,5 @@
         }
         localStorage.setItem(key,new Date().toISOString());
     }
-    window.trackRightInvoices={list,get,create,update,migrateBrowserInvoices};
+    window.trackRightInvoices={model,list,get,create,update,migrateBrowserInvoices};
 }());

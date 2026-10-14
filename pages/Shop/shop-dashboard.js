@@ -130,7 +130,7 @@ function renderKpis(
                 function (total, invoice) {
                     return (
                         total +
-                        (Number(invoice.total) || 0)
+                        (Number(invoice.balanceDue) || 0)
                     );
                 },
                 0
@@ -225,6 +225,7 @@ function getInvoiceDisplayStatus(invoice) {
         return "Overdue";
     }
 
+    if (invoice.status === "Sent" && invoice.paidTotal > 0) return "Partially Paid";
     return invoice.status || "Draft";
 }
 
@@ -416,7 +417,7 @@ function renderInvoiceActivity(invoices) {
                         </p>
 
                         <p class="activity-detail">
-                            ${formatCurrency(invoice.total)}
+                            ${formatCurrency(invoice.balanceDue)} due
                             ${invoice.dueDate
                         ? ` &bull; Due ${escapeHtml(invoice.dueDate)}`
                         : ""

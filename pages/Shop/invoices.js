@@ -764,7 +764,7 @@ function renderInvoiceSummary(invoices) {
             .reduce(function (total, invoice) {
                 return (
                     total +
-                    (Number(invoice.total) || 0)
+                    (Number(invoice.balanceDue) || 0)
                 );
             }, 0);
 
@@ -850,6 +850,7 @@ function createInvoiceCard(invoice) {
             <strong>
                 ${formatCurrency(invoice.total)}
             </strong>
+            <p>${formatCurrency(invoice.paidTotal)} paid · ${formatCurrency(invoice.balanceDue)} due</p>
         </div>
 
         <div>
@@ -867,12 +868,12 @@ function createInvoiceCard(invoice) {
             <div class="invoice-card-actions">
               
 
-                ${displayStatus !== "Paid"
+                ${invoice.status === "Sent"
             ? `
                             <button
                                 type="button"
                                 data-action="mark-paid">
-                                Mark Paid
+                                Record Payment
                             </button>
                         `
             : ""
@@ -944,7 +945,7 @@ function renderInvoices() {
             function (invoice) {
                 const matchesStatus =
                     (selectedStatus === "All" ||
-                    getInvoiceDisplayStatus(invoice) === selectedStatus) &&
+                    (selectedStatus === "Sent" ? invoice.status === "Sent" : selectedStatus === "Partially Paid" ? invoice.status === "Sent" && invoice.paidTotal > 0 : getInvoiceDisplayStatus(invoice) === selectedStatus)) &&
                     (new URLSearchParams(window.location.search).get("scope") !== "open" || invoice.status !== "Paid");
 
                 const searchableText = [
@@ -1025,6 +1026,7 @@ function getInvoiceDisplayStatus(invoice) {
         return "Overdue";
     }
 
+    if (invoice.status === "Sent" && invoice.paidTotal > 0) return "Partially Paid";
     return invoice.status || "Draft";
 }
 
@@ -1078,10 +1080,7 @@ invoiceList.addEventListener(
       
 
         if (action === "mark-paid") {
-            updateInvoiceStatus(
-                invoiceId,
-                "Paid"
-            );
+            window.location.href = `invoice-details.html?id=${encodeURIComponent(invoiceId)}`;
         }
     }
 );

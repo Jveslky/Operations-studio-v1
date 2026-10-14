@@ -1,18 +1,18 @@
 {
-  "total": 48751,
-  "files": 230,
-  "application": 43719,
-  "database": 4484,
-  "tests": 548,
+  "total": 49194,
+  "files": 235,
+  "application": 43759,
+  "database": 4804,
+  "tests": 631,
   "modules": {
-    "Shop": 22039,
+    "Shop": 22072,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
-    "Shared": 4661
+    "Shared": 4668
   },
-  "branch": "master",
-  "updated_at": "2026-10-14T01:22:55.649962+00:00",
-  "commit": "f8f68a6a62c7323b1a6a984441c0113b32f9bf38"
+  "branch": "feat/shop-payment-ledger",
+  "updated_at": "2026-10-14T02:42:02.385529+00:00",
+  "commit": "08aa7f51f0e0f1c62a780c6bb721889f215fd537"
 }
