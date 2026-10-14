@@ -79,8 +79,8 @@
         <section class="customer-toolbar">
             <input id="customer-search-input"
                    type="search"
-                   placeholder="Search customers"
-                   aria-label="Search customers">
+                   placeholder="Name, phone, email, vehicle or VIN" maxlength="200"
+                   aria-label="Search customers by name, phone, email, vehicle or VIN">
 
             <button id="add-customer-button"
                     class="add-customer-button"
@@ -115,7 +115,7 @@
             <div class="customer-directory-header">
                 <div>
                     <span class="customer-directory-label">
-                        Recent Customers
+                        Customer Directory
                     </span>
 
 
@@ -124,9 +124,16 @@
                 </div>
             </div>
 
-            <div id="customer-directory-list"
-                 class="customer-directory-list">
-            </div>
+            <label class="customer-page-size" for="customer-page-size">Customers per page
+                <select id="customer-page-size"><option value="10" selected>10</option><option value="25">25</option><option value="50">50</option></select>
+            </label>
+            <p id="customer-directory-message" role="status" aria-live="polite"></p>
+            <div id="customer-directory-list" class="customer-directory-list"></div>
+            <nav class="customer-desk-pager" aria-label="Customer directory pages">
+                <button id="customer-directory-previous" type="button" disabled>Previous</button>
+                <span id="customer-directory-page-label">0 records</span>
+                <button id="customer-directory-next" type="button" disabled>Next</button>
+            </nav>
         </section>
 
 
@@ -152,13 +159,26 @@
             <div class="customer-record-header">
                 <div>
                     <p class="customer-record-label">Customer Record</p>
-                    <h2 id="customer-record-name"></h2>
+                    <h2 id="customer-record-name" tabindex="-1"></h2>
                 </div>
 
                 <button id="close-customer-record"
                         type="button"
-                        aria-label="Close customer record">
-                    ×
+                        aria-label="Back to customer directory">
+                    ← Back to customers
+                </button>
+            </div>
+
+            <div class="customer-record-actions">
+                <button id="start-customer-repair-order"
+                        class="customer-primary-action"
+                        type="button">
+                    Start Repair Order
+                </button>
+
+                <button id="edit-customer-button"
+                        type="button">
+                    Edit Customer
                 </button>
             </div>
 
@@ -365,20 +385,16 @@
                 </div>
 
                 <div id="customer-repair-history"></div>
+                <nav class="customer-desk-pager" aria-label="Repair history pages"><button id="customer-orders-previous" type="button" disabled>Previous</button><span id="customer-orders-page-label">0 records</span><button id="customer-orders-next" type="button" disabled>Next</button></nav>
             </div>
 
-            <div class="customer-record-actions">
-                <button id="start-customer-repair-order"
-                        class="customer-primary-action"
-                        type="button">
-                    Start Repair Order
-                </button>
+            <section class="customer-invoices-section" aria-labelledby="customer-invoices-heading">
+                <div class="customer-invoices-heading"><h3 id="customer-invoices-heading">Invoices &amp; balance</h3><span>Outstanding A/R <strong id="customer-record-balance">—</strong></span></div>
+                <p id="customer-activity-message" role="status" aria-live="polite"></p>
+                <div id="customer-invoice-history"></div>
+                <nav class="customer-desk-pager" aria-label="Invoice history pages"><button id="customer-invoices-previous" type="button" disabled>Previous</button><span id="customer-invoices-page-label">0 records</span><button id="customer-invoices-next" type="button" disabled>Next</button></nav>
+            </section>
 
-                <button id="edit-customer-button"
-                        type="button">
-                    Edit Customer
-                </button>
-            </div>
         </section>
 
         <form id="add-customer-form"
@@ -540,6 +556,7 @@
     <script src="../../js/shop-behavior.js"></script>
     <script src="./shop-repair-orders-data.js"></script>
     <script src="./shop-invoices-data.js"></script>
+    <script src="./shop-customer-desk.js"></script>
     <script src="customers.js"></script>
     <script src="../../js/vin-decoder.js"></script>
 </body>

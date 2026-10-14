@@ -8,8 +8,6 @@ const appMode = "shop";
 
 
 
-const repairOrders = [];
-const customerInvoices = [];
 
 let selectedCustomerId = null;
 let editingCustomerId = null;
@@ -322,372 +320,20 @@ function escapeHtml(value) {
 
 
 
-function getInvoices() {
-    return customerInvoices;
-}
-
-function formatCurrency(value) {
-    return Number(value || 0).toLocaleString(
-        "en-US",
-        {
-            style: "currency",
-            currency: "USD"
-        }
-    );
-}
-
-
-
 /* =========================
    CUSTOMER DIRECTORY
 ========================= */
 
-function getCustomerOpenRepairOrders(customerId) {
-    return Array.from(
-        getAllRepairOrders().values()
-    ).filter(function (order) {
-        return (
-            order.customerId === customerId &&
-            order.archived !== true &&
-            order.status !== "Complete"
-        );
-    });
-}
-
 async function getCurrentShopId() {
-    if (currentShopId) {
-        return currentShopId;
-    }
-
-    const {
-        data: { user },
-        error: userError
-    } = await supabaseClient.auth.getUser();
-
-    if (userError || !user) {
-        throw new Error("You must be logged in to load customers.");
-    }
-
-    const {
-        data: membership,
-        error: membershipError
-    } = await supabaseClient
-        .from("shop_members")
-        .select("shop_id")
-        .eq("user_id", user.id)
-        .limit(1)
-        .maybeSingle();
-
-    if (membershipError || !membership) {
-        throw new Error(
-            membershipError?.message ||
-            "No shop membership was found for this account."
-        );
-    }
-
-    currentShopId = membership.shop_id;
+    const context = await window.trackRightAuthReady;
+    currentShopId = context.shopId;
+    if (!currentShopId) throw new Error('No active shop was found.');
     return currentShopId;
 }
 
 async function renderCustomerDirectory() {
-    let shopId;
-
-    try {
-        shopId = await getCurrentShopId();
-    } catch (error) {
-        console.error("Could not determine shop:", error);
-        customerDirectoryList.innerHTML = `
-            <p class="customer-directory-empty">
-                ${escapeHtml(error.message)}
-            </p>
-        `;
-        return false;
-    }
-
-    const [customerResult, unitResult] = await Promise.all([
-        supabaseClient.from("Customers").select("*")
-            .eq("shop_id", shopId).eq("archived", false).order("name"),
-        supabaseClient.from("customer_units").select("*")
-            .eq("shop_id", shopId).eq("archived", false).order("created_at")
-    ]);
-
-    if (customerResult.error || unitResult.error) {
-        const error = customerResult.error || unitResult.error;
-        console.error(
-            "Could not load customer directory:",
-            error
-        );
-        customerDirectoryList.innerHTML = `
-            <p class="customer-directory-empty">
-                Could not load customer records: ${escapeHtml(error.message)}
-            </p>
-        `;
-        return false;
-    }
-
-    const unitsByCustomer = new Map();
-    (unitResult.data || []).forEach(function (unit) {
-        const key = String(unit.customer_id);
-        if (!unitsByCustomer.has(key)) unitsByCustomer.set(key, []);
-        unitsByCustomer.get(key).push({
-            id: unit.id, year: unit.year, make: unit.make, model: unit.model,
-            serial: unit.serial, engineMake: unit.engine_make,
-            engineModel: unit.engine_model, fuelType: unit.fuel_type,
-            displacement: unit.displacement, archived: unit.archived
-        });
-    });
-
-    const customers =
-        (customerResult.data || []).map(function (customer) {
-            return {
-                id: customer.id,
-                name: customer.name,
-                contactName: customer.contact_name,
-                phone: customer.phone,
-                email: customer.email,
-                notes: customer.notes,
-                archived: customer.archived,
-                createdAt: customer.created_at,
-                updatedAt: customer.updated_at,
-
-                units: unitsByCustomer.get(String(customer.id)) || []
-            };
-        });
-
-    const repairOrders =
-        Array.from(getAllRepairOrders().values());
-
-    const invoices = getInvoices();
-
-    const outstandingAmount =
-        invoices
-            .filter(function (invoice) {
-                if (invoice.status === "Paid") {
-                    return false;
-                }
-
-                if (invoice.status === "Draft") {
-                    return false;
-                }
-
-                return invoice.status === "Sent";
-            })
-            .reduce(function (total, invoice) {
-                return (
-                    total +
-                    (Number(invoice.total) || 0)
-                );
-            }, 0);
-
-    customerDirectoryList.innerHTML = "";
-
-    const totalVehicles =
-        customers.reduce(function (total, customer) {
-            const vehicles =
-                Array.isArray(customer.units)
-                    ? customer.units.filter(function (unit) {
-                        return unit.archived !== true;
-                    })
-                    : [];
-
-            return total + vehicles.length;
-        }, 0);
-
-    const openRepairOrders =
-        repairOrders.filter(function (order) {
-            return (
-                order.archived !== true &&
-                order.status !== "Complete"
-            );
-        });
-
-    customerCount.textContent =
-        customers.length;
-
-    customerVehicleCount.textContent =
-        totalVehicles;
-
-    customerOpenRoCount.textContent =
-        openRepairOrders.length;
-
-    customerArTotal.textContent =
-        formatCurrency(outstandingAmount);
-
-    if (customers.length === 0) {
-        customerDirectoryList.innerHTML = `
-            <p class="customer-directory-empty">
-                No customers added yet.
-            </p>
-        `;
-
-        return true;
-    }
-
-    customers
-        .sort(function (a, b) {
-            return (a.name || "")
-                .localeCompare(b.name || "");
-        })
-        .forEach(function (customer) {
-
-            const vehicles =
-                Array.isArray(customer.units)
-                    ? customer.units.filter(function (unit) {
-                        return unit.archived !== true;
-                    })
-                    : [];
-
-            const openOrders =
-                getCustomerOpenRepairOrders(
-                    customer.id
-                );
-
-            const customerOrders =
-                repairOrders
-                    .filter(function (order) {
-                        return (
-                            order.customerId === customer.id &&
-                            order.archived !== true
-                        );
-                    })
-                    .sort(function (a, b) {
-                        return (
-                            Number(b.id) -
-                            Number(a.id)
-                        );
-                    });
-
-            const latestOrder =
-                customerOrders[0] || null;
-
-            const card =
-                document.createElement("article");
-
-            card.className =
-                "customer-directory-card";
-
-            card.tabIndex = 0;
-            card.setAttribute(
-                "role",
-                "button"
-            );
-
-            card.innerHTML = `
-                <div class="customer-directory-card-main">
-                    <div>
-                        <h3>
-                            ${escapeHtml(customer.name)}
-                        </h3>
-
-                        <p class="customer-directory-contact">
-                            ${customer.contactName
-                    ? escapeHtml(customer.contactName)
-                    : "No contact name"
-                }
-                            ${customer.phone
-                    ? ` • ${escapeHtml(customer.phone)}`
-                    : ""
-                }
-                        </p>
-
-                        ${customer.email
-                    ? `
-                                    <p class="customer-directory-email">
-                                        ${escapeHtml(customer.email)}
-                                    </p>
-                                `
-                    : ""
-                }
-                    </div>
-
-                    <div class="customer-directory-stats">
-                        <span>
-                            <strong>${vehicles.length}</strong>
-                            Vehicles
-                        </span>
-
-                        <span>
-                            <strong>${openOrders.length}</strong>
-                            Open RO
-                        </span>
-                    </div>
-                </div>
-
-                <div class="customer-directory-card-footer">
-                    ${latestOrder
-                    ? `
-                                <span>
-                                    Latest:
-                                    RO #${escapeHtml(latestOrder.id)}
-                                    •
-                                    ${escapeHtml(
-                        latestOrder.status || "Open"
-                    )}
-                                </span>
-                            `
-                    : `
-                                <span>No repair history</span>
-                            `
-                }
-            `;
-
-            function openRecord() {
-                openCustomerRecord(
-                    customer.id
-                );
-            }
-
-            card.addEventListener(
-                "click",
-                openRecord
-            );
-
-            card.addEventListener(
-                "keydown",
-                function (event) {
-                    if (
-                        event.key === "Enter" ||
-                        event.key === " "
-                    ) {
-                        event.preventDefault();
-                        openRecord();
-                    }
-                }
-            );
-
-            customerDirectoryList.appendChild(
-                card
-            );
-        });
-
-    return true;
+    return window.shopCustomerDesk.directory(openCustomerRecord);
 }
-
-/* =========================
-   REPAIR ORDER HELPERS
-========================= */
-
-function getCurrentRepairOrder(order) {
-    return order;
-}
-
-function getAllRepairOrders() {
-    const allRepairOrders = new Map();
-
-    repairOrders.forEach(
-        function (order) {
-            allRepairOrders.set(
-                String(order.id),
-                getCurrentRepairOrder(order)
-            );
-        }
-    );
-
-    return allRepairOrders;
-}
-/* =========================
-   ADD / EDIT CUSTOMER
-========================= */
 
 function openCustomerForm() {
     editingCustomerId = null;
@@ -907,206 +553,26 @@ addCustomerForm.addEventListener(
    CUSTOMER SEARCH
 ========================= */
 
-async function renderCustomerSearchResults(
-    searchText
-) {
-    const normalizedSearch =
-        searchText
-            .trim()
-            .toLowerCase();
-
-    const {
-        data: customers,
-        error
-    } = await supabaseClient
-        .from("Customers")
-        .select("*")
-        .eq("archived", false);
-
-    if (error) {
-        console.error(
-            "Could not search customers:",
-            error
-        );
-
-        return;
-    }
-
-    const matchingCustomers =
-        customers.filter(
-            function (customer) {
-                if (
-                    customer.archived === true
-                ) {
-                    return false;
-                }
-
-                const searchableText = [
-                    customer.name,
-                    customer.contact_name,
-                    customer.phone,
-                    customer.email
-                ]
-                    .join(" ")
-                    .toLowerCase();
-
-                return searchableText.includes(
-                    normalizedSearch
-                );
-            }
-        );
-
-    customerResultsList.innerHTML = "";
-
-    if (
-        matchingCustomers.length === 0
-    ) {
-        customerResultsList.innerHTML = `
-            <p class="customer-search-empty">
-                No customers found.
-            </p>
-        `;
-
-        return;
-    }
-
-    matchingCustomers.forEach(
-        function (customer) {
-            const customerCard =
-                document.createElement(
-                    "article"
-                );
-
-            customerCard.className =
-                "customer-result-card";
-
-            customerCard.dataset.customerId =
-                customer.id;
-
-            customerCard.tabIndex = 0;
-
-            customerCard.innerHTML = `
-                <h3>
-                    ${escapeHtml(
-                customer.name
-            )}
-                </h3>
-
-                ${customer.contactName
-                    ? `
-                            <p>
-                                Contact:
-                                ${escapeHtml(
-                        customer.contactName
-                    )}
-                            </p>
-                        `
-                    : ""
-                }
-
-                ${customer.phone
-                    ? `
-                            <p>
-                                Phone:
-                                ${escapeHtml(
-                        customer.phone
-                    )}
-                            </p>
-                        `
-                    : ""
-                }
-
-                ${customer.email
-                    ? `
-                            <p>
-                                Email:
-                                ${escapeHtml(
-                        customer.email
-                    )}
-                            </p>
-                        `
-                    : ""
-                }
-            `;
-
-            customerCard.addEventListener(
-                "click",
-                function () {
-                    openCustomerRecord(
-                        customer.id
-                    );
-                }
-            );
-
-            customerCard.addEventListener(
-                "keydown",
-                function (event) {
-                    if (
-                        event.key === "Enter" ||
-                        event.key === " "
-                    ) {
-                        event.preventDefault();
-
-                        openCustomerRecord(
-                            customer.id
-                        );
-                    }
-                }
-            );
-
-            customerResultsList.appendChild(
-                customerCard
-            );
-        }
-    );
-}
-
 function closeCustomerSearch() {
     customerSearchResults.hidden = true;
-    customerSearchInput.value = "";
-    customerResultsList.innerHTML = "";
+    customerResultsList.innerHTML = '';
 }
-
-customerSearchInput.addEventListener(
-    "input",
-    function () {
-        const searchText =
-            customerSearchInput
-                .value
-                .trim();
-
-        if (searchText.length < 2) {
-            customerSearchResults.hidden =
-                true;
-
-            customerResultsList.innerHTML =
-                "";
-
-            return;
-        }
-
-        customerRecordPanel.hidden = true;
-        customerSearchResults.hidden = false;
-
-        renderCustomerSearchResults(
-            searchText
-        );
-    }
-);
-
-closeCustomerSearchButton.addEventListener(
-    "click",
-    closeCustomerSearch
-);
-
+closeCustomerSearchButton.addEventListener('click', closeCustomerSearch);
+window.shopCustomerDesk.initialize(openCustomerRecord);
 
 /* =========================
    CUSTOMER RECORD
 ========================= */
 
+let customerRecordRequest = 0;
 async function openCustomerRecord(
     customerId
 ) {
+    const request = ++customerRecordRequest;
+    window.shopCustomerDesk.cancelActivity();
+    customerRecordPanel.hidden = true;
+    selectedCustomerId = null;
+    const shopId = await getCurrentShopId();
     const {
         data: customer,
         error
@@ -1114,7 +580,10 @@ async function openCustomerRecord(
         .from("Customers")
         .select("*")
         .eq("id", customerId)
+        .eq("shop_id", shopId)
+        .eq("archived", false)
         .single();
+    if (request !== customerRecordRequest) return;
 
     if (error || !customer) {
         console.error(
@@ -1150,10 +619,16 @@ async function openCustomerRecord(
     renderCustomerRepairHistory();
 
     customerRecordPanel.hidden = false;
+    customerRecordName.focus({ preventScroll: true });
+    customerRecordPanel.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 function closeCustomerRecord() {
+    ++customerRecordRequest;
+    window.shopCustomerDesk.cancelActivity();
     customerRecordPanel.hidden = true;
     selectedCustomerId = null;
+    customerSearchInput.focus({ preventScroll: true });
+    customerSearchInput.scrollIntoView({ behavior: "smooth", block: "center" });
 }
 
 closeCustomerRecordButton.addEventListener(
@@ -1261,6 +736,7 @@ function populateCustomerUnitDropdown(customer) {
 }
 
 async function renderCustomerUnits() {
+    const requestedCustomerId = selectedCustomerId;
     customerUnitList.innerHTML = "";
 
     if (!selectedCustomerId) {
@@ -1293,10 +769,11 @@ async function renderCustomerUnits() {
         .from("customer_units")
         .select("*")
         .eq("shop_id", shopId)
-        .eq("customer_id", selectedCustomerId)
+        .eq("customer_id", requestedCustomerId)
         .eq("archived", false)
         .order("created_at");
 
+    if (requestedCustomerId !== selectedCustomerId) return false;
     if (error) {
         console.error(
             "Could not load customer units:",
@@ -1480,99 +957,9 @@ async function renderCustomerUnits() {
 ========================= */
 
 function renderCustomerRepairHistory() {
-    customerRepairHistory.innerHTML = "";
-
-    if (!selectedCustomerId) {
-        return;
-    }
-
-    const matchingOrders =
-        Array.from(
-            getAllRepairOrders().values()
-        ).filter(
-            function (order) {
-                return (
-                    order.customerId ===
-                    selectedCustomerId &&
-                    order.archived !== true
-                );
-            }
-        );
-
-    if (matchingOrders.length === 0) {
-        customerRepairHistory.innerHTML = `
-            <p class="customer-search-empty">
-                No repair orders found
-                for this customer.
-            </p>
-        `;
-
-        return;
-    }
-
-    matchingOrders
-        .sort(
-            function (
-                firstOrder,
-                secondOrder
-            ) {
-                return (
-                    Number(secondOrder.id) -
-                    Number(firstOrder.id)
-                );
-            }
-        )
-        .forEach(
-            function (order) {
-                const historyCard =
-                    document.createElement(
-                        "a"
-                    );
-
-                historyCard.className =
-                    "customer-history-card";
-
-                historyCard.href =
-                    `repair-order-details.html?id=${order.id}`;
-
-                historyCard.innerHTML = `
-                    <div class="customer-history-card-heading">
-                        <h3>
-                            RO #${escapeHtml(
-                    order.id
-                )}
-                        </h3>
-
-                        <span class="customer-history-status">
-                            ${escapeHtml(
-                    order.status ||
-                    "Open"
-                )}
-                        </span>
-                    </div>
-
-                    <p>
-                        ${escapeHtml(
-                    order.unit ||
-                    "No unit entered"
-                )}
-                    </p>
-
-                    <p>
-                        ${escapeHtml(
-                    order.complaint ||
-                    "No complaint entered"
-                )}
-                    </p>
-                `;
-
-                customerRepairHistory
-                    .appendChild(
-                        historyCard
-                    );
-            }
-        );
-}/* =========================
+    if (selectedCustomerId) return window.shopCustomerDesk.activity(selectedCustomerId);
+}
+/* =========================
    CUSTOMER UNIT FORM
 ========================= */
 
@@ -2073,20 +1460,6 @@ newRepairOrderForm.addEventListener(
 );
 
 async function initializeCustomerDirectory() {
-    try {
-        await window.trackRightRepairOrders.migrateBrowserOrders();
-        await window.trackRightInvoices.migrateBrowserInvoices();
-        const [cloudOrders, cloudInvoices] = await Promise.all([
-            window.trackRightRepairOrders.list(),
-            window.trackRightInvoices.list()
-        ]);
-        repairOrders.splice(0, repairOrders.length, ...cloudOrders);
-        customerInvoices.splice(0, customerInvoices.length, ...cloudInvoices);
-    } catch (error) {
-        console.error("Could not load customer financial history:", error);
-    }
-
     await renderCustomerDirectory();
 }
-
 initializeCustomerDirectory();
