@@ -102,7 +102,7 @@ begin
   raise exception 'This payment request was already used for different details.';
  end if;
  if i.status<>'Sent' then raise exception 'Only sent invoices with a remaining balance accept payments.'; end if;
- if p_amount>i.balance_due then raise exception 'Payment exceeds the remaining balance. Refresh the invoice.'; end if;
+ if p_amount>i.balance_due then raise exception 'Payment exceeds the remaining balance. Review the payment amount.'; end if;
  insert into public.shop_invoice_payments(shop_id,invoice_id,request_id,amount,method,payment_date,reference,notes,recorded_by,recorded_by_email)
  values(i.shop_id,i.id,p_request,p_amount,p_method,p_date,coalesce(p_reference,''),coalesce(p_notes,''),auth.uid(),coalesce((select email from auth.users where id=auth.uid()),''));
  update public.shop_invoices set status='Sent' where id=i.id returning * into i; return i;
