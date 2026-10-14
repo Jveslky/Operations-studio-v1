@@ -391,6 +391,10 @@ function renderInvoice() {
         return;
     }
 
+    const billing = currentInvoice.billingSnapshot || {};
+    document.getElementById("invoice-billing-summary").textContent = `${billing.termsDays ? "NET " + billing.termsDays : "Due Upon Receipt"} · ${billing.accountStatus === "hold" ? "Account on hold" : "Active account"}${billing.poRequired ? " · PO required" : ""}${billing.billingContact ? " · Billing contact: " + billing.billingContact : ""}`;
+    const poField = document.getElementById("invoice-purchase-order");
+    poField.value = currentInvoice.purchaseOrder || "";poField.disabled = currentInvoice.status !== "Draft";
     invoiceDocument.hidden = false;
     invoiceError.hidden = true;
 
@@ -501,6 +505,8 @@ async function updateCurrentInvoiceStatus(
         return;
     }
 
+    const previousStatus=invoice.status;
+    invoice.purchaseOrder=document.getElementById("invoice-purchase-order").value.trim();
     invoice.status = newStatus;
 
     if (
@@ -521,6 +527,7 @@ async function updateCurrentInvoiceStatus(
         Object.assign(invoice, savedInvoice);
         renderInvoice();
     } catch (error) {
+        invoice.status=previousStatus;
         console.error("Could not update invoice:", error);
         alert(error?.message || "Could not update this invoice.");
         throw error;

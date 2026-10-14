@@ -21,6 +21,7 @@
         unitId:row.unit_id||"",unit:row.unit_name||"",complaint:row.complaint||"",
         subtotal:amount(row.subtotal),taxAmount:amount(row.tax_amount),total:amount(row.total),
         paidTotal:amount(row.paid_total),balanceDue:row.balance_due==null?(row.status==="Paid"?0:amount(row.total)):amount(row.balance_due),
+        billingSnapshot:row.billing_snapshot||{},purchaseOrder:row.purchase_order||"",
         taxSnapshot:row.tax_snapshot||{},feeSnapshot:row.fee_snapshot,
         status:row.status||"Draft",dueDate:row.due_date||"",notes:row.notes||"",
         sentAt:row.sent_at,paidAt:row.paid_at,createdAt:row.created_at,updatedAt:row.updated_at
@@ -35,7 +36,7 @@
             unit_name:invoice.unit||"",complaint:invoice.complaint||"",subtotal:amount(invoice.subtotal),
             tax_amount:amount(invoice.taxAmount),total:amount(invoice.total),tax_snapshot:invoice.taxSnapshot||{},
             fee_snapshot:invoice.feeSnapshot||null,status:invoice.status||"Draft",due_date:invoice.dueDate||null,
-            notes:invoice.notes||"",sent_at:invoice.sentAt||null,paid_at:invoice.paidAt||null
+            purchase_order:invoice.purchaseOrder||"",notes:invoice.notes||"",sent_at:invoice.sentAt||null,paid_at:invoice.paidAt||null
         };
         if(identity){value.shop_id=ctx.shopId;value.created_by=ctx.user.id;}
         return value;

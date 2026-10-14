@@ -3,6 +3,9 @@
     const client = window.trackRightSupabase;
     const configs = {
         customers: { table: "Customers", date: "created_at" },
+        billing_profiles: { table: "customer_billing_profiles", date: "updated_at" },
+        tax_profiles: { table: "customer_tax_profiles", date: "updated_at" },
+        billing_audit: { table: "customer_billing_audit", date: "recorded_at" },
         units: { table: "customer_units", date: "created_at" },
         repair_orders: { table: "shop_repair_orders", date: "created_at" },
         payments: { table: "shop_invoice_payments", date: "recorded_at" },

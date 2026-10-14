@@ -3,7 +3,7 @@
     const el=id=>document.getElementById(id), money=n=>Number(n||0).toLocaleString('en-US',{style:'currency',currency:'USD'});
     const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
     let page=0,total=0,search='',directoryRequest=0,activityRequest=0,activeCustomer=null,ordersPage=0,invoicesPage=0;
-    let size=10;
+    let size=10,filter='all',sort='activity';
     async function rpc(name,args) {
         const context=await window.trackRightAuthReady;
         const result=await window.trackRightSupabase.rpc(name,{p_shop:context.shopId,...args});
@@ -21,21 +21,21 @@
         pager('customer-directory',page,total,true);list.setAttribute('aria-busy','true');
         el('customer-directory-message').textContent='Loading customers…';
         try {
-            const data=await rpc('shop_customer_directory',{p_search:search,p_page:page,p_size:size});
+            const data=await rpc('shop_customer_management',{p_search:search,p_page:page,p_size:size,p_filter:filter,p_sort:sort});
             if(request!==directoryRequest)return false;
             total=Number(data.count);
             if(page>0&&page*size>=total){page=Math.max(0,Math.ceil(total/size)-1);return directory(openRecord);}
             el('customer-count').textContent=data.summary.customers;el('customer-vehicle-count').textContent=data.summary.vehicles;
-            el('customer-open-ro-count').textContent=data.summary.open_orders;el('customer-ar-total').textContent=money(data.summary.balance);
+            el('customer-open-ro-count').textContent=data.summary.open_orders;el('customer-ar-total').textContent=money(data.summary.balance);el('customer-overdue-total').textContent=money(data.summary.overdue);el('customer-net-count').textContent=data.summary.net_accounts||0;
             list.replaceChildren();
             for(const customer of data.rows){
                 const row=document.createElement('button');row.type='button';row.className='customer-desk-row';
-                row.innerHTML=`<span class="customer-desk-identity"><strong>${escape(customer.name||'Unnamed customer')}</strong><span>${escape(customer.contact_name||'')}</span></span><span class="customer-desk-contact"><span>${escape(customer.phone||'—')}</span><span>${escape(customer.email||'—')}</span></span><span class="customer-desk-metrics"><span>${customer.vehicles} vehicles · ${customer.open_orders} open ROs</span><strong>${money(customer.balance)} A/R</strong></span>`;
+                row.innerHTML=`<span class="customer-desk-identity"><strong>${escape(customer.name||'Unnamed customer')}</strong><span>${escape(customer.contact_name||'')}</span></span><span class="customer-desk-contact"><span>${escape(customer.phone||'—')}</span><span>${escape(customer.email||'—')}</span></span><span class="customer-desk-metrics"><span>${customer.vehicles} vehicles · ${customer.open_orders} open ROs</span><span>${customer.terms_days?`NET ${customer.terms_days}`:'Due Upon Receipt'} · ${escape(customer.account_number||'No account number')}</span><strong>${money(customer.balance)} outstanding</strong>${customer.overdue_amount>0?`<span class="customer-overdue">${money(customer.overdue_amount)} overdue</span>`:''}<span>${customer.account_status==='hold'?'Account on hold':customer.overdue_amount>0?'Overdue':customer.balance>0?'Outstanding':'Current / No outstanding balance'}</span></span>`;
                 row.addEventListener('click',()=>openRecord(customer.id));list.append(row);
             }
-            el('customer-directory-message').textContent=total?(search?`Matches for “${search}”`:'Newest customers first'):(search?'No matching customers. Try a name, phone, email, vehicle or VIN.':'No customers added yet.');
+            el('customer-directory-message').textContent=total?(search?`Matches for “${search}”`:'Customer management results'):(search?'No matching customers. Try a name, phone, email, vehicle or VIN.':'No customers added yet.');
             pager('customer-directory',page,total);return true;
-        }catch(error){if(request!==directoryRequest)return false;list.replaceChildren();el('customer-directory-message').textContent=`Could not load customer desk: ${error.message}. Install the customer desk database update if it is missing.`;return false;}
+        }catch(error){if(request!==directoryRequest)return false;list.replaceChildren();el('customer-directory-message').textContent=`Could not load customer desk: ${error.message}. Install the customer billing database update if it is missing.`;return false;}
         finally{if(request===directoryRequest)list.setAttribute('aria-busy','false');}
     }
     function renderActivity(data){
@@ -59,6 +59,9 @@
     }
     window.shopCustomerDesk={directory,activity,cancelActivity(){++activityRequest;activeCustomer=null;},initialize(openRecord){
         let timer;
+        const changeView=()=>{clearTimeout(timer);++directoryRequest;filter=el('customer-filter').value;sort=el('customer-sort').value;page=0;search=el('customer-search-input').value.trim();return directory(openRecord);};
+        el('customer-filter').addEventListener('change',changeView);el('customer-sort').addEventListener('change',changeView);
+        for(const [id,value]of [['customer-all-filter','all'],['customer-outstanding-filter','outstanding'],['customer-overdue-filter','overdue'],['customer-net-filter','net']])el(id).addEventListener('click',()=>{el('customer-filter').value=value;return changeView();});
         el('customer-page-size').addEventListener('change',()=>{
             const selected=Number(el('customer-page-size').value);
             if(![10,25,50].includes(selected))return;

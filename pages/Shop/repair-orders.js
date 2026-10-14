@@ -25,6 +25,8 @@ const attentionOrders =
 const inProgressOrders =
     document.getElementById("in-progress-orders");
 
+const paymentOrders = document.getElementById("payment-orders");
+
 const completeOrders =
     document.getElementById("complete-orders");
 
@@ -242,10 +244,13 @@ function getOrderSection(status) {
         case "Waiting Customer":
             return inProgressOrders;
 
-        case "Complete":
-        case "Ready for Pickup":
         case "Ready for Payment":
         case "Awaiting Payment":
+            return paymentOrders;
+        case "Complete":
+        case "Closed":
+        case "Paid":
+        case "Ready for Pickup":
             return completeOrders;
 
         case "Open":
@@ -341,7 +346,7 @@ function createRepairOrderCard(order) {
 
     <div class="repair-order-footer">
         <p class="repair-order-meta">
-            ${escapeHtml(order.status || "Open")}
+            ${escapeHtml(order.status === "Complete" ? "Collected / Closed" : order.status || "Open")}
             &bull;
             ${escapeHtml(order.technician || "Unassigned")}
             &bull;
@@ -374,6 +379,7 @@ function renderRepairOrders() {
     attentionOrders.innerHTML = "";
     inProgressOrders.innerHTML = "";
     completeOrders.innerHTML = "";
+    paymentOrders.innerHTML = "";
 
     const allRepairOrders =
         getAllRepairOrders();
@@ -400,6 +406,8 @@ function renderRepairOrders() {
         inProgressOrders,
         "No repair orders are currently in progress."
     );
+
+    showEmptyMessage(paymentOrders, "No repair orders awaiting payment.");
 
     showEmptyMessage(
         completeOrders,
@@ -1332,7 +1340,7 @@ function renderCustomerRepairHistory() {
                     </h3>
 
                     <span class="customer-history-status">
-                        ${escapeHtml(order.status || "Open")}
+                        ${escapeHtml(order.status === "Complete" ? "Collected / Closed" : order.status || "Open")}
                     </span>
                 </div>
 
@@ -1643,6 +1651,7 @@ async function initializeRepairOrders() {
         `;
         inProgressOrders.innerHTML = "";
         completeOrders.innerHTML = "";
+    paymentOrders.innerHTML = "";
     }
 }
 

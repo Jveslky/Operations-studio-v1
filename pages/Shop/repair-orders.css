@@ -1218,3 +1218,8 @@ textarea.new-ro-input {
 .quick-intake button[data-intake-close] { background: #fff; color: #52616a; }
 .quick-intake button[id$="-save"] { background: #56816a; border-color: #4c735e; color: #fff; }
 .quick-intake button[id$="-save"]:hover:not(:disabled) { background: #486e59; }
+
+/* Four workflow stages; narrower screens retain readable card widths. */
+.repair-order-board { grid-template-columns:repeat(4,minmax(0,1fr));gap:16px; }
+@media(max-width:1200px){.repair-order-board {grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:680px){.repair-order-board {grid-template-columns:minmax(0,1fr);}}

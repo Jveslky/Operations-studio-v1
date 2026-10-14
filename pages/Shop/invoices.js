@@ -433,6 +433,7 @@ async function openInvoiceForm() {
         defaultDueDate.getDate() + behavior.default_invoice_terms_days
     );
 
+    document.getElementById("invoice-purchase-order").value = "";
     invoiceDueDateInput.value =
         defaultDueDate
             .toISOString()
@@ -695,6 +696,7 @@ createInvoiceForm.addEventListener(
             status:
                 "Draft",
 
+            purchaseOrder: document.getElementById("invoice-purchase-order").value.trim(),
             dueDate:
                 invoiceDueDateInput.value,
 
