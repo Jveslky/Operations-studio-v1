@@ -382,12 +382,23 @@ function findCurrentInvoice() {
    RENDER INVOICE
 ========================= */
 
+function setInvoiceVisible(visible) {
+    for (const id of ["invoice-document", "invoice-billing", "invoice-actions"]) {
+        document.getElementById(id).hidden = !visible;
+    }
+    if (!visible) {
+        document.getElementById("invoice-payments").hidden = true;
+        closeSendInvoiceModal();
+    }
+    invoiceError.hidden = visible;
+    if (!visible) invoiceError.textContent = "Invoice not found or unavailable.";
+}
+
 function renderInvoice() {
     findCurrentInvoice();
 
     if (!currentInvoice) {
-        invoiceDocument.hidden = true;
-        invoiceError.hidden = false;
+        setInvoiceVisible(false);
         return;
     }
 
@@ -395,8 +406,7 @@ function renderInvoice() {
     document.getElementById("invoice-billing-summary").textContent = `${billing.termsDays ? "NET " + billing.termsDays : "Due Upon Receipt"} · ${billing.accountStatus === "hold" ? "Account on hold" : "Active account"}${billing.poRequired ? " · PO required" : ""}${billing.billingContact ? " · Billing contact: " + billing.billingContact : ""}`;
     const poField = document.getElementById("invoice-purchase-order");
     poField.value = currentInvoice.purchaseOrder || "";poField.disabled = currentInvoice.status !== "Draft";
-    invoiceDocument.hidden = false;
-    invoiceError.hidden = true;
+    setInvoiceVisible(true);
 
     const displayStatus =
         getInvoiceDisplayStatus(
@@ -681,11 +691,16 @@ async function initializeInvoiceDetails() {
         const cloudInvoices = await window.trackRightInvoices.list();
         invoices.splice(0, invoices.length, ...cloudInvoices);
         renderInvoice();
+        const context = await window.trackRightAuthReady;
+        const query = new URLSearchParams(window.location.search);
+        if (query.get("action") === "record-payment" && currentInvoice &&
+            ["owner", "admin", "service_writer"].includes(context?.role) &&
+            currentInvoice.status === "Sent" && currentInvoice.balanceDue > 0) {
+            window.shopPayments.open();
+        }
     } catch (error) {
         console.error("Could not load invoice:", error);
-        invoiceDocument.hidden = true;
-        invoiceError.textContent = "Invoice could not be loaded. Refresh or sign in again.";
-        invoiceError.hidden = false;
+        setInvoiceVisible(false);
     }
 }
 

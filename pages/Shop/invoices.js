@@ -1082,7 +1082,7 @@ invoiceList.addEventListener(
       
 
         if (action === "mark-paid") {
-            window.location.href = `invoice-details.html?id=${encodeURIComponent(invoiceId)}`;
+            window.location.href = `invoice-details.html?id=${encodeURIComponent(invoiceId)}&action=record-payment`;
         }
     }
 );

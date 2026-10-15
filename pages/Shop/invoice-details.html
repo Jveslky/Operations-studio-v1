@@ -66,7 +66,7 @@
                 ← Invoices
             </a>
 
-            <div>
+            <div id="invoice-actions" hidden>
                 <button id="print-invoice-button"
                         type="button">
                     Print
@@ -85,7 +85,7 @@
         </div>
 
         <section id="invoice-document"
-                 class="invoice-document">
+                 class="invoice-document" hidden>
 
             <header class="invoice-document-header">
                 <div>
@@ -170,7 +170,7 @@
                 <div class="invoice-grand-total"><span>Invoice Total</span><strong id="invoice-total">$0.00</strong></div>
             </section>
         </section>
-        <section id="invoice-billing" class="invoice-payments"><h2>Billing terms</h2><p id="invoice-billing-summary"></p><label>Purchase order<input id="invoice-purchase-order" maxlength="200"></label></section>
+        <section id="invoice-billing" class="invoice-payments" hidden><h2>Billing terms</h2><p id="invoice-billing-summary"></p><label>Purchase order<input id="invoice-purchase-order" maxlength="200"></label></section>
         <section id="invoice-payments" class="invoice-payments" hidden></section>
         <div id="send-invoice-modal"
              class="send-invoice-modal"
@@ -262,7 +262,7 @@
         <p id="invoice-error"
            class="invoice-error"
            hidden>
-            Invoice could not be found.
+            Invoice not found or unavailable.
         </p>
     </main>
 
