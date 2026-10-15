@@ -17,3 +17,16 @@ block=true;node('net-refresh').listeners.click();await settle();node('net-filter
 pending[1]({data:{as_of:'2026-10-14',count:0,summary:{},rows:[]}});await settle();pending[0]({data:{as_of:'2026-10-14',count:1,summary,rows:[account]}});await settle();assert.equal(node('net-rows').children.length,0);assert.match(node('net-message').textContent,/No matching/);
 window.trackRightAuthReady=Promise.resolve({shopId:'shop-a',role:'technician'});const previous=calls.length;node('net-refresh').listeners.click();await settle();assert.equal(calls.length,previous);assert.match(node('net-message').textContent,/role cannot/);
 console.log('NET UI: scoped bounded queries, escaped billing fields, account drill-down/back, direct payment links, filters, stale-response rejection, failed-refresh clearing and tech denial passed.');
+const agingScope={el:node,money:value=>String(value||0)};vm.createContext(agingScope);
+vm.runInContext(source.slice(source.indexOf('    function aging('),source.indexOf('    function renderAccount(')),agingScope);
+agingScope.aging({balance:200,current_amount:200});
+assert.equal((node('net-summary').innerHTML.match(/class="is-neutral"/g)||[]).length,7);
+assert.equal((node('net-summary').innerHTML.match(/class="is-current"/g)||[]).length,1);
+assert.doesNotMatch(node('net-summary').innerHTML,/class="is-(red|orange|amber|review)"/);
+agingScope.aging({balance:100,overdue:90,age_1_30:10,age_31_60:20,age_61_90:30,age_90_plus:30,undated:10});
+assert.match(node('net-summary').innerHTML,/class="is-amber"><small>1–30/);
+assert.match(node('net-summary').innerHTML,/class="is-orange"><small>31–60/);
+assert.match(node('net-summary').innerHTML,/class="is-red"><small>61–90/);
+assert.match(node('net-summary').innerHTML,/class="is-red"><small>Overdue/);
+assert.match(node('net-summary').innerHTML,/Review due dates/);
+console.log('Aging colors: zero buckets neutral, current cyan, aging severity progressive, overdue total reflects oldest bucket and undated balance has visible review badge.');
