@@ -77,4 +77,39 @@ await restore({format:'track-right-shop-backup',version:2,source_shop_id:A,cloud
 assert.equal((await directory('all','alphabetical')).rows[0].id,c3);assert.equal((await directory('all','overdue')).rows[0].id,c2);assert.equal((await directory('current')).rows[0].id,c3);assert.equal((await directory('overdue')).rows.length,2);assert.equal((await directory('all','activity','%')).rows.length,0);
 await assert.rejects(saveBilling({...defaults,exemption_certificate_path:B+'/'+writer+'/fake.pdf'}),/Invalid customer exemption/);
 await db.exec(`reset role;update members set role='service_writer' where user_id='${writer}';set role authenticated;`);assert.equal((await db.query('select * from customer_billing_profiles')).rows.length,1);await assert.rejects(saveBilling(defaults),/Owner or admin/);
+
+// NET workspace reads the same balances, including historical NET invoices after default changes.
+await db.exec('reset role');
+await db.exec(fs.readFileSync(new URL('../supabase/shop-net-accounts-20261015.sql',import.meta.url),'utf8'));
+await db.exec(fs.readFileSync(new URL('../supabase/shop-net-accounts-20261015.sql',import.meta.url),'utf8'));
+await db.exec('set role authenticated');
+const netAccounts=(filter='all',search='',page=0,size=25)=>db.query('select shop_net_accounts($1,$2,$3,$4,$5,$6) data',[A,search,filter,'balance',page,size]).then(r=>r.rows[0].data);
+const netDetail=id=>db.query('select shop_net_account_invoices($1,$2) data',[A,id]).then(r=>r.rows[0].data);
+const netSummary=await netAccounts();assert.equal(netSummary.count,2);
+const customerTotals=await directory('all');
+for(const account of netSummary.rows){const existing=customerTotals.rows.find(c=>c.id===account.id);assert.equal(Number(account.balance),Number(existing.balance));assert.equal(Number(account.overdue),Number(existing.overdue_amount));assert.equal(Number(account.balance),['current_amount','age_1_30','age_31_60','age_61_90','age_90_plus','undated'].reduce((n,k)=>n+Number(account[k]),0));}
+assert.equal((await netAccounts('all','%')).count,0);
+assert.equal((await netAccounts('all','NET-A-100')).rows[0].id,writer);
+assert.equal((await netDetail(writer)).account.id,writer);
+await assert.rejects(netDetail(c3),/not found/);
+await assert.rejects(netAccounts('all','',0,100),/Invalid/);
+for(const user of [tech,other]){await db.query("select set_config('test.user',$1,false)",[user]);await assert.rejects(netAccounts(),/role cannot/);await assert.rejects(netDetail(writer),/role cannot/);}
+await db.query("select set_config('test.user',$1,false)",[writer]);
+await db.exec(`reset role;update members set role='owner' where user_id='${writer}';set role authenticated;`);
+await saveBilling({...defaults,terms_days:0,po_required:false});
+assert.equal((await netAccounts('all','NET-A-100')).rows[0].terms_days,0);
+const today=(await db.query("select (now() at time zone 'UTC')::date::text as shop_day")).rows[0].shop_day;
+for(const [days,amount] of [[0,11],[1,12],[30,13],[31,14],[60,15],[61,16],[90,17],[91,18]]){
+ const date=new Date(today+'T12:00:00Z');date.setUTCDate(date.getUTCDate()-days);
+ await restore({format:'track-right-shop-backup',version:2,source_shop_id:A,cloud:{invoices:[{...issued,id:uuid(),invoice_number:10000+days,customer_id:c2,total:amount,subtotal:amount,paid_total:0,balance_due:amount,due_date:date.toISOString().slice(0,10)}],payments:[]}});
+}
+const aged=(await netDetail(c2)).account;
+assert.equal(Number(aged.current_amount_count),1);assert.equal(Number(aged.age_1_30_count),2);assert.equal(Number(aged.age_31_60_count),2);assert.equal(Number(aged.age_61_90_count),2);
+assert.equal(Number(aged.current_amount),11);assert.equal(Number(aged.age_1_30),25);assert.equal(Number(aged.age_31_60),29);assert.equal(Number(aged.age_61_90),33);assert.ok(Number(aged.age_90_plus)>=18);
+const invoicePage=await netDetail(c2);const paidTarget=invoicePage.rows.find(r=>r.total===11||Number(r.total)===11);await pay(paidTarget,5);assert.equal(Number((await netDetail(c2)).account.current_amount),6);assert.equal(Number((await netDetail(c2)).account.current_amount_count),1);
+await pay(paidTarget,6);assert.equal(Number((await netDetail(c2)).account.current_amount),0);assert.equal(Number((await netDetail(c2)).account.current_amount_count),0);
+const pageA=await netAccounts('all','',0,10);assert.equal(pageA.rows.length,pageA.count);
+await db.exec('reset role');await db.query('update "Customers" set archived=true where id=$1',[c2]);await db.exec('set role authenticated');assert.equal((await netDetail(c2)).account.archived,true);
+console.log('NET Accounts: shared balances, aging boundary days, due-today handling, partial/full payment refresh, historical NET visibility, archived debt, literal search and writer/tech/tenant access passed.');
+
 await db.close();console.log('Customer billing SQL: audited owner/admin defaults, frozen issued terms/PO/dates, NET/held release, directory account search and isolation passed. Payment SQL: partial/split balance, idempotent retries, exact cents, overpayment, immutable history, reversals, legacy preservation, finished/prepaid/completed RO rules, A/R and role/shop isolation passed.');
