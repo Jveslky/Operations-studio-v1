@@ -32,6 +32,7 @@
             technicianUserId: row.technician_user_id || null,
             additionalTechnicianUserId: row.additional_technician_user_id || null,
             customerId: row.customer_id || "",
+            billingSnapshot: row.billing_snapshot || {},
             unitId: row.unit_id || "",
             customer: row.customer_name || "",
             unit: row.unit_name || "",

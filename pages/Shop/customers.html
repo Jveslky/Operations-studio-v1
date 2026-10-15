@@ -76,24 +76,11 @@
             </div>
         </header>
 
-        <section class="customer-toolbar">
-            <input id="customer-search-input"
-                   type="search"
-                   placeholder="Name, phone, email, vehicle or VIN" maxlength="200"
-                   aria-label="Search customers by name, phone, email, vehicle or VIN">
-
-            <button id="add-customer-button"
-                    class="add-customer-button"
-                    type="button">
-                Add Customer
-            </button>
-        </section>
-
         <section class="customer-summary-grid">
-            <article class="customer-summary-card">
+            <button id="customer-all-filter" type="button" class="customer-summary-card">
                 <span>Total Customers</span>
                 <strong id="customer-count">0</strong>
-            </article>
+            </button>
 
             <article class="customer-summary-card">
                 <span>Total Vehicles</span>
@@ -105,10 +92,25 @@
                 <strong id="customer-open-ro-count">0</strong>
             </article>
 
-            <article class="customer-summary-card">
+            <button id="customer-outstanding-filter" type="button" class="customer-summary-card">
                 <span>Outstanding Balance</span>
                 <strong id="customer-ar-total">$0.00</strong>
-            </article>
+            </button>
+            <button id="customer-overdue-filter" type="button" class="customer-summary-card"><span>Overdue Balance</span><strong id="customer-overdue-total">$0.00</strong></button>
+            <button id="customer-net-filter" type="button" class="customer-summary-card"><span>NET Accounts</span><strong id="customer-net-count">0</strong></button>
+        </section>
+
+        <section class="customer-toolbar">
+            <input id="customer-search-input"
+                   type="search"
+                   placeholder="Name, account number, phone, email, vehicle or VIN" maxlength="200"
+                   aria-label="Search customers by name, account number, phone, email, vehicle or VIN">
+
+            <button id="add-customer-button"
+                    class="add-customer-button"
+                    type="button">
+                Add Customer
+            </button>
         </section>
 
         <section class="customer-directory">
@@ -124,9 +126,13 @@
                 </div>
             </div>
 
+            <div class="customer-management-controls">
+            <label>Show<select id="customer-filter"><option value="all">All Customers</option><option value="outstanding">Outstanding Balances</option><option value="overdue">Overdue Accounts</option><option value="net">NET Accounts</option><option value="current">Current / No Outstanding Balance</option></select></label>
+            <label>Sort<select id="customer-sort"><option value="activity">Most recent activity</option><option value="alphabetical">Alphabetical</option><option value="balance">Highest outstanding balance</option><option value="overdue">Oldest overdue invoice</option></select></label>
             <label class="customer-page-size" for="customer-page-size">Customers per page
                 <select id="customer-page-size"><option value="10" selected>10</option><option value="25">25</option><option value="50">50</option></select>
             </label>
+            </div>
             <p id="customer-directory-message" role="status" aria-live="polite"></p>
             <div id="customer-directory-list" class="customer-directory-list"></div>
             <nav class="customer-desk-pager" aria-label="Customer directory pages">
@@ -557,6 +563,7 @@
     <script src="./shop-repair-orders-data.js"></script>
     <script src="./shop-invoices-data.js"></script>
     <script src="./shop-customer-desk.js"></script>
+    <script src="shop-customer-billing.js"></script>
     <script src="customers.js"></script>
     <script src="../../js/vin-decoder.js"></script>
 </body>

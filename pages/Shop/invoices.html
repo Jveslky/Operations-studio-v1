@@ -200,7 +200,7 @@
                 </label>
 
                 <label>
-                    Due Date
+                    Draft due date (recalculated from terms when sent)
 
                     <input id="invoice-due-date"
                            type="date"
@@ -219,6 +219,8 @@
                 </label>
             </div>
 
+            <label>Purchase order (required when customer terms specify)<input id="invoice-purchase-order" maxlength="200"></label>
+            <p>Customer billing and tax preferences are captured on the invoice. NET due dates start when the invoice is sent.</p>
             <label id="invoice-description-field" hidden>
                 Work Description
 

@@ -26,6 +26,12 @@ try {
    PAGE SETUP
 ========================= */
 
+const billingContext = await window.trackRightAuthReady;
+const billingSummary = document.getElementById("ro-billing-summary");
+if (repairOrder && billingSummary && ["owner","admin","service_writer"].includes(billingContext.role)) {
+    const b=repairOrder.billingSnapshot||{};
+    billingSummary.textContent=`${b.termsDays ? "NET "+b.termsDays : "Due Upon Receipt"} · ${b.taxStatus==="exempt"?"Tax-exempt":b.taxStatus==="taxable"?"Taxable":"Shop tax default"}${b.poRequired?" · PO required":""}${b.billingContact?" · Billing contact: "+b.billingContact:""}`;
+}
 const detailPage =
     document.querySelector(".repair-detail-page");
 

@@ -340,6 +340,7 @@ function openCustomerForm() {
     saveCustomerButton.disabled = false;
 
     addCustomerForm.reset();
+    window.shopCustomerBilling.newCustomer();
 
     customerFormTitle.textContent =
         "Add Customer";
@@ -456,6 +457,8 @@ addCustomerForm.addEventListener(
                 return;
             }
 
+            try { await window.shopCustomerBilling.afterCustomerSaved(data.id); }
+            catch (billingError) { customerSaveMessage.textContent = `Customer saved; billing preferences failed: ${billingError.message}. Retry to save the preferences.`; saveCustomerButton.disabled = false; return; }
             selectedCustomerId = data.id;
 
             const directoryRefreshed =
@@ -518,6 +521,9 @@ addCustomerForm.addEventListener(
             return;
         }
 
+        editingCustomerId = data.id;
+        try { await window.shopCustomerBilling.afterCustomerSaved(data.id); }
+        catch (billingError) { customerSaveMessage.textContent = `Customer saved; billing preferences failed: ${billingError.message}. Retry updates this customer.`; saveCustomerButton.disabled = false; return; }
         console.log(
             "Customer saved to Supabase:",
             data
@@ -596,6 +602,7 @@ async function openCustomerRecord(
     }
 
     selectedCustomerId = customer.id;
+    window.shopCustomerBilling.record(customer.id);
 
     customerRecordName.textContent =
         customer.name;
@@ -693,6 +700,7 @@ editCustomerButton.addEventListener(
         customerRecordPanel.hidden = true;
         addCustomerForm.hidden = false;
 
+        window.shopCustomerBilling.edit(customer.id);
         customerNameInput.focus();
     }
 );

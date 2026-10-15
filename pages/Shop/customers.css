@@ -924,3 +924,21 @@ textarea.new-ro-input {
 @media (max-width: 700px) { .customer-record-grid { grid-template-columns: minmax(0,1fr); gap: 8px; } .customer-record-header { flex-wrap: wrap; gap: 10px; } .customer-record-panel { padding: 16px; } }
 .customer-page-size { display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-size: .85rem; color: #53616a; }
 .customer-page-size select { min-height: 36px; padding: 6px 10px; border: 1px solid #cbd5db; border-radius: 6px; background: #fff; color: #27313b; font: inherit; }
+
+.customer-summary-grid {grid-template-columns:repeat(auto-fit,minmax(150px,1fr));}
+button.customer-summary-card {font:inherit;text-align:left;cursor:pointer;color:inherit;}
+button.customer-summary-card:hover {border-color:#18bdf2;}
+.customer-management-controls,.billing-fields {display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;align-items:start;}
+.customer-management-controls label,.billing-fields label {display:grid;gap:5px;font-weight:600;}
+.customer-management-controls select,.billing-fields input,.billing-fields select,.billing-fields textarea {width:100%;box-sizing:border-box;padding:8px;border:1px solid #aeb8c0;border-radius:5px;background:var(--surface,#fff);color:inherit;font:inherit;}
+.customer-billing {margin:16px 0;padding:14px;border:1px solid #b4cbd0;border-left:4px solid #18bdf2;border-radius:6px;background:rgba(24,189,242,.04);}
+.customer-billing summary {font-weight:800;cursor:pointer;margin-bottom:10px;}
+.billing-fields [hidden] {display:none;}
+.billing-fields .billing-wide {grid-column:1/-1;}
+.customer-overdue {color:#a43925;font-weight:700;}
+.billing-actions {display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap;}
+.billing-actions button {background:#f36a2a;color:#fff;border:0;padding:9px 14px;border-radius:5px;font-weight:700;cursor:pointer;}
+.billing-help {color:#5a6972;font-size:.88rem;}
+.billing-history {max-height:220px;overflow:auto;font-size:.85rem;border-top:1px solid #cbd3d8;padding-top:8px;}
+
+.customer-billing fieldset {border:0;padding:0;margin:0;min-width:0;}
