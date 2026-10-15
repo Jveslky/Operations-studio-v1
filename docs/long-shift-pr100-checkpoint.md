@@ -1,6 +1,6 @@
 # Long Shift — first 100 pull request checkpoint
 
-Draft prepared October 14, 2026, for Jon and Clyde. PR98 is merged and its Live SQL installation was confirmed true/true. PR99 is open; its setup QA remains pending. This document is the review proposed for PR100, not a declaration of pilot or launch readiness.
+Draft prepared October 14, 2026, for Jon and Clyde. PR98 is merged and its Live SQL installation was confirmed true/true. PR99 is merged. Guided QA confirmed the pending/reverted timezone messages and tax/staff navigation; a complete fresh-shop run remains pending. This document is the review proposed for PR100, not a declaration of pilot or launch readiness.
 
 ## Why this checkpoint exists
 
@@ -37,7 +37,7 @@ The milestone number counts pull requests, including fixes, documentation and re
 5. **A hidden button is not an access boundary.** Direct URLs, RPCs, tenant scope and private Storage bytes require independent checks. The private-media cache investigation showed why a denied fresh request is insufficient if a reused SDK path still returns bytes.
 6. **An accurate UI can still mislead.** Empty red aging buckets looked urgent. A suggested timezone looked configured. Compact sections, meaningful color and explicit saved state make the actual behavior easier to understand.
 7. **Test environments and migrations need separate evidence.** Merging code does not install SQL. Test checks, Live installation checks and real workflow verification are distinct milestones.
-8. **Keep deferred work deliberate.** Inventory needs coherent stock, reservations and closure behavior. It stays parked while the pilot path is evaluated.
+8. **Keep deferred work deliberate.** Inventory needs coherent stock, reservations and closure behavior. Jon has now included it in the pilot scope; design the connected workflow before implementation.
 
 ## Verified checkpoint evidence
 
@@ -52,7 +52,7 @@ The milestone number counts pull requests, including fixes, documentation and re
 
 | Gate | Status at this draft | Evidence needed to close |
 | --- | --- | --- |
-| PR99 setup clarity | Built; manual QA pending | Unsaved/saved/changed timezone, section links and separate tax save reviewed on Test. |
+| PR99 setup clarity | Merged; changed-selection/revert and navigation QA passed | Fresh-shop unset timezone and complete setup remain part of the fresh-shop run. |
 | Fresh-shop setup and first staff invitation | Code path reviewed; full fresh run pending | New isolated Test shop, role-specific invitation acceptance, correct membership and restricted access, then first synthetic RO/invoice. |
 | Phone-width workflow | Complete page-set review pending | Recorded pass for intake, RO, approval/supplement, invoice/payment, customer and NET pages; repair any functional overflow. |
 | Signed-in smoke coverage | Partial/manual evidence | Repeatable owner/writer/tech navigation and critical workflow checks, with browser timeouts documented. |
@@ -60,7 +60,23 @@ The milestone number counts pull requests, including fixes, documentation and re
 | Recovery and operational support | Existing foundations; pilot rehearsal pending | Rehearse a scoped backup/recovery path in Test, document excluded data and identify where pilot issues are reported. |
 | External shop trial | Pending | Named pilot participant, agreed bounded workflow, observed first run and feedback triage. |
 
-Reminders, prebuilt/fixed-price jobs and remaining reports need a scope decision with Jon: required for this pilot, or deliberately later. Inventory remains deferred. Production payment processing is separate future work. None should be silently treated as finished because this checkpoint exists.
+Prebuilt jobs, linked inventory, reviewed AP receiving and shared reminders are required for the planned Shop pilot. Remaining reports still need a scope decision. Production payment processing remains separate future work. These features are agreed scope, not completed implementation.
+
+## Agreed pilot scope — October 14 discussion
+
+This records product direction. Workflow triggers below are proposals to finalize before coding; none of this section claims the features are built.
+
+- **Prebuilt jobs:** reusable labor/parts packages and explicit fixed-price behavior. Adding a package snapshots it into the RO; later template edits must not change existing work or bypass estimate authorization.
+- **Quick Add Part:** select a stocked item or manually enter a special-order/customer-supplied part without creating a stock record. Prebuilt jobs and Quick Add reference the same inventory items.
+- **Linked inventory:** receiving, locations, costs, on-hand/reserved/available quantities, usage, returns and adjustments. Availability must account for other jobs' reservations.
+- **Automation:** a confirmed RO save reserves stocked quantities; quantity edits/removal adjust reservations; cancellation releases unused reservations. A confirmed closure consumes the applicable reserved parts exactly once, including retries. Shortages, reopening, physical issue timing and returns need explicit rules before implementation. Automatic payment/status changes must not silently authorize stock consumption.
+- **Reviewed AP scan receiving:** propose part numbers, descriptions, quantities, costs and inventory matches from the supplier document. Require human review of extraction, pack sizes, ordered versus received quantities, core/freight lines, duplicate invoices and partial deliveries. Scanning alone never posts stock. Feasibility and extraction accuracy across real supplier layouts still require validation.
+- **PO / RO allocation:** offer Link to PO / Repair Order in scan review, including allocations by invoice line or quantity across multiple jobs and shelf stock. A PO match can suggest expected lines and highlight discrepancies. Linking a purchase must not duplicate an existing RO part or receiving entry.
+- **One purchase, connected records:** AP records the supplier liability; confirmed receiving records physical stock. Payment of the supplier bill does not change quantities. Preserve links to the source document, PO, receipt and RO without creating another financial balance ledger.
+- **Confirmation and authorization trail:** consequential actions show their effects before confirmation and enforce permissions on the server. Record actor/time, authorized quantities/costs/allocations, source and resulting movements. Corrections/reversals preserve original entries with reasons. Automatic movements link to the human action that authorized them; avoid repeated confirmations for the same transaction.
+- **Shared reminders:** one scoped reminder core usable across modules. Event triggers, recipients, channels, consent and delivery behavior remain to be designed; no notifications are sent by this checkpoint.
+
+Suggested build order: settle inventory/RO/AP rules and permissions together; implement inventory receiving and movement integrity; connect RO parts and prebuilt jobs; add reviewed scan extraction and PO/RO allocation; build reminders; finish fresh-shop/phone/security/recovery checks before the external pilot. Deliver in reviewable PRs against the shared design.
 
 ## Decisions for the milestone conversation
 
@@ -72,7 +88,7 @@ Reminders, prebuilt/fixed-price jobs and remaining reports need a scope decision
 
 ## Review status
 
-PR99 is open and awaiting setup QA/merge. PR100 should remain draft while Jon reviews this checkpoint and agrees the pilot scope. No new migrations, financial behavior, invitations or automatic reminders are introduced by this document.
+PR99 merged after guided timezone and setup-navigation checks. PR100 should remain draft while Jon reviews this checkpoint and agrees the pilot scope. No new migrations, financial behavior, invitations or automatic reminders are introduced by this document.
 
 ## PR index
 
@@ -176,5 +192,5 @@ Retrieved repository PR titles 1–98, followed by the current setup and checkpo
 - [#96](https://github.com/Jveslky/Operations-studio-v1/pull/96) — Update owner dashboard with verified Shop progress and remaining work
 - [#97](https://github.com/Jveslky/Operations-studio-v1/pull/97) — Update dashboard after verified customer billing rollout
 - [#98](https://github.com/Jveslky/Operations-studio-v1/pull/98) — Add dedicated NET Accounts balance and aging workspace
-- [#99](https://github.com/Jveslky/Operations-studio-v1/pull/99) — Clarify Shop timezone, tax setup and pilot preparation (open).
-- #100 — This milestone checkpoint (draft proposal).
+- [#99](https://github.com/Jveslky/Operations-studio-v1/pull/99) — Clarify Shop timezone, tax setup and pilot preparation (merged).
+- [#100](https://github.com/Jveslky/Operations-studio-v1/pull/100) — This milestone checkpoint and dashboard review page (draft).
