@@ -11,6 +11,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/shop-v2-180.png">
 <meta name="apple-mobile-web-app-title" content="Long Shift Shop">
 <meta name="theme-color" content="#1e2428">
+<style>.timezone-pending{padding:12px 14px;border-left:4px solid #b77a08;background:#fff3d9;color:#704b08;font-weight:600}</style>
 </head>
 <body>
     <header class="app-header"><div class="app-header-inner">
@@ -35,6 +36,15 @@
             </nav>
 
             <div class="shop-settings-content">
+                <section class="settings-card" aria-labelledby="setup-heading">
+                    <div class="settings-section-heading"><h2 id="setup-heading">Set up your shop</h2><span class="settings-scope-label">Owner / admin</span></div>
+                    <p class="field-help">Review each setting before your first job. These links are a guide; they do not certify that setup is complete.</p>
+                    <ol>
+                        <li><a href="#shop-profile">Business information, labor rate and timezone</a> — select your shop timezone and save the profile.</li>
+                        <li><a href="#customers-tax">Shop tax defaults</a> — enter your applicable percentage and save tax defaults separately.</li>
+                        <li><a href="../Admin/users.html">Users &amp; Permissions</a> — create a staff invitation, choose the role, and share the generated invitation link.</li>
+                    </ol>
+                </section>
                 <section class="settings-card" id="shop-profile">
                     <div class="settings-section-heading"><div><p class="settings-kicker">Shop Profile</p><h2>Business information</h2></div><span class="settings-scope-label">Shop-wide</span></div>
                     <p class="field-help profile-intro">This information belongs to the shop record and will be available to future invoices, reports, and shared documents.</p>
@@ -52,16 +62,16 @@
                             <label>Postal code<input id="shop-profile-postal" name="postal_code" type="text" autocomplete="postal-code"></label>
                             <label>Country<input id="shop-profile-country" name="country" type="text" autocomplete="country-name"></label>
                             <label>Default labor rate<input id="shop-profile-labor-rate" name="default_labor_rate" type="number" min="0" max="100000" step="0.01" inputmode="decimal"></label>
-                            <label>Shop timezone<select id="shop-profile-timezone" name="timezone" required></select></label>
+                            <label>Shop timezone<select id="shop-profile-timezone" aria-describedby="timezone-help" name="timezone" required></select></label>
                         </div>
-                        <p id="timezone-help" class="field-help"></p>
+                        <p id="timezone-help" class="field-help" role="status" aria-live="polite"></p>
                         <div class="settings-actions"><button id="save-shop-profile" type="submit">Save Shop Profile</button><p id="shop-profile-message" class="settings-message" role="status" aria-live="polite"></p></div>
                     </form>
                 </section>
 
                 <section class="settings-card" id="customers-tax">
-                    <div class="settings-section-heading"><div><p class="settings-kicker">Customers &amp; Tax</p><h2>Tax defaults and exemptions</h2></div><span class="settings-scope-label">Shop-wide</span></div>
-                    <p class="field-help profile-intro">Set the normal shop behavior, then record exceptions for individual customers. New invoices preserve the effective setting as a historical snapshot.</p>
+                    <div class="settings-section-heading"><div><p class="settings-kicker">Customers &amp; Tax</p><h2>Shop tax rate and customer exemptions</h2></div><span class="settings-scope-label">Shop-wide</span></div>
+                    <p class="field-help profile-intro">Enter your applicable tax rate as a percentage (for example, enter 6 for 6%). Confirm whether new customers should be taxable by default. Save Tax Defaults separately from the shop profile. Issued invoices retain their recorded tax and billing settings.</p>
 
                     <form id="shop-tax-form">
                         <div class="tax-default-row">
@@ -236,5 +246,5 @@
             </div>
         </div>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="../../js/shop-appearance.js"></script><script src="../../js/shop-behavior.js"></script><script src="shop-settings-navigation.js"></script><script src="shop-settings.js"></script><script src="team-documents-settings.js"></script><script src="shop-requests-settings.js"></script><script src="shop-behavior-settings.js"></script><script src="shop-appearance-settings.js"></script><script src="shop-data-management.js"></script><script src="inspection-settings.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="../../js/shop-appearance.js"></script><script src="../../js/shop-behavior.js"></script><script src="shop-settings-navigation.js"></script><script src="shop-settings.js?v=20261015-setup"></script><script src="team-documents-settings.js"></script><script src="shop-requests-settings.js"></script><script src="shop-behavior-settings.js"></script><script src="shop-appearance-settings.js"></script><script src="shop-data-management.js"></script><script src="inspection-settings.js"></script>
 </body></html>

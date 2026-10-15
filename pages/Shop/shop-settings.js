@@ -173,6 +173,17 @@
         });
     }
 
+    let savedTimezone = null;
+    function renderTimezoneStatus() {
+        const selected = timezoneSelect.value;
+        const pending = !savedTimezone || selected !== savedTimezone;
+        timezoneHelp.classList.toggle("timezone-pending", pending);
+        timezoneHelp.textContent = pending
+            ? `Not saved — ${selected} is selected. ${savedTimezone ? `The shop still uses ${savedTimezone}.` : "The shop currently uses UTC until a timezone is saved."} Save Shop Profile to apply this timezone to new due dates and shop-day calculations. Issued invoice due dates stay unchanged.`
+            : `Saved shop timezone: ${savedTimezone}. All staff use this timezone for shop-day calculations, regardless of their device.`;
+    }
+    timezoneSelect.addEventListener("change", renderTimezoneStatus);
+
     function fillForm(shop) {
         Object.entries(fields).forEach(function ([column, input]) {
             input.value = shop[column] ?? "";
@@ -187,9 +198,8 @@
             timezoneSelect.appendChild(option);
         }
         timezoneSelect.value = selectedTimezone;
-        timezoneHelp.textContent = shop.timezone
-            ? `Saved shop timezone: ${shop.timezone}. This remains authoritative regardless of the device being used.`
-            : `Suggested from this browser: ${detectedTimezone}. Save the profile to make it the shop-wide timezone.`;
+        savedTimezone = shop.timezone || null;
+        renderTimezoneStatus();
     }
 
     function setEditable(editable) {
