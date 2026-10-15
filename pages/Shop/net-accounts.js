@@ -26,7 +26,7 @@
         const request=++generation;pager(true);message('Loading account balances…');
         // Clear old amounts while fetching; never present stale balances after a failed refresh.
         el('net-summary').replaceChildren();el('net-rows').replaceChildren();el('net-account-info').replaceChildren();el('net-invoices').replaceChildren();el('net-as-of').textContent='';
-        el('net-directory').hidden=!!customer;el('net-detail').hidden=!customer;
+        el('net-directory').hidden=!!customer;el('net-detail').hidden=!customer;el('net-back').hidden=!customer;
         try{
             const context=await window.trackRightAuthReady;
             if(!['owner','admin','service_writer'].includes(context?.role))throw Error('Your role cannot open NET Accounts.');
