@@ -25,7 +25,7 @@ begin
  ), balances as (
   select c.*,coalesce(f.balance,0) balance,coalesce(f.overdue,0) overdue,coalesce(f.current_amount,0) current_amount,
    coalesce(f.age_1_30,0) age_1_30,coalesce(f.age_31_60,0) age_31_60,coalesce(f.age_61_90,0) age_61_90,coalesce(f.age_90_plus,0) age_90_plus,
-   coalesce(f.undated,0) undated,coalesce(f.invoice_count,0) invoice_count,f.oldest_due
+   coalesce(f.undated,0) undated,coalesce(f.invoice_count,0) invoice_count,coalesce(f.overdue_count,0) overdue_count,coalesce(f.current_amount_count,0) current_amount_count,coalesce(f.age_1_30_count,0) age_1_30_count,coalesce(f.age_31_60_count,0) age_31_60_count,coalesce(f.age_61_90_count,0) age_61_90_count,coalesce(f.age_90_plus_count,0) age_90_plus_count,coalesce(f.undated_count,0) undated_count,f.oldest_due
   from eligible c left join lateral (
    select sum(i.balance_due) balance,sum(i.balance_due) filter(where i.due_date<shop_day) overdue,
     sum(i.balance_due) filter(where i.due_date>=shop_day) current_amount,
@@ -33,7 +33,7 @@ begin
     sum(i.balance_due) filter(where shop_day-i.due_date between 31 and 60) age_31_60,
     sum(i.balance_due) filter(where shop_day-i.due_date between 61 and 90) age_61_90,
     sum(i.balance_due) filter(where shop_day-i.due_date>90) age_90_plus,
-    sum(i.balance_due) filter(where i.due_date is null) undated,count(*) invoice_count,min(i.due_date) oldest_due
+    sum(i.balance_due) filter(where i.due_date is null) undated,count(*) invoice_count,count(*) filter(where i.due_date<shop_day) overdue_count,count(*) filter(where i.due_date>=shop_day) current_amount_count,count(*) filter(where shop_day-i.due_date between 1 and 30) age_1_30_count,count(*) filter(where shop_day-i.due_date between 31 and 60) age_31_60_count,count(*) filter(where shop_day-i.due_date between 61 and 90) age_61_90_count,count(*) filter(where shop_day-i.due_date>90) age_90_plus_count,count(*) filter(where i.due_date is null) undated_count,min(i.due_date) oldest_due
    from public.shop_invoices i where i.shop_id=p_shop and i.customer_id=c.id and i.status='Sent' and i.balance_due>0
   ) f on true
  ), matched as (
@@ -47,7 +47,7 @@ begin
  select jsonb_build_object('as_of',shop_day,'count',(select count(*) from matched),
   'summary',(select jsonb_build_object('accounts',count(*),'balance',coalesce(sum(balance),0),'overdue',coalesce(sum(overdue),0),
    'current_amount',coalesce(sum(current_amount),0),'age_1_30',coalesce(sum(age_1_30),0),'age_31_60',coalesce(sum(age_31_60),0),
-   'age_61_90',coalesce(sum(age_61_90),0),'age_90_plus',coalesce(sum(age_90_plus),0),'undated',coalesce(sum(undated),0)) from matched),
+   'age_61_90',coalesce(sum(age_61_90),0),'age_90_plus',coalesce(sum(age_90_plus),0),'undated',coalesce(sum(undated),0),'invoice_count',coalesce(sum(invoice_count),0),'overdue_count',coalesce(sum(overdue_count),0),'current_amount_count',coalesce(sum(current_amount_count),0),'age_1_30_count',coalesce(sum(age_1_30_count),0),'age_31_60_count',coalesce(sum(age_31_60_count),0),'age_61_90_count',coalesce(sum(age_61_90_count),0),'age_90_plus_count',coalesce(sum(age_90_plus_count),0),'undated_count',coalesce(sum(undated_count),0)) from matched),
   'rows',coalesce((select jsonb_agg(to_jsonb(c)-'position' order by position) from page_rows c),'[]')) into result;
  return result;
 end $$;

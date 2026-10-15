@@ -104,9 +104,10 @@ for(const [days,amount] of [[0,11],[1,12],[30,13],[31,14],[60,15],[61,16],[90,17
  await restore({format:'track-right-shop-backup',version:2,source_shop_id:A,cloud:{invoices:[{...issued,id:uuid(),invoice_number:10000+days,customer_id:c2,total:amount,subtotal:amount,paid_total:0,balance_due:amount,due_date:date.toISOString().slice(0,10)}],payments:[]}});
 }
 const aged=(await netDetail(c2)).account;
+assert.equal(Number(aged.current_amount_count),1);assert.equal(Number(aged.age_1_30_count),2);assert.equal(Number(aged.age_31_60_count),2);assert.equal(Number(aged.age_61_90_count),2);
 assert.equal(Number(aged.current_amount),11);assert.equal(Number(aged.age_1_30),25);assert.equal(Number(aged.age_31_60),29);assert.equal(Number(aged.age_61_90),33);assert.ok(Number(aged.age_90_plus)>=18);
-const invoicePage=await netDetail(c2);const paidTarget=invoicePage.rows.find(r=>r.total===11||Number(r.total)===11);await pay(paidTarget,5);assert.equal(Number((await netDetail(c2)).account.current_amount),6);
-await pay(paidTarget,6);assert.equal(Number((await netDetail(c2)).account.current_amount),0);
+const invoicePage=await netDetail(c2);const paidTarget=invoicePage.rows.find(r=>r.total===11||Number(r.total)===11);await pay(paidTarget,5);assert.equal(Number((await netDetail(c2)).account.current_amount),6);assert.equal(Number((await netDetail(c2)).account.current_amount_count),1);
+await pay(paidTarget,6);assert.equal(Number((await netDetail(c2)).account.current_amount),0);assert.equal(Number((await netDetail(c2)).account.current_amount_count),0);
 const pageA=await netAccounts('all','',0,10);assert.equal(pageA.rows.length,pageA.count);
 await db.exec('reset role');await db.query('update "Customers" set archived=true where id=$1',[c2]);await db.exec('set role authenticated');assert.equal((await netDetail(c2)).account.archived,true);
 console.log('NET Accounts: shared balances, aging boundary days, due-today handling, partial/full payment refresh, historical NET visibility, archived debt, literal search and writer/tech/tenant access passed.');

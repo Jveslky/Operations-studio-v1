@@ -9,7 +9,7 @@
     function message(text,error=false){el('net-message').textContent=text;el('net-message').classList.toggle('is-error',error);}
     function pager(busy=false){const current=customer?detailPage:page;el('net-previous').disabled=busy||current===0;el('net-next').disabled=busy||(current+1)*size()>=count;el('net-page-label').textContent=count?`${current*size()+1}–${Math.min((current+1)*size(),count)} of ${count}`:'0 records';}
     function aging(summary){
-        const metrics=[['Outstanding','balance'],['Not yet overdue','current_amount'],['Overdue','overdue'],['1–30 days overdue','age_1_30'],['31–60 days overdue','age_31_60'],['61–90 days overdue','age_61_90'],['91+ days overdue','age_90_plus'],['No due date — review','undated']];
+        const metrics=[['Outstanding total','balance'],['Not yet overdue','current_amount'],['Overdue','overdue'],['1–30 days overdue','age_1_30'],['31–60 days overdue','age_31_60'],['61–90 days overdue','age_61_90'],['91+ days overdue','age_90_plus'],['No due date — review','undated']];
         const tone = key => {
             if (!(Number(summary[key]) > 0)) return 'is-neutral';
             if (key === 'current_amount') return 'is-current';
@@ -20,7 +20,7 @@
             if (key === 'overdue') return Number(summary.age_61_90)>0 || Number(summary.age_90_plus)>0 ? 'is-red' : Number(summary.age_31_60)>0 ? 'is-orange' : 'is-amber';
             return 'is-neutral';
         };
-        el('net-summary').innerHTML=metrics.map(([label,key])=>`<article class="${tone(key)}"><small>${label}</small><strong>${money(summary[key])}</strong>${key==='undated' && Number(summary[key])>0?'<span class="net-review-badge">Review due dates</span>':''}</article>`).join('');
+        el('net-summary').innerHTML=metrics.map(([label,key])=>`<article class="${tone(key)}"><small>${label}</small><strong>${money(summary[key])}</strong><small class="net-count">${summary[key==='balance'?'invoice_count':key+'_count']==null?'—':Number(summary[key==='balance'?'invoice_count':key+'_count'])} ${Number(summary[key==='balance'?'invoice_count':key+'_count'])===1?'invoice':'invoices'} · remaining</small>${key==='undated' && Number(summary[key])>0?'<span class="net-review-badge">Review due dates</span>':''}</article>`).join('');
     }
     function renderAccount(account){
         el('net-account-info').innerHTML=`<h2>${escape(account.name||'Unnamed customer')}</h2><p>${escape(account.account_number||'No account number')} · ${account.terms_days?'NET '+account.terms_days:'Due Upon Receipt defaults'} <span class="net-badge ${account.account_status==='hold'?'warning':''}">${account.account_status==='hold'?'On hold':'Active'}</span></p><p>${escape(account.billing_contact||'No billing contact')} · ${escape(account.billing_email||'No billing email')} · ${escape(account.billing_phone||'No billing phone')}</p><p>${account.credit_limit==null?'No credit limit set':'Credit limit: '+money(account.credit_limit)+' (informational)'}${account.archived?' · Archived customer with outstanding NET work':''}</p><a href="customers.html?customer=${encodeURIComponent(account.id)}">Customer profile &amp; full history →</a>`;
