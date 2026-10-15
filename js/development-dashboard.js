@@ -11,9 +11,9 @@
             module: "Shop Operations",
             title: "Review the first 100 pull requests",
             task: "PR100: compare the original vision with the repository, record lessons learned, and define the remaining Shop pilot gates.",
-            dependency: "Finish the setup clarity QA pass. Keep verified workflows, unverified checks and deferred features distinct.",
-            lastCompleted: "PR #98 merged; NET Accounts guided QA passed and Live SQL returned true/true.",
-            href: "pages/Shop/net-accounts.html"
+            dependency: "Pilot scope includes prebuilt jobs, inventory/AP receiving and shared reminders. Finalize workflow rules and remaining pilot gates.",
+            lastCompleted: "PR #99 merged after timezone and setup-navigation QA; PR #98 NET Accounts and Live SQL verified.",
+            href: "pages/Admin/milestone-100.html"
         },
         modules: [
             { name: "Platform & Access", description: "Shared identity, protected routing, membership, recovery, and production delivery.", href: "pages/Admin/personal-fleet-invites.html", gates: [{ name: "Build", status: "complete" }, { name: "Database / RLS", status: "complete" }, { name: "Responsive", status: "complete" }, { name: "Internal test", status: "complete" }, { name: "External pilot", status: "complete" }, { name: "Launch approval", status: "pending" }], stages: [
@@ -56,7 +56,7 @@
             ] }
         ],
         attention: [
-            { title: "Shop setup clarity", detail: "PR99 adds explicit unsaved timezone status and profile/tax/staff setup links. Manual setup QA remains pending.", state: "working" },
+            { title: "Shop setup clarity", detail: "PR99 merged; timezone change/revert warnings and tax/staff links verified. Full fresh-shop setup remains pending.", state: "working" },
             { title: "Operational data layer", detail: "Shop, Mobile, and Personal Fleet do not yet share one Supabase model.", state: "partial" },
             { title: "Browser automation coverage", detail: "14 SQL/UI regression suites pass. Guided billing QA is complete; signed-in browser automation worked partially but timed out before finishing.", state: "partial" },
             { title: "Mobile cloud persistence", detail: "The field workflow still needs shop-scoped Supabase persistence and tenant isolation.", state: "not-connected" },
@@ -65,9 +65,9 @@
             { title: "External launch validation", detail: "Shop and Mobile still need real pilot use before deployment can be marked complete.", state: "partial" }
         ],
         backlog: [
-            { title: "Shared reminders", detail: "One scoped reminder core linked to records across the larger modules.", state: "planned" },
-            { title: "Prebuilt jobs and fixed pricing", detail: "Reusable work packages with explicit fixed-price behavior.", state: "planned" },
-            { title: "Inventory and closure automation", detail: "Deferred: design stock, reservations and exact-once closure deductions together.", state: "planned" },
+            { title: "Shared reminders", detail: "Required for pilot: one scoped reminder core linked to records across the larger modules.", state: "planned" },
+            { title: "Prebuilt jobs and fixed pricing", detail: "Required for pilot: reusable work packages with fixed pricing and optional stocked-part links.", state: "planned" },
+            { title: "Inventory and closure automation", detail: "Required for pilot: design stock, reservations, receiving and exact-once closure deductions with prebuilt jobs.", state: "planned" },
             { title: "Dashboard/report refinement", detail: "Finish the remaining operational summaries and report navigation.", state: "planned" },
             { title: "Move Mobile Service to Supabase", detail: "Replace local-only persistence with shop-scoped cloud records and policies.", state: "planned" },
             { title: "Pilot Shop Operations", detail: "Run the complete authenticated workflow with an external shop account.", state: "planned" },
@@ -76,6 +76,7 @@
             { title: "Complete responsive review", detail: "Verify every Shop and Personal Fleet page at phone width.", state: "partial" }
         ],
         activity: [
+            { title: "Oct 14 — First 100 PR checkpoint", detail: "PR99 setup clarity merged. PR100 records the build history and agreed pilot scope: prebuilt jobs, linked inventory, reviewed AP receiving with PO/RO allocation, confirmations/audit and reminders. Implementation remains ahead." },
             { title: "Oct 14 — NET Accounts verified and live", detail: "PR #98 merged; shared balances, partial/full payment refresh, writer payment shortcut, customer history navigation and cross-shop denial verified. Live SQL returned true/true. Automated aging boundary and access checks passed." },
             { title: "Oct 13 — Payment workflow verified and merged", detail: "PR #94: partial/split payments, audited history, reversals, legacy Paid entries, consistent A/R and safe pickup automation. Guided QA passed; payment SQL installed in Test and Live." },
             { title: "Oct 13 — Technician redirect loop fixed", detail: "Normalized Cloudflare extensionless routes; tech invoice access redirects back to a stable dashboard. Cross-shop invoice access denied in guided QA." },
