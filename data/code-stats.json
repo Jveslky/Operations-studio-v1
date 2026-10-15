@@ -1,18 +1,18 @@
 {
-  "total": 49755,
-  "files": 239,
-  "application": 43926,
-  "database": 5098,
-  "tests": 731,
+  "total": 50069,
+  "files": 244,
+  "application": 44106,
+  "database": 5179,
+  "tests": 784,
   "modules": {
-    "Shop": 22225,
+    "Shop": 22392,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
-    "Shared": 4682
+    "Shared": 4695
   },
-  "branch": "chore/shop-billing-verified",
-  "updated_at": "2026-10-15T01:41:06.151603+00:00",
-  "commit": "3bd8872be3e3c37d2e792314c8570734ff35e17f"
+  "branch": "feat/shop-net-accounts",
+  "updated_at": "2026-10-15T01:48:39.540571+00:00",
+  "commit": "f70b8e7855ebecc849661d303954fe351fffdb2c"
 }
