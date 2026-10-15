@@ -211,7 +211,20 @@
             const linkedPage = shopPageName(new URL(link.href, window.location.href).pathname);
             if (linkedPage === "accounts-payable.html" && !canUseAccountsPayable) link.remove();
         });
-        if (context.role !== "technician") return true;
+        if (context.role !== "technician") {
+            if (["owner", "admin", "service_writer"].includes(context.role) && window.location.pathname.includes("/pages/Shop/")) {
+                document.querySelectorAll(".app-nav").forEach(function (nav) {
+                    if (nav.querySelector('[data-net-accounts]')) return;
+                    const link = document.createElement("a");
+                    link.href = `${rootPath}pages/Shop/net-accounts.html`;
+                    link.dataset.netAccounts = "true";
+                    link.textContent = "NET Accounts";
+                    if (page === "net-accounts.html") link.className = "active";
+                    nav.appendChild(link);
+                });
+            }
+            return true;
+        }
 
         const technicianPages = new Set([
             "technician-dashboard.html",

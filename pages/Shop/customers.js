@@ -1469,5 +1469,7 @@ newRepairOrderForm.addEventListener(
 
 async function initializeCustomerDirectory() {
     await renderCustomerDirectory();
+    const requested = new URLSearchParams(window.location.search).get("customer");
+    if (requested) await openCustomerRecord(requested);
 }
 initializeCustomerDirectory();

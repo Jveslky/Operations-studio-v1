@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en" data-login-path="../../login.html"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>NET Accounts | Long Shift</title><link rel="stylesheet" href="../../css/base.css"><link rel="stylesheet" href="../../css/layout.css"><link rel="stylesheet" href="net-accounts.css"><link rel="icon" href="icons/shop-v2-32.png"></head><body>
+    <header class="app-header">
+        <div class="app-header-inner">
+
+            <a class="app-brand"
+               href="../../index.html"><span class="brand-title">Long Shift</span><small class="brand-module">Shop Operations</small></a>
+
+            <nav class="app-nav">
+
+                <a href="shop-dashboard.html">
+                    Dashboard
+                </a>
+
+                <a href="schedule.html">
+                    Schedule
+                </a>
+
+                <a href="customers.html">
+                    Customers
+                </a>
+
+                <a href="repair-orders.html">
+                    Repair Orders
+                </a>
+
+                <a href="invoices.html">
+                    Invoices
+                </a>
+
+                <a href="accounts-payable.html">
+                    Accounts Payable
+                </a>
+
+            </nav>
+
+        </div>
+    </header>
+<main class="net-page">
+ <div class="net-heading"><div><p class="eyebrow">CUSTOMER ACCOUNTS</p><h1>NET Accounts</h1><p>Track balances, due dates, and collection priorities.</p></div><button id="net-refresh" type="button">Refresh balances</button></div>
+ <p class="net-help">Balances use existing sent invoices and recorded payments. Drafts are excluded. All outstanding invoices for each listed customer are included, including Due Upon Receipt work.</p>
+ <div id="net-summary" class="net-summary" aria-label="Account aging summary"></div>
+ <p id="net-as-of" class="net-help"></p>
+ <section id="net-directory" aria-label="NET account directory">
+  <div class="net-toolbar"><label class="net-search">Search accounts<input id="net-search" type="search" maxlength="200" placeholder="Customer, account number, billing contact, phone or email"></label>
+   <label>Show<select id="net-filter"><option value="all">All NET accounts</option><option value="outstanding">Outstanding balances</option><option value="overdue">Overdue accounts</option><option value="hold">Accounts on hold</option><option value="current">No outstanding balance</option></select></label>
+   <label>Sort<select id="net-sort"><option value="balance">Highest balance</option><option value="overdue">Oldest due invoice</option><option value="alphabetical">Alphabetical</option></select></label>
+   <label>Per page<select id="net-size"><option>10</option><option selected>25</option><option>50</option></select></label></div>
+  <div id="net-rows" class="net-rows"></div>
+ </section>
+ <section id="net-detail" class="net-detail" hidden><button id="net-back" type="button">← All accounts</button><div id="net-account-info"></div><h2>Outstanding invoices</h2><p class="net-help">Open an invoice for its payment history. Record Payment opens the payment form directly.</p><div id="net-invoices"></div></section>
+ <p id="net-message" role="status" aria-live="polite"></p>
+ <nav class="net-pager" aria-label="Account pages"><button id="net-previous" type="button">Previous</button><span id="net-page-label"></span><button id="net-next" type="button">Next</button></nav>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="../../js/supabase-client.js"></script><script src="../../js/auth.js"></script><script src="../../js/shop-appearance.js"></script><script src="../../js/shop-behavior.js"></script><script src="net-accounts.js"></script></body></html>
