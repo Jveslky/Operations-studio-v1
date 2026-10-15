@@ -9,11 +9,11 @@
         protectedPages: 28,
         nextMove: {
             module: "Shop Operations",
-            title: "Build the dedicated NET Accounts workspace",
-            task: "Build account balances, invoice aging and collections views using the existing invoice/payment source of truth.",
-            dependency: "Billing foundation is verified and installed in Live. Preserve shop isolation, role permissions and agreement with A/R.",
-            lastCompleted: "PR #95 merged; guided billing QA passed; customer billing SQL installed in Live with both checks true.",
-            href: "pages/Shop/customers.html"
+            title: "Review the first 100 pull requests",
+            task: "PR100: compare the original vision with the repository, record lessons learned, and define the remaining Shop pilot gates.",
+            dependency: "Finish the setup clarity QA pass. Keep verified workflows, unverified checks and deferred features distinct.",
+            lastCompleted: "PR #98 merged; NET Accounts guided QA passed and Live SQL returned true/true.",
+            href: "pages/Shop/net-accounts.html"
         },
         modules: [
             { name: "Platform & Access", description: "Shared identity, protected routing, membership, recovery, and production delivery.", href: "pages/Admin/personal-fleet-invites.html", gates: [{ name: "Build", status: "complete" }, { name: "Database / RLS", status: "complete" }, { name: "Responsive", status: "complete" }, { name: "Internal test", status: "complete" }, { name: "External pilot", status: "complete" }, { name: "Launch approval", status: "pending" }], stages: [
@@ -26,7 +26,7 @@
                 { name: "Core operations", checks: [{ label: "Customers", status: "complete" }, { label: "Units", status: "complete" }, { label: "Repair orders", status: "complete" }, { label: "Technician assignment", status: "complete" }, { label: "Invoices", status: "complete" }, { label: "Accounts payable", status: "complete" }] },
                 { name: "Payment workflow", checks: [{ label: "Audited partial and split payments", status: "complete" }, { label: "Reversals and legacy Paid preservation", status: "complete" }, { label: "Invoice/customer/dashboard A/R agreement", status: "complete" }, { label: "Finished/prepaid/completed RO automation", status: "complete" }, { label: "Guided persistence and access QA", status: "complete" }, { label: "Test and Live payment migration", status: "complete" }] },
                 { name: "Customer billing — PR #95", checks: [{ label: "Customer filters and billing preferences built", status: "complete" }, { label: "Four-column board and NET workflow built", status: "complete" }, { label: "13 SQL/UI regression suites passed", status: "complete" }, { label: "Guided NET/tax/invoice-preservation QA", status: "complete" }, { label: "Merge #95 and install Live billing migration", status: "complete" }] },
-                { name: "Remaining baseline", checks: [{ label: "Dedicated NET Accounts workspace", status: "pending" }, { label: "Shared reminders", status: "pending" }, { label: "Prebuilt jobs and fixed-price work", status: "pending" }, { label: "Inventory stock and reservations", status: "pending" }, { label: "Parts deduction on RO closure", status: "pending" }, { label: "Remaining dashboard/report work", status: "pending" }] },
+                { name: "Remaining baseline", checks: [{ label: "Dedicated NET Accounts workspace — PR #98, QA and Live SQL", status: "complete" }, { label: "Shared reminders", status: "pending" }, { label: "Prebuilt jobs and fixed-price work", status: "pending" }, { label: "Inventory stock and reservations", status: "pending" }, { label: "Parts deduction on RO closure", status: "pending" }, { label: "Remaining dashboard/report work", status: "pending" }] },
                 { name: "Owner controls", checks: [{ label: "Shop profile and tax", status: "complete" }, { label: "Inspections and media", status: "complete" }, { label: "Requests and documents", status: "complete" }, { label: "Behavior and appearance", status: "complete" }, { label: "Data management", status: "complete" }, { label: "Users and permissions", status: "complete" }] },
                 { name: "Data and security", checks: [{ label: "Explicit shop scoping", status: "complete" }, { label: "Sensitive-workflow RLS", status: "complete" }, { label: "Private media storage", status: "complete" }, { label: "Validated backup recovery", status: "complete" }] },
                 { name: "Launch validation", checks: [{ label: "Manual core workflow pass", status: "complete" }, { label: "Full phone-width review", status: "pending" }, { label: "SQL and UI regression coverage", status: "complete" }, { label: "Automated browser smoke coverage", status: "pending", critical: true }, { label: "External shop pilot", status: "pending", critical: true }] }
@@ -56,19 +56,18 @@
             ] }
         ],
         attention: [
-            { title: "Shop timezone setup clarity", detail: "Make an unsaved browser-suggested timezone more obvious. Saving America/New_York resolved the QA due-date discrepancy.", state: "planned" },
+            { title: "Shop setup clarity", detail: "PR99 adds explicit unsaved timezone status and profile/tax/staff setup links. Manual setup QA remains pending.", state: "working" },
             { title: "Operational data layer", detail: "Shop, Mobile, and Personal Fleet do not yet share one Supabase model.", state: "partial" },
-            { title: "Browser automation coverage", detail: "13 merged SQL/UI regression suites pass. Guided billing QA is complete; signed-in browser automation worked partially but timed out before finishing.", state: "partial" },
+            { title: "Browser automation coverage", detail: "14 SQL/UI regression suites pass. Guided billing QA is complete; signed-in browser automation worked partially but timed out before finishing.", state: "partial" },
             { title: "Mobile cloud persistence", detail: "The field workflow still needs shop-scoped Supabase persistence and tenant isolation.", state: "not-connected" },
             { title: "Personal Fleet field test", detail: "Complete onboarding and real workflow feedback with both complimentary accounts.", state: "working" },
             { title: "Responsive coverage", detail: "The complete Shop and Personal Fleet page sets still need a documented phone-width pass.", state: "partial" },
             { title: "External launch validation", detail: "Shop and Mobile still need real pilot use before deployment can be marked complete.", state: "partial" }
         ],
         backlog: [
-            { title: "Dedicated NET Accounts workspace", detail: "Collections, due/overdue account views and follow-up using the existing invoice/payment source of truth.", state: "planned" },
             { title: "Shared reminders", detail: "One scoped reminder core linked to records across the larger modules.", state: "planned" },
             { title: "Prebuilt jobs and fixed pricing", detail: "Reusable work packages with explicit fixed-price behavior.", state: "planned" },
-            { title: "Inventory and closure automation", detail: "Show stock and reserved quantities; deduct consumed parts once when an RO closes.", state: "planned" },
+            { title: "Inventory and closure automation", detail: "Deferred: design stock, reservations and exact-once closure deductions together.", state: "planned" },
             { title: "Dashboard/report refinement", detail: "Finish the remaining operational summaries and report navigation.", state: "planned" },
             { title: "Move Mobile Service to Supabase", detail: "Replace local-only persistence with shop-scoped cloud records and policies.", state: "planned" },
             { title: "Pilot Shop Operations", detail: "Run the complete authenticated workflow with an external shop account.", state: "planned" },
@@ -77,6 +76,7 @@
             { title: "Complete responsive review", detail: "Verify every Shop and Personal Fleet page at phone width.", state: "partial" }
         ],
         activity: [
+            { title: "Oct 14 — NET Accounts verified and live", detail: "PR #98 merged; shared balances, partial/full payment refresh, writer payment shortcut, customer history navigation and cross-shop denial verified. Live SQL returned true/true. Automated aging boundary and access checks passed." },
             { title: "Oct 13 — Payment workflow verified and merged", detail: "PR #94: partial/split payments, audited history, reversals, legacy Paid entries, consistent A/R and safe pickup automation. Guided QA passed; payment SQL installed in Test and Live." },
             { title: "Oct 13 — Technician redirect loop fixed", detail: "Normalized Cloudflare extensionless routes; tech invoice access redirects back to a stable dashboard. Cross-shop invoice access denied in guided QA." },
             { title: "Oct 14 — Customer billing verified and live", detail: "PR #95 merged with 13 passing suites. Guided QA passed NET/PO/hold/pickup, immutable issued terms, tax, local due dates, writer access, A/R filters, document persistence and cross-shop invoice denial. Live SQL confirmed true/true; payment shortcut and unavailable-invoice UI verified." },
@@ -162,7 +162,7 @@
         byId("backlog-list").innerHTML = project.backlog.map((item) => `<li><div><strong>${item.title}</strong><small>${item.detail}</small></div><span class="status-chip ${item.state}">${labelForState(item.state)}</span></li>`).join("");
         byId("activity-list").innerHTML = project.activity.map((item) => `<div class="activity-item"><strong>${item.title}</strong><span>${item.detail}</span></div>`).join("");
         byId("current-focus").textContent = "Shop baseline and pilot readiness";
-        byId("focus-detail").textContent = "Payments and customer billing verified and live · dedicated NET workspace next";
+        byId("focus-detail").textContent = "Payments, customer billing and NET Accounts verified · milestone review next";
         byId("next-move-title").textContent = project.nextMove.title;
         byId("next-move-module").textContent = project.nextMove.module;
         byId("next-move-task").textContent = project.nextMove.task;
