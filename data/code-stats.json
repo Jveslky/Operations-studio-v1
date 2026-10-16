@@ -1,18 +1,18 @@
 {
-  "total": 50268,
-  "files": 249,
-  "application": 44258,
+  "total": 50300,
+  "files": 250,
+  "application": 44269,
   "database": 5179,
-  "tests": 831,
+  "tests": 852,
   "modules": {
-    "Shop": 22429,
+    "Shop": 22440,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
     "Shared": 4810
   },
-  "branch": "master",
-  "updated_at": "2026-10-16T01:33:18.338684+00:00",
-  "commit": "5c0ea3c30e26ff948ff47f9e167e5c1d403f26bc"
+  "branch": "fix/new-ro-labor-default",
+  "updated_at": "2026-10-16T01:39:00.033720+00:00",
+  "commit": "538b4dc3d5513647f8a0c95d82c8e6036b556bb8"
 }
