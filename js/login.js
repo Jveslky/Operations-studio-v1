@@ -14,9 +14,13 @@
     function requestedDestination() {
         const params = new URLSearchParams(window.location.search);
         const returnTo = params.get("returnTo");
-        return returnTo && returnTo.startsWith("/") && !returnTo.startsWith("//")
-            ? returnTo
-            : null;
+        if (!returnTo || !returnTo.startsWith("/") || returnTo.startsWith("//")) return null;
+        try {
+            const destination = new URL(returnTo, window.location.origin);
+            return destination.origin === window.location.origin ? returnTo : null;
+        } catch {
+            return null;
+        }
     }
 
     async function accountDestination() {
@@ -24,6 +28,15 @@
         const { data: userData } = await client.auth.getUser();
         const userId = userData.user?.id;
         if (!userId) return "login.html";
+        // New owners have no membership until they accept their invitation.
+        // Return to the public invitation page; its RPC validates token and email.
+        if (requested) {
+            const destination = new URL(requested, window.location.origin);
+            const invitation = new URL("shop-beta-invite.html", window.location.href);
+            const cleanPath = path => path.replace(/\.html$/, "").replace(/\/$/, "");
+            if (cleanPath(destination.pathname) === cleanPath(invitation.pathname) &&
+                destination.searchParams.get("token")) return requested;
+        }
         const [platform, personal, shop] = await Promise.all([
             client.from("platform_users").select("role").eq("user_id", userId).maybeSingle(),
             client.from("personal_fleet_members").select("account_id").eq("user_id", userId).eq("is_active", true).limit(1).maybeSingle(),
