@@ -136,6 +136,17 @@
     async function create(order) {
         const authContext = await context();
         const row = toRow(order, authContext, true);
+        // Capture the saved default once, without overwriting an explicit rate
+        // (including zero) or changing existing estimates when settings change.
+        if (order.estimateLaborRate == null || order.estimateLaborRate === "") {
+            const profile = await client.from("shops")
+                .select("default_labor_rate")
+                .eq("id", authContext.shopId)
+                .single();
+            if (profile.error) throw profile.error;
+            if (!profile.data) throw new Error("Could not load the shop labor rate. Retry creating the repair order.");
+            row.estimate_labor_rate = number(profile.data.default_labor_rate);
+        }
         const { data, error } = await client
             .from("shop_repair_orders")
             .insert(row)
