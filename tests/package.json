@@ -2,7 +2,7 @@
   "name": "long-shift-shop-qa-tests",
   "private": true,
   "scripts": {
-    "test": "node shop-page-access.mjs && node shop-inline-intake.mjs && node shop-workflow.mjs && node shop-estimate-approval-ui.mjs && node shop-estimate-approvals.mjs && node shop-supplemental-estimates.mjs && node shop-supplemental-estimates-ui.mjs && node shop-customer-desk.mjs && node shop-customer-desk-ui.mjs && node shop-payments.mjs && node shop-payments-ui.mjs && node shop-customer-billing.mjs && node shop-customer-billing-ui.mjs && node shop-net-accounts-ui.mjs && node shop-invitation-login.mjs && node shop-estimate-tax.mjs && node shop-labor-default.mjs"
+    "test": "node shop-page-access.mjs && node shop-inline-intake.mjs && node shop-workflow.mjs && node shop-estimate-approval-ui.mjs && node shop-estimate-approvals.mjs && node shop-supplemental-estimates.mjs && node shop-supplemental-estimates-ui.mjs && node shop-customer-desk.mjs && node shop-customer-desk-ui.mjs && node shop-payments.mjs && node shop-payments-ui.mjs && node shop-customer-billing.mjs && node shop-customer-billing-ui.mjs && node shop-net-accounts-ui.mjs && node shop-invitation-login.mjs && node shop-estimate-tax.mjs && node shop-labor-default.mjs && node shop-ready-payment-drafts.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "0.5.8"
