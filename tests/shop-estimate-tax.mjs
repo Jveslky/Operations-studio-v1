@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+const context = {window:{}};
+vm.runInNewContext(fs.readFileSync(new URL('../pages/Shop/shop-estimate-tax.js', import.meta.url),'utf8'),context);
+const api = context.window.shopEstimateTax;
+const order = {estimateLaborHours:1, estimateLaborRate:100};
+assert.equal(api.totals(order,{taxable:true,rate:6}).total,106);
+assert.equal(api.totals(order,{taxable:false,rate:6}).total,100);
+const mixed={...order,estimatePartsTotal:20,estimateShopSupplies:10,estimateEnvironmentalFee:15,estimateOtherCharges:5,estimateDiscount:20};
+let result=api.totals(mixed,{taxable:true,rate:6});
+assert.equal(result.subtotal,130);assert.equal(result.tax,6.9);assert.equal(result.total,136.9);
+result=api.totals({...mixed,estimateShopSuppliesTaxable:false,estimateEnvironmentalFeeTaxable:true,estimateMiscFeeTaxable:false},{taxable:true,rate:6});
+assert.equal(result.tax,6.9);
+assert.equal(api.totals({...order,estimateDiscount:200},{taxable:true,rate:6}).total,0);
+assert.equal(api.totals({estimatePartsTotal:0.1+0.2},{taxable:true,rate:6}).total,0.32);
+assert.deepEqual(Array.from(api.lines(api.totals(order,{taxable:true,rate:6}))),['Subtotal: $100.00','Tax (6%): $6.00','Estimated Total: $106.00']);
+async function settings(status,defaultTaxable=true,fail=false){
+ const calls=[];
+ const client={from(table){const filters=[];return {select(){return this;},eq(k,v){filters.push([k,v]);return this;},async single(){calls.push({table,filters});return {data:{default_taxable:defaultTaxable,default_tax_rate:6},error:null};},async maybeSingle(){calls.push({table,filters});return {data:status?{tax_status:status}:null,error:fail?new Error('denied'):null};}};}};
+ const value=await api.resolve(client,'shop-a','customer-a');
+ assert.ok(calls.some(c=>c.table==='shops'&&c.filters.some(([k,v])=>k==='id'&&v==='shop-a')));
+ assert.ok(calls.some(c=>c.table==='customer_tax_profiles'&&c.filters.some(([k,v])=>k==='shop_id'&&v==='shop-a')&&c.filters.some(([k,v])=>k==='customer_id'&&v==='customer-a')));
+ return value;
+}
+assert.equal((await settings('exempt')).taxable,false);
+assert.equal((await settings('taxable',false)).taxable,true);
+assert.equal((await settings(null)).taxable,true);
+assert.equal((await settings('inherit',false)).taxable,false);
+await assert.rejects(settings('exempt',true,true),/denied/);
+await assert.rejects(api.resolve({},null,null),/No active shop/);
+const page=fs.readFileSync(new URL('../pages/Shop/repair-order-details.js',import.meta.url),'utf8');
+assert.match(page,/sendPreviewTotal\.textContent\s*=\s*estimateTotal/);
+assert.match(page,/shopEstimateTax\.lines\(estimateFinancials\(\)\)/);
+assert.match(page,/printEstimateButton\.disabled = !available/);
+assert.match(page,/sendEstimateButton\.disabled = !available/);
+console.log('Estimate tax: taxable/exempt/inherited settings, scoped reads, fee flags, discounts, cents, share totals and unavailable-tax guards passed.');
