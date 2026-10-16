@@ -1,18 +1,18 @@
 {
-  "total": 50223,
-  "files": 248,
-  "application": 44245,
+  "total": 50311,
+  "files": 250,
+  "application": 44296,
   "database": 5179,
-  "tests": 799,
+  "tests": 836,
   "modules": {
-    "Shop": 22429,
+    "Shop": 22480,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
     "Shared": 4797
   },
-  "branch": "master",
-  "updated_at": "2026-10-15T03:24:22.314242+00:00",
-  "commit": "cf1ba53210bc781440bfa6a4f14291217569dee5"
+  "branch": "fix/estimate-tax-totals",
+  "updated_at": "2026-10-16T00:53:09.776878+00:00",
+  "commit": "18a9c401653c7b38dac7cfd2c594b3cb76549c9f"
 }
