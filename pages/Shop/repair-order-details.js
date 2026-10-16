@@ -295,17 +295,31 @@ if (!repairOrder) {
         );
     }
 
+    let estimateTaxSettings = null;
+    let estimateTaxFailed = false;
+    function estimateFinancials() {
+        if (!estimateTaxSettings) throw new Error('Tax unavailable. Reload before sharing this estimate.');
+        return window.shopEstimateTax.totals(currentApprovalEstimate(), estimateTaxSettings);
+    }
     function renderEstimateTotal() {
-        const total = Math.max(
-            0,
-            calculateEstimateTotal()
-        );
-
-        estimateTotalDisplay.textContent =
-            total.toLocaleString("en-US", {
-                style: "currency",
-                currency: "USD"
-            });
+        const subtotal = Math.round(Math.max(0, calculateEstimateTotal()) * 100) / 100;
+        document.getElementById('estimate-subtotal').textContent = window.shopEstimateTax.money(subtotal);
+        const available = Boolean(estimateTaxSettings);
+        printEstimateButton.disabled = !available;
+        sendEstimateButton.disabled = !available;
+        if (!available) {
+            document.getElementById('estimate-tax-label').textContent = 'Tax';
+            document.getElementById('estimate-tax-amount').textContent = estimateTaxFailed ? 'Unavailable' : 'Loading…';
+            estimateTotalDisplay.textContent = 'Pending tax';
+            document.getElementById('estimate-tax-message').textContent = estimateTaxFailed
+                ? 'Could not load tax settings. Reload before printing or sharing this estimate.' : 'Loading shop and customer tax settings…';
+            return;
+        }
+        const financials = estimateFinancials();
+        document.getElementById('estimate-tax-label').textContent = financials.label;
+        document.getElementById('estimate-tax-amount').textContent = window.shopEstimateTax.money(financials.tax);
+        estimateTotalDisplay.textContent = window.shopEstimateTax.money(financials.total);
+        document.getElementById('estimate-tax-message').textContent = 'Includes applicable tax using current shop and customer settings.';
     }
 
     function currentApprovalEstimate() {
@@ -339,7 +353,10 @@ if (!repairOrder) {
         estimateShopSuppliesInput,
         estimateEnvironmentalFeeInput,
         estimateOtherChargesInput,
-        estimateDiscountInput
+        estimateDiscountInput,
+        estimateShopSuppliesTaxableInput,
+        estimateEnvironmentalFeeTaxableInput,
+        estimateMiscFeeTaxableInput
     ].forEach(function (input) {
         input.addEventListener(
             "input",
@@ -465,6 +482,9 @@ if (!repairOrder) {
         repairOrder.estimateNotes || "";
 
     renderEstimateTotal();
+    window.shopEstimateTax.resolve(window.trackRightSupabase, billingContext.shopId, repairOrder.customerId)
+        .then(settings => { estimateTaxSettings = settings; renderEstimateTotal(); })
+        .catch(error => { console.error('Could not load estimate tax:', error); estimateTaxFailed = true; renderEstimateTotal(); });
     renderEstimateStatus();
     loadTechnicianOptions();
 
@@ -747,21 +767,12 @@ if (!repairOrder) {
     }
 
     function getEstimateMessage() {
-        const estimateTotal =
-            calculateEstimateTotal().toLocaleString(
-                "en-US",
-                {
-                    style: "currency",
-                    currency: "USD"
-                }
-            );
-
         return [
             `Hello,`,
             ``,
             `An estimate has been prepared for ${repairOrder.unit || "your unit"}.`,
             `Repair Order: #${repairOrder.id}`,
-            `Estimated Total: ${estimateTotal}`,
+            ...window.shopEstimateTax.lines(estimateFinancials()),
             ``,
             `Please contact us with approval or any questions.`
         ].join("\n");
@@ -769,14 +780,7 @@ if (!repairOrder) {
     async function openSendEstimateModal() {
         const customer = await getEstimateCustomer();
 
-        const estimateTotal =
-            calculateEstimateTotal().toLocaleString(
-                "en-US",
-                {
-                    style: "currency",
-                    currency: "USD"
-                }
-            );
+        const estimateTotal = window.shopEstimateTax.money(estimateFinancials().total);
 
         sendPreviewCustomer.textContent =
             customer?.name ||
