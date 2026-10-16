@@ -1,18 +1,18 @@
 {
-  "total": 50388,
-  "files": 252,
-  "application": 44320,
-  "database": 5179,
-  "tests": 889,
+  "total": 50581,
+  "files": 254,
+  "application": 44321,
+  "database": 5280,
+  "tests": 980,
   "modules": {
-    "Shop": 22491,
+    "Shop": 22492,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
     "Shared": 4810
   },
-  "branch": "master",
-  "updated_at": "2026-10-16T01:45:39.579461+00:00",
-  "commit": "ab0f5f0599e7778e0d53a7fe00836caa37096475"
+  "branch": "feat/ready-payment-invoice",
+  "updated_at": "2026-10-16T02:01:47.313973+00:00",
+  "commit": "3d41e4eb71210f5e608011a5264eab36ef2d3268"
 }
