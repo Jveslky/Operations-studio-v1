@@ -48,6 +48,8 @@
             laborHours: number(row.labor_hours),
             estimateLaborHours: number(row.estimate_labor_hours),
             estimateLaborRate: number(row.estimate_labor_rate),
+            estimateStockLines: row.estimate_stock_lines,
+            stockLinesOriginal: row.estimate_stock_lines,
             estimatePartsTotal: number(row.estimate_parts_total),
             estimateOtherCharges: number(row.estimate_other_charges),
             estimateShopSupplies: number(row.estimate_shop_supplies),
@@ -101,6 +103,8 @@
             estimate_notes: order.estimateNotes || "",
             archived: order.archived === true
         };
+
+        if (order.estimateStockLines !== undefined) { row.estimate_stock_lines = order.estimateStockLines; row.stock_lines_expected = order.stockLinesOriginal ?? []; }
 
         if (order.approvalRequest) row.approval_request = order.approvalRequest;
 
@@ -160,6 +164,16 @@
     async function update(order) {
         const authContext = await context();
 
+        if (order.status === "Ready for Payment" && order.estimateStockLines?.length) {
+            const current = await get(order.id);
+            if (current.status !== "Ready for Payment") {
+                if (JSON.stringify(current.estimateStockLines) !== JSON.stringify(order.estimateStockLines)) throw Error("Save stocked lines before marking Ready for Payment.");
+                const summary = current.estimateStockLines.map(x => `${x.part_number}: ${x.quantity} ${x.stock_unit}`).join("\n");
+                if (!window.confirm("Ready for Payment: consume these held parts?\n" + summary + "\nPreviously consumed parts will not be deducted again.")) throw Error("Stock consumption canceled. No changes saved.");
+                const confirmed = await client.rpc("confirm_shop_ro_stock", {p_ro: order.recordId, p_lines: current.estimateStockLines});
+                if (confirmed.error) throw confirmed.error;
+            }
+        }
         if (authContext.role === "technician") {
             const { data, error } = await client.rpc("update_shop_repair_order_work", {
                 target_id: order.recordId,
