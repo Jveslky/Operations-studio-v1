@@ -198,6 +198,12 @@
             return false;
         }
         const canUseAccountsPayable = window.trackRightCan("expenses.read") || window.trackRightCan("expenses.write");
+        const canUseInventory = ["owner", "admin", "service_writer"].includes(context.role) &&
+            (context.role === "owner" || context.membership?.permission_overrides?.["expenses.read"] !== false);
+        if (page === "inventory.html" && !canUseInventory) {
+            window.location.replace(dashboard);
+            return false;
+        }
         if (page === "accounts-payable.html" && !canUseAccountsPayable) {
             window.location.replace(dashboard);
             return false;
@@ -210,7 +216,19 @@
         document.querySelectorAll(".app-nav a").forEach(function (link) {
             const linkedPage = shopPageName(new URL(link.href, window.location.href).pathname);
             if (linkedPage === "accounts-payable.html" && !canUseAccountsPayable) link.remove();
+            if (linkedPage === "inventory.html" && !canUseInventory) link.remove();
         });
+        if (canUseInventory && window.location.pathname.includes("/pages/Shop/")) {
+            document.querySelectorAll(".app-nav").forEach(function (nav) {
+                if (nav.querySelector('[data-inventory]')) return;
+                const link = document.createElement("a");
+                link.href = `${rootPath}pages/Shop/inventory.html`;
+                link.dataset.inventory = "true";
+                link.textContent = "Inventory";
+                if (page === "inventory.html") link.className = "active";
+                nav.appendChild(link);
+            });
+        }
         if (context.role !== "technician") {
             if (["owner", "admin", "service_writer"].includes(context.role) && window.location.pathname.includes("/pages/Shop/")) {
                 document.querySelectorAll(".app-nav").forEach(function (nav) {

@@ -10,7 +10,7 @@ for(const suffix of ['.html','','/']) {
   vm.createContext(scope);vm.runInContext(functions,scope);
   assert.equal(scope.applyShopPageAccess({role:'technician'}),true);assert.deepEqual(redirects,[]);
  }
- for(const name of ['invoices','invoice-details','shop-settings','accounts-payable','net-accounts']) {
+ for(const name of ['invoices','invoice-details','shop-settings','accounts-payable','net-accounts','inventory']) {
   const redirects=[],path=`/pages/Shop/${name}${suffix}`;
   const scope={URL,window:{location:{pathname:path,href:'https://qa.test'+path,replace:p=>redirects.push(p)},trackRightCan:()=>false},document:{querySelectorAll:()=>[]},loginPath:'../../login.html'};
   vm.createContext(scope);vm.runInContext(functions,scope);
