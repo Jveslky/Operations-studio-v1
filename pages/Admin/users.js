@@ -9,6 +9,9 @@
     const linkInput = document.getElementById("invite-link");
     const roles = ["admin", "service_writer", "technician", "read_only"];
     const permissions = [
+        ["inventory.read", "View inventory"],
+        ["inventory.receive", "Receive inventory"],
+        ["inventory.manage", "Manage catalog and correct stock (owner/admin)"],
         ["expenses.read", "View accounts payable"],
         ["expenses.write", "Manage accounts payable"],
         ["requests.review", "Review team requests"],

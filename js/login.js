@@ -32,9 +32,9 @@
         // Return to the public invitation page; its RPC validates token and email.
         if (requested) {
             const destination = new URL(requested, window.location.origin);
-            const invitation = new URL("shop-beta-invite.html", window.location.href);
+            const invitationPaths = ["shop-beta-invite.html", "accept-invite.html"].map(path => new URL(path, window.location.href).pathname);
             const cleanPath = path => path.replace(/\.html$/, "").replace(/\/$/, "");
-            if (cleanPath(destination.pathname) === cleanPath(invitation.pathname) &&
+            if (invitationPaths.some(path => cleanPath(destination.pathname) === cleanPath(path)) &&
                 destination.searchParams.get("token")) return requested;
         }
         const [platform, personal, shop] = await Promise.all([

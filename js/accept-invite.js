@@ -7,11 +7,32 @@
     const summary = document.getElementById("invite-summary");
     const message = document.getElementById("auth-message");
     const signupForm = document.getElementById("invite-signup-form");
+    const loginLink = document.getElementById("invite-login-link");
+    const switchButton = document.getElementById("invite-switch-account");
+    let invitationEmail = "";
     const acceptButton = document.getElementById("accept-invite-button");
 
     function showMessage(text, type) {
         message.textContent = text;
         message.className = `auth-message ${type || ""}`;
+    }
+
+    function loginDestination() {
+        const destination = new URL("accept-invite.html", window.location.href);
+        destination.searchParams.set("token", token);
+        const login = new URL("login.html", window.location.href);
+        login.searchParams.set("returnTo", destination.pathname + destination.search);
+        return login.href;
+    }
+
+    function showSession(session) {
+        const matches = session?.user?.email?.trim().toLowerCase() === invitationEmail;
+        signupForm.hidden = !!session;
+        acceptButton.hidden = !matches;
+        switchButton.hidden = !session || matches;
+        loginLink.hidden = !!session;
+        if (session && !matches) showMessage("You are signed in as " + session.user.email + ". Sign in with the invited email to join.", "error");
+        else if (matches) showMessage("Signed in with the invited email. Accept below to join.");
     }
 
     async function acceptInvite() {
@@ -47,17 +68,17 @@
         }
 
         const invitation = details[0];
+        invitationEmail = invitation.email.trim().toLowerCase();
+        loginLink.href = loginDestination();
         summary.textContent = `You’ve been invited to ${invitation.shop_name} as ${invitation.role.replace("_", " ")}.`;
         localStorage.setItem("track-right-invite-token", token);
 
         const { data: sessionData } = await client.auth.getSession();
-        if (sessionData.session) {
-            acceptButton.hidden = false;
-            return;
-        }
-
         signupForm.elements.email.value = invitation.email;
-        signupForm.hidden = false;
+        showSession(sessionData.session);
+        client.auth.onAuthStateChange((_event, session) => {
+            showSession(session);
+        });
     }
 
     signupForm.addEventListener("submit", async function (event) {
@@ -83,10 +104,17 @@
             await acceptInvite();
         } else {
             signupForm.hidden = true;
-            showMessage("Confirm your email, then this invitation will finish automatically.", "success");
+            loginLink.hidden = false;
+            showMessage("If email confirmation is required, follow the confirmation email. Already confirmed or already have an account? Use Sign in to join below; your invitation is preserved.", "success");
         }
     });
 
+    switchButton.addEventListener("click", async () => {
+        switchButton.disabled = true;
+        const { error } = await client.auth.signOut();
+        if (error) { showMessage(error.message, "error"); switchButton.disabled = false; return; }
+        window.location.replace(loginDestination());
+    });
     acceptButton.addEventListener("click", acceptInvite);
     initialize();
 })();
