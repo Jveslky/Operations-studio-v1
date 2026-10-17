@@ -17,6 +17,9 @@ insert into shop_members(shop_id,user_id,role) values('${A}','${owner}','owner')
 const permissions=fs.readFileSync(new URL('../supabase/shop-user-permissions.sql',import.meta.url),'utf8');
 await db.exec(permissions.slice(permissions.indexOf('create or replace function public.shop_role_permissions'),permissions.indexOf('drop function if exists public.list_my_shop_members')));
 const sql=fs.readFileSync(new URL('../supabase/shop-inventory-foundation-20261016.sql',import.meta.url),'utf8');await db.exec(sql);await db.exec(sql);
+const hardened=fs.readFileSync(new URL('../supabase/shop-technician-workspace-access.sql',import.meta.url),'utf8');
+await db.exec(hardened.slice(hardened.indexOf('create or replace function public.shop_role_permissions'),hardened.indexOf('-- Both AP')));
+const access=fs.readFileSync(new URL('../supabase/shop-inventory-permissions-20261017.sql',import.meta.url),'utf8');await db.exec(access);await db.exec(access);
 const as=async(user)=>{await db.exec('reset role');await db.query("select set_config('test.user',$1,false)",[user]);await db.exec('set role authenticated');};
 await as(owner);
 const values={part_number:'OF-100',manufacturer:'Test Maker',description:'Oil filter',stock_unit:'each',location:'A-1',sale_price:'15.00',reorder_point:'2'};
@@ -79,13 +82,16 @@ for(const args of [['','active',-1,25],['','active',0,500],['','oops',0,25]])awa
 for(let n=0;n<24;n++)await save({...values,part_number:'PAGE-'+String(n).padStart(2,'0')});
 const pageOne=await directory('','active',0,10),pageTwo=await directory('','active',1,10);assert.equal(pageOne.count,27);assert.equal(pageOne.rows.length,10);assert.equal(new Set([...pageOne.rows,...pageTwo.rows].map(r=>r.id)).size,20);
 
-await as(writer);assert.equal((await directory()).can_manage,false);assert.equal((await directory()).can_receive,true);
+await as(writer);
+assert.equal((await one("select shop_has_permission($1,'expenses.read') allowed",[A])).allowed,false);
+assert.equal((await one("select shop_has_permission($1,'expenses.write') allowed",[A])).allowed,false);
+assert.equal((await directory()).can_manage,false);assert.equal((await directory()).can_receive,true);
 await receive([{...line,quantity:1}],{supplier:'QA',invoice_reference:'WRITER',delivery_reference:'1'});assert.equal(await stock(part),7);
 await assert.rejects(save({...values,part_number:'WRITER'}),/Owner\/admin/);await assert.rejects(adjust(part,1,7),/Owner\/admin/);
 await as(admin);assert.equal((await directory()).can_manage,true);await adjust(part,-1,7);assert.equal(await stock(part),6);
-await db.exec('reset role');await db.query("update shop_members set permission_overrides=$2 where user_id=$1",[writer,JSON.stringify({'expenses.write':false})]);await as(writer);
+await db.exec('reset role');await db.query("update shop_members set permission_overrides=$2 where user_id=$1",[writer,JSON.stringify({'inventory.receive':false,'expenses.read':true,'expenses.write':true})]);await as(writer);
 assert.equal((await directory()).can_receive,false);await assert.rejects(receive([line],{supplier:'QA',invoice_reference:'DENIED',delivery_reference:'1'}),/receiving access/);
-await db.exec('reset role');await db.query("update shop_members set permission_overrides=$2 where user_id=$1",[writer,JSON.stringify({'expenses.read':false})]);await as(writer);await assert.rejects(directory(),/cannot open/);
+await db.exec('reset role');await db.query("update shop_members set permission_overrides=$2 where user_id=$1",[writer,JSON.stringify({'inventory.read':false,'expenses.read':true,'expenses.write':true})]);await as(writer);await assert.rejects(directory(),/cannot open/);
 for(const user of [tech,other]){
  await as(user);await assert.rejects(directory(),/cannot open/);await assert.rejects(history(part),/cannot open/);await assert.rejects(save(values),/Owner\/admin/);await assert.rejects(receive([line]),/receiving access/);await assert.rejects(adjust(part,1,6),/Owner\/admin/);
  for(const table of ['shop_inventory_items','shop_inventory_receipts','shop_inventory_operations','shop_inventory_movements'])assert.equal((await q('select * from '+table)).length,0);

@@ -7,8 +7,8 @@
     const requiredFeature = document.documentElement.dataset.feature || "";
     const rolePermissions = {
         owner: ["*"],
-        admin: ["customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "repair_orders.update_work", "invoices.read", "invoices.write", "expenses.read", "expenses.write", "schedule.manage", "inspections.work", "requests.review", "team_documents.manage", "data.export", "data.import", "settings.manage", "users.manage"],
-        service_writer: ["customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "invoices.read", "invoices.write", "schedule.manage", "inspections.work", "requests.review", "data.export"],
+        admin: ["inventory.read", "inventory.receive", "inventory.manage", "customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "repair_orders.update_work", "invoices.read", "invoices.write", "expenses.read", "expenses.write", "schedule.manage", "inspections.work", "requests.review", "team_documents.manage", "data.export", "data.import", "settings.manage", "users.manage"],
+        service_writer: ["inventory.read", "inventory.receive", "customers.read", "customers.write", "repair_orders.read", "repair_orders.write", "invoices.read", "invoices.write", "schedule.manage", "inspections.work", "requests.review", "data.export"],
         technician: ["repair_orders.read", "repair_orders.update_work", "inspections.work"],
         read_only: ["customers.read", "repair_orders.read", "invoices.read", "expenses.read", "data.export"]
     };
@@ -199,7 +199,7 @@
         }
         const canUseAccountsPayable = window.trackRightCan("expenses.read") || window.trackRightCan("expenses.write");
         const canUseInventory = ["owner", "admin", "service_writer"].includes(context.role) &&
-            (context.role === "owner" || context.membership?.permission_overrides?.["expenses.read"] !== false);
+            window.trackRightCan("inventory.read");
         if (page === "inventory.html" && !canUseInventory) {
             window.location.replace(dashboard);
             return false;

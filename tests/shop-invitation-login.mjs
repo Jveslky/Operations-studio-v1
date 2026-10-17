@@ -15,7 +15,7 @@ async function route(returnTo,{existing=true,shop=false,platform=false,base='/',
  return {redirect:redirects.at(-1),queries};
 }
 for(const existing of [true,false]) {
- for(const path of ['/shop-beta-invite.html?token=qa-token','/shop-beta-invite?token=qa-token','/shop-beta-invite/?token=qa-token']) {
+ for(const path of ['/shop-beta-invite.html?token=qa-token','/shop-beta-invite?token=qa-token','/shop-beta-invite/?token=qa-token','/accept-invite.html?token=staff-token','/accept-invite?token=staff-token']) {
   const result=await route(path,{existing});assert.equal(result.redirect,path);assert.equal(result.queries.length,0);
  }
  assert.equal((await route('/pages/Shop/shop-dashboard.html',{existing})).redirect,'account-required.html');
