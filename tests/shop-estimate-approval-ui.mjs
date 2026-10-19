@@ -78,3 +78,12 @@ const allText=n=>[n.textContent,...n.children.flatMap(allText)];
 assert.ok(allText(older.node('approval-history')).includes('Earlier revision — authorization preserved'));
 assert.ok(!allText(older.node('approval-history')).includes('Active authorization'));
 console.log('Tax-inclusive approval popup, saved expected total, tax-change reconfirmation and historical revision labels passed.');
+
+let taxReady=false;
+const loadingTax=await fixture({financials:()=>{if(!taxReady)throw Error('Tax settings unavailable');return {subtotal:15,tax:.9,total:15.9};}});
+assert.equal(loadingTax.node('approval-summary-total').textContent,'Pending tax');
+loadingTax.node('approval-method').value='written';loadingTax.node('approval-contact').value='Jon';loadingTax.node('approval-confirm').click();
+await assert.rejects(loadingTax.controller.prepare({...loadingTax.original,estimateApprovalStatus:'Approved'}),/Tax settings unavailable/);
+taxReady=true;loadingTax.controller.refresh();assert.equal(loadingTax.node('approval-summary-total').textContent,'$15.90');
+loadingTax.node('approval-confirm').click();assert.equal((await loadingTax.controller.prepare({...loadingTax.original,estimateApprovalStatus:'Approved'})).authorized_amount,15.9);
+console.log('Delayed tax loading: initialization completes, approval blocked until settings resolve, summary refresh and confirmation passed.');

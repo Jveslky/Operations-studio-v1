@@ -491,7 +491,7 @@ if (!repairOrder) {
 
     renderEstimateTotal();
     window.shopEstimateTax.resolve(window.trackRightSupabase, billingContext.shopId, repairOrder.customerId)
-        .then(settings => { estimateTaxSettings = settings; renderEstimateTotal(); })
+        .then(settings => { estimateTaxSettings = settings; renderEstimateTotal(); approvalAudit.refresh(); })
         .catch(error => { console.error('Could not load estimate tax:', error); estimateTaxFailed = true; renderEstimateTotal(); });
     renderEstimateStatus();
     loadTechnicianOptions();

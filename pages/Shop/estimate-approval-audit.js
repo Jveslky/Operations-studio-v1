@@ -51,7 +51,15 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
     const amount = el('approval-authorized-amount');
     const money = value => Number(value).toLocaleString('en-US', {style:'currency',currency:'USD'});
     function renderSummary() {
-        const summary = estimateSummary();
+        let summary;
+        try { summary = estimateSummary(); }
+        catch (error) {
+            el('approval-summary-total').textContent = 'Pending tax';
+            amount.value = ''; confirmed = false;
+            el('approval-dialog-error').textContent = error.message;
+            return;
+        }
+        el('approval-dialog-error').textContent = '';
         el('approval-summary-version').textContent = `Rev. ${summary.version}`;
         el('approval-summary-scope').textContent = scope.value === 'entire' ? 'Entire estimate' : `${scope.value === 'custom' ? 'Custom' : 'Other'} — ${el('approval-scope-details').value.trim() || 'Describe approved work'}`;
         el('approval-summary-total').textContent = money(summary.total);
@@ -197,7 +205,7 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
     }
     load().catch(error => { message.textContent = `Could not load approval history: ${error.message}`; });
     setTimeout(showFields,0);
-    return { async prepare(order) {
+    return { refresh: renderSummary, async prepare(order) {
         if (order.estimateApprovalStatus !== 'Approved') return null;
         const requiresApproval = revised || originalOrder.estimateApprovalStatus !== 'Approved' || repeat.checked;
         if (!requiresApproval) return null;
