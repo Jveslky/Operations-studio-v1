@@ -322,8 +322,13 @@ if (!repairOrder) {
         document.getElementById('estimate-tax-message').textContent = 'Includes applicable tax using current shop and customer settings.';
     }
 
+    const stockEditor = window.shopROInventory ? await window.shopROInventory.mount({
+        order: repairOrder, totalInput: estimatePartsTotalInput,
+        changed: () => { hasUnsavedChanges = true; renderEstimateTotal(); }
+    }) : null;
+
     function currentApprovalEstimate() {
-        return {...repairOrder,
+        return {...repairOrder, ...(stockEditor ? {estimateStockLines: stockEditor.lines()} : {}),
             complaint: complaintInput.value.trim(), partsNeeded: partsNeededInput.value.trim(),
             estimateLaborHours: getNumberValue(estimateLaborHoursInput), estimateLaborRate: getNumberValue(estimateLaborRateInput),
             estimatePartsTotal: getNumberValue(estimatePartsTotalInput), estimateOtherCharges: getNumberValue(estimateOtherChargesInput),
@@ -333,7 +338,10 @@ if (!repairOrder) {
             estimateDiscount: getNumberValue(estimateDiscountInput), estimateTotal: Math.max(0, calculateEstimateTotal()),
             estimateNotes: estimateNotesInput.value.trim()};
     }
-    const approvalAudit = window.createEstimateApprovalAudit(repairOrder, currentApprovalEstimate);
+    const approvalAudit = window.createEstimateApprovalAudit(repairOrder, currentApprovalEstimate, order => {
+        if (!estimateTaxSettings) throw new Error('Tax settings unavailable. Reload before recording authorization.');
+        return window.shopEstimateTax.totals(order, estimateTaxSettings);
+    });
 
     function renderEstimateStatus() {
         const status =
@@ -483,7 +491,7 @@ if (!repairOrder) {
 
     renderEstimateTotal();
     window.shopEstimateTax.resolve(window.trackRightSupabase, billingContext.shopId, repairOrder.customerId)
-        .then(settings => { estimateTaxSettings = settings; renderEstimateTotal(); })
+        .then(settings => { estimateTaxSettings = settings; renderEstimateTotal(); approvalAudit.refresh(); })
         .catch(error => { console.error('Could not load estimate tax:', error); estimateTaxFailed = true; renderEstimateTotal(); });
     renderEstimateStatus();
     loadTechnicianOptions();
@@ -623,6 +631,8 @@ if (!repairOrder) {
 
         repairOrder.estimateLaborRate =
             getNumberValue(estimateLaborRateInput);
+
+        if (stockEditor) repairOrder.estimateStockLines = stockEditor.lines();
 
         repairOrder.estimatePartsTotal =
             getNumberValue(estimatePartsTotalInput);

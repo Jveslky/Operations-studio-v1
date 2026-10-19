@@ -1,5 +1,5 @@
 /* Authorization evidence is shop-private; audit identity and timestamp come from the server. */
-window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate = () => originalOrder) {
+window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate = () => originalOrder, getFinancials = null) {
     originalOrder = {...originalOrder};
     const el = id => document.getElementById(id);
     const client = window.trackRightSupabase;
@@ -19,7 +19,8 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
     let confirmedSnapshot = null, confirmedVersion = null;
     function estimateSummary(order = getCurrentEstimate()) {
         const currentSnapshot = canonical(snapshot(order));
-        return {currentSnapshot, version: originalOrder.estimateVersion + (currentSnapshot !== baseline ? 1 : 0), total: Math.round(Number(order.estimateTotal || 0) * 100) / 100};
+        const financials = getFinancials ? getFinancials(order) : null;
+        return {currentSnapshot: financials ? canonical({...snapshot(order), authorization_tax_snapshot: financials}) : currentSnapshot, version: originalOrder.estimateVersion + (currentSnapshot !== baseline ? 1 : 0), total: financials ? financials.total : Math.round(Number(order.estimateTotal || 0) * 100) / 100};
     }
     let revised = false, confirmed = false, previousStatus = status.value;
     const dialog = el('approval-dialog');
@@ -50,7 +51,15 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
     const amount = el('approval-authorized-amount');
     const money = value => Number(value).toLocaleString('en-US', {style:'currency',currency:'USD'});
     function renderSummary() {
-        const summary = estimateSummary();
+        let summary;
+        try { summary = estimateSummary(); }
+        catch (error) {
+            el('approval-summary-total').textContent = 'Pending tax';
+            amount.value = ''; confirmed = false;
+            el('approval-dialog-error').textContent = error.message;
+            return;
+        }
+        el('approval-dialog-error').textContent = '';
         el('approval-summary-version').textContent = `Rev. ${summary.version}`;
         el('approval-summary-scope').textContent = scope.value === 'entire' ? 'Entire estimate' : `${scope.value === 'custom' ? 'Custom' : 'Other'} — ${el('approval-scope-details').value.trim() || 'Describe approved work'}`;
         el('approval-summary-total').textContent = money(summary.total);
@@ -88,8 +97,8 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
     function openDialog() {
         if (!canWrite) return;
         el('approval-dialog-error').textContent = '';
-        renderSummary(); relationshipFields();
         if (!dialog.open) dialog.showModal();
+        try { renderSummary(); relationshipFields(); } catch (error) { el('approval-dialog-error').textContent = error.message; confirmed = false; }
     }
     function cancelApproval() {
         status.value = previousStatus === 'Approved' ? 'Approved' : previousStatus;
@@ -159,8 +168,8 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
                 const preview = document.createElement('summary'); preview.textContent = `Customer acknowledgment: ${approval.notes.slice(0, 120)}…`;
                 const full = document.createElement('p'); full.textContent = approval.notes; note.append(preview, full);
             } else note.textContent = `Customer acknowledgment: ${approval.notes || 'None recorded'}`;
-            const indicator = document.createElement('p'); indicator.className = 'authorization-status ' + (superseded(approval.id) ? 'authorization-superseded' : approval.authorization_relationship ? 'authorization-active' : 'authorization-unconfirmed');
-            indicator.textContent = superseded(approval.id) ? 'Superseded' : approval.authorization_relationship ? 'Active authorization' : 'Relationship not recorded — confirm which authorization governs the work';
+            const indicator = document.createElement('p'); indicator.className = 'authorization-status ' + (superseded(approval.id) || approval.estimate_version !== originalOrder.estimateVersion || originalOrder.estimateApprovalStatus !== 'Approved' ? 'authorization-superseded' : approval.authorization_relationship ? 'authorization-active' : 'authorization-unconfirmed');
+            indicator.textContent = superseded(approval.id) ? 'Superseded' : approval.authorization_relationship && (approval.estimate_version !== originalOrder.estimateVersion || originalOrder.estimateApprovalStatus !== 'Approved') ? 'Earlier revision — authorization preserved' : approval.authorization_relationship ? 'Active authorization' : 'Relationship not recorded — confirm which authorization governs the work';
             const relationLine = document.createElement('p'); relationLine.className = 'authorization-metadata';
             const predecessor = history.find(a => a.id === approval.related_authorization_id);
             relationLine.textContent = approval.authorization_relationship ? `${approval.authorization_relationship}${predecessor ? ' of authorization recorded ' + new Date(predecessor.recorded_at).toLocaleString() : ''}${approval.relationship_notes ? ': ' + approval.relationship_notes : ''}` : '';
@@ -171,7 +180,7 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
             row.append(actor,note);
             const details = document.createElement('details'), summary = document.createElement('summary'), snapshot = document.createElement('div');
             summary.textContent = 'Full estimate snapshot';
-            const labels = {complaint:'Work requested',parts_needed:'Parts needed',customer_name:'Customer',unit_name:'Vehicle',estimate_labor_hours:'Labor hours',estimate_labor_rate:'Labor rate',estimate_parts_total:'Parts',estimate_other_charges:'Other charges',estimate_shop_supplies:'Shop supplies',estimate_environmental_fee:'Environmental fee',estimate_misc_fee_label:'Other fee description',estimate_discount:'Discount',estimate_total:'Estimate total',estimate_notes:'Estimate notes',estimate_shop_supplies_taxable:'Shop supplies taxable',estimate_environmental_fee_taxable:'Environmental fee taxable',estimate_misc_fee_taxable:'Other fee taxable'};
+            const labels = {complaint:'Work requested',parts_needed:'Parts needed',customer_name:'Customer',unit_name:'Vehicle',estimate_labor_hours:'Labor hours',estimate_labor_rate:'Labor rate',estimate_parts_total:'Parts',estimate_other_charges:'Other charges',estimate_shop_supplies:'Shop supplies',estimate_environmental_fee:'Environmental fee',estimate_misc_fee_label:'Other fee description',estimate_discount:'Discount',estimate_total:'Estimate total',estimate_notes:'Estimate notes',authorization_tax_snapshot:'Tax and total at authorization',estimate_shop_supplies_taxable:'Shop supplies taxable',estimate_environmental_fee_taxable:'Environmental fee taxable',estimate_misc_fee_taxable:'Other fee taxable'};
             for (const [key,value] of Object.entries(approval.estimate_snapshot)) {
                 if (!labels[key]) continue;
                 const line = document.createElement('p'); line.textContent = `${labels[key]}: ${value}`; snapshot.append(line);
@@ -196,7 +205,7 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
     }
     load().catch(error => { message.textContent = `Could not load approval history: ${error.message}`; });
     setTimeout(showFields,0);
-    return { async prepare(order) {
+    return { refresh: renderSummary, async prepare(order) {
         if (order.estimateApprovalStatus !== 'Approved') return null;
         const requiresApproval = revised || originalOrder.estimateApprovalStatus !== 'Approved' || repeat.checked;
         if (!requiresApproval) return null;
@@ -217,6 +226,6 @@ window.createEstimateApprovalAudit = function (originalOrder, getCurrentEstimate
             if (result.error) throw result.error;
             uploaded = path; uploadedFile = file;
         }
-        return {id:requestId,authorization_relationship:relation,related_authorization_id:relatedId,relationship_notes:relationshipNotes,method,customer_contact:contact,notes,approval_scope:scopeValue,approval_scope_details:scopeDetails,authorized_amount:authorizedAmount,expected_authorized_version:confirmedVersion,evidence_path:file ? uploaded : null,evidence_name:file ? file.name : null,expected_version:originalOrder.estimateVersion,expected_updated_at:originalOrder.updatedAt};
+        return {id:requestId,authorization_relationship:relation,related_authorization_id:relatedId,relationship_notes:relationshipNotes,method,customer_contact:contact,notes,approval_scope:scopeValue,approval_scope_details:scopeDetails,authorized_amount:authorizedAmount,...(getFinancials ? {expected_estimate_total:savingSummary.total} : {}),expected_authorized_version:confirmedVersion,evidence_path:file ? uploaded : null,evidence_name:file ? file.name : null,expected_version:originalOrder.estimateVersion,expected_updated_at:originalOrder.updatedAt};
     }};
 };

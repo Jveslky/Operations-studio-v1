@@ -1,18 +1,18 @@
 {
-  "total": 51253,
-  "files": 262,
-  "application": 44542,
-  "database": 5554,
-  "tests": 1157,
+  "total": 51793,
+  "files": 267,
+  "application": 44619,
+  "database": 5876,
+  "tests": 1298,
   "modules": {
-    "Shop": 22662,
+    "Shop": 22739,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
     "Shared": 4861
   },
-  "branch": "master",
-  "updated_at": "2026-10-17T05:01:16.261190+00:00",
-  "commit": "4f9e5c87073a70f89c3b9b801dc3ebd6b0cbcf43"
+  "branch": "feat/ro-inventory-holds",
+  "updated_at": "2026-10-19T00:55:59.565151+00:00",
+  "commit": "a607745abeb9c06223ac10ac3018b7edf44a773e"
 }

@@ -1,0 +1,30 @@
+# RO stocked estimate parts
+
+Apply `supabase/shop-ro-inventory-20261017.sql` in Test after the inventory foundation, independent inventory permissions, estimate approvals, and Ready for Payment invoice draft migrations. The migration is transactional and rerunnable. Existing ROs receive an empty stocked-line array; historical parts totals and existing stock are not inferred or backfilled.
+
+The baseline estimate now supports catalog part snapshots with quantity, unit price, description, and stock unit. Adding/removing/changing these lines adjusts the existing parts total by the line difference, preserving manual/nonstock charges. Saving persists lines and reservations in one RO transaction. Baseline approval snapshots automatically include the `estimate_stock_lines` field; line changes are estimate changes, and acceptance of altered stocked lines must be a separate save. Existing supplemental-estimate/original-estimate locks still apply.
+
+Counts are **On hand / On hold / Available**. On hand includes allocated/fitted stock until confirmed Ready for Payment. Available subtracts holds. Saved lines reserve stock; declining the baseline, canceling or archiving the job releases holds. Removing/changing lines releases/adjusts quantities. Shortages block the entire save with available quantities; they never silently overbook. Item locks use deterministic order, and count reads use fresh snapshots after locks. Multi-connection stress validation remains pending.
+
+Ready for Payment requires a human confirmation naming saved stock quantities. The confirmation RPC checks RO work access (including assigned technicians), actor, exact saved line snapshot and five-minute expiry. The status-save trigger consumes held stock and releases its reservation atomically with the existing invoice-draft trigger. A failed downstream trigger rolls back all stock/status changes. A settlement record prevents repeat consumption when a job moves backward and forward. Direct Complete is blocked for unconsumed stocked work. Once consumed, stocked lines are locked; reopening never restocks automatically.
+
+Owner/admin users with inventory-management permission can confirm physical unused-part returns with a positive quantity and reason, bounded by remaining consumed quantity. Return events preserve consumption history. A durable browser request key allows retry after a lost acknowledgment/reload; storage failure blocks transmission. Returns restore physical stock only: they do not issue an invoice credit, change customer authorization, or silently reserve returned parts on a reopened job. Subsequent added/replacement work belongs on a supplement; stocked supplement allocation/second consumption is a follow-up before broader release.
+
+Inventory history includes receipt/correction/hold/release/consumption/return entries and RO numbers, actor and time. Original movement records stay immutable. Catalog reads and allocation edits require office inventory access; technicians see their saved RO line snapshots and may confirm completion only through existing assigned-work access. They cannot browse the inventory catalog or perform stock corrections/returns.
+
+Test walkthrough:
+1. With 10 filters on hand, add 3 stocked filters to a draft RO and Save. Inventory must show 10 / 3 / 7. Refresh the RO and confirm its lines/parts total persist.
+2. Attempt 8 on another RO: shortage, no partial hold. Change first RO to 4: 10 / 4 / 6. Remove a line/decline/cancel/archive: release the corresponding hold. Restore only intentionally.
+3. Confirm Ready for Payment with the saved 4-filter line. Expect 6 / 0 / 6 and one invoice draft with the same estimate total. Reject the confirmation first to verify no write. Repeat after moving back to In Progress: no duplicate stock consumption/invoice.
+4. Return 2 unused filters with a reason as owner: 8 / 0 / 8. Reject excess returns, blank reasons, writer/tech return attempts, and a correction that would take held stock. Verify RO references and actor history.
+5. Verify approved-estimate changes cannot bypass authorization, competing last-stock saves, response-loss retries, shop isolation, assigned-tech completion and phone layout.
+
+Automated coverage includes the migration applied twice, hold reconciliation, shortages, decline/cancel/reopen, protected count corrections, confirmation scope, simulated invoice-trigger rollback, consumption/return idempotency, history, office/tech boundaries, and UI manual-charge preservation. Full signed-in integration and phone QA are pending. The broader inventory backup/restore and full offline-write release gates remain open. No Live SQL is applied by the PR.
+
+## QA fixes — October 19
+
+Apply `supabase/shop-approval-tax-20261019.sql` to Test before testing the updated preview. New full-estimate authorizations use the tax-inclusive total. The server independently calculates tax from current shop/customer settings, records subtotal/tax/rate/total in the immutable authorization snapshot, and rejects a stale confirmed total. Custom/additional scope amounts remain explicitly entered by staff. Existing authorizations are unchanged, and the RO's existing `estimate_total` subtotal contract remains unchanged for invoicing. Older clients cannot record new authorizations after this migration until reloaded to the updated UI.
+
+Earlier-revision authorizations display as preserved history, rather than implying approval of the current revision. Superseded relationship records remain marked superseded. Stock quantities trigger the same immediate Draft/reconfirmation handling as other estimate edits. The stocked-parts editor occupies a separate full-width row below estimate pricing.
+
+Manual checkpoint: Shop C RO #1009, estimate revision 5, one $15 filter, $0.90 tax, $15.90 total; inventory 5 on hand / 1 on hold / 4 available. Earlier QA verified draft holds, quantity changes and release of an unused reservation after approval. Consumption and invoice verification remain pending. Use the latest PR108 preview, rather than PR107's `91cd6a3a` deployment.

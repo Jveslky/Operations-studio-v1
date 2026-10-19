@@ -81,4 +81,42 @@ await assert.rejects(db.query('insert into storage.objects(bucket_id,name,owner_
 await db.exec('reset role');
 await assert.rejects(approve(current),/role cannot/);
 console.log('PostgreSQL approval audit: atomic history, actor/time, revisions, stale saves, later-stage protection, private evidence, office-only access and cross-shop isolation passed.');
+// Install the incremental fix on an existing approval database, twice.
+await db.exec(`alter table shops add column default_taxable boolean default true,add column default_tax_rate numeric default 6;
+create table customer_tax_profiles(shop_id uuid,customer_id text,tax_status text);`);
+const taxMigration=fs.readFileSync(new URL('../supabase/shop-approval-tax-20261019.sql',import.meta.url),'utf8');
+await db.exec(taxMigration);await db.exec(taxMigration);
+await db.exec(`set role authenticated; select set_config('test.user','${writer}',false);`);
+let taxRo=(await db.query(`insert into shop_repair_orders(shop_id,complaint,estimate_parts_total,estimate_total) values('${A}','Filters',30,30) returning *`)).rows[0];
+await assert.rejects(approve(taxRo),/tax or total changed/);
+taxRo=await approve(taxRo,{expected_estimate_total:31.8});
+const firstTax=(await db.query('select * from shop_estimate_approvals where repair_order_id=$1',[taxRo.id])).rows[0];
+assert.equal(Number(firstTax.authorization_amount),31.8);assert.equal(firstTax.estimate_snapshot.authorization_tax_snapshot.tax,1.8);
+assert.equal(Number(taxRo.estimate_total),30); // Existing RO subtotal contract stays intact.
+await db.exec('reset role');await db.exec(`update shops set default_tax_rate=7 where id='${A}'`);
+await db.exec('set role authenticated');
+await assert.rejects(approve(taxRo,{authorization_relationship:'replacement',related_authorization_id:firstTax.id,approval_scope:'entire',expected_estimate_total:31.8}),/tax or total changed/);
+assert.equal((await db.query('select count(*)::int n from shop_estimate_approvals where repair_order_id=$1',[taxRo.id])).rows[0].n,1);
+taxRo=await approve(taxRo,{authorization_relationship:'replacement',related_authorization_id:firstTax.id,approval_scope:'entire',expected_estimate_total:32.1});
+await db.exec('reset role');await db.exec(`insert into customer_tax_profiles values('${A}','exempt','exempt');`);await db.exec('set role authenticated');
+let exempt=(await db.query(`insert into shop_repair_orders(shop_id,customer_id,estimate_parts_total,estimate_total) values('${A}','exempt',30,30) returning *`)).rows[0];
+exempt=await approve(exempt,{expected_estimate_total:30});
+assert.equal(Number((await db.query('select authorization_amount from shop_estimate_approvals where repair_order_id=$1',[exempt.id])).rows[0].authorization_amount),30);
+assert.equal(Number((await db.query('select authorization_amount from shop_estimate_approvals where id=$1',[firstTax.id])).rows[0].authorization_amount),31.8);
+console.log('Approval tax SQL: rerunnable migration, authoritative gross amount and tax snapshot, stale tax rejection, exempt customer and immutable history passed.');
+await db.exec('reset role');
+const {default:vm}=await import('node:vm');const taxContext={window:{}};
+vm.runInNewContext(fs.readFileSync(new URL('../pages/Shop/shop-estimate-tax.js',import.meta.url),'utf8'),taxContext);
+for(const values of [
+ {estimateLaborHours:1,estimateLaborRate:100,estimatePartsTotal:20,estimateShopSupplies:10,estimateEnvironmentalFee:15,estimateOtherCharges:5,estimateDiscount:20},
+ {estimatePartsTotal:30,estimateShopSupplies:10,estimateShopSuppliesTaxable:true,estimateEnvironmentalFee:15,estimateEnvironmentalFeeTaxable:true,estimateOtherCharges:5,estimateMiscFeeTaxable:false},
+ {estimatePartsTotal:.3}, {estimatePartsTotal:15,estimateDiscount:50}
+]) {
+ const model={estimateShopSuppliesTaxable:false,estimateEnvironmentalFeeTaxable:false,estimateMiscFeeTaxable:false,...values};
+ const snake=Object.fromEntries(Object.entries(model).map(([k,v])=>[k.replace(/[A-Z]/g,c=>'_'+c.toLowerCase()),v]));
+ const actual=(await db.query('select shop_estimate_authorization_totals($1) result',[JSON.stringify({shop_id:A,...snake})])).rows[0].result;
+ const expected=taxContext.window.shopEstimateTax.totals(model,{taxable:true,rate:7});
+ for(const k of ['subtotal','tax','total'])assert.equal(actual[k],expected[k]);
+}
+console.log('Client/server tax parity: fee flags, discounts, cents and zero-floor totals passed.');
 await db.close();
