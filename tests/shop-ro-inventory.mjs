@@ -49,7 +49,10 @@ await db.exec('reset role');await db.exec('drop trigger z_invoice_failure on sho
 await db.query("update shop_repair_orders set status='Ready for Payment' where id=$1",[ro]);
 await as(owner);assert.deepEqual(await counts(),[6,0,6]);
 await db.query("update shop_repair_orders set status='In Progress' where id=$1",[ro]);await db.query("update shop_repair_orders set status='Ready for Payment' where id=$1",[ro]);assert.deepEqual(await counts(),[6,0,6]);
+await assert.rejects(set(ro,line(5)),/Save stocked line revisions/);
+await db.query("update shop_repair_orders set status='In Progress' where id=$1",[ro]);
 await assert.rejects(set(ro,line(5)),/locked/);
+await db.query("update shop_repair_orders set status='Ready for Payment' where id=$1",[ro]);
 const request=crypto.randomUUID(),args=[ro,part.id,2,'Unused sealed filters',request];await one('select return_shop_ro_stock($1,$2,$3,$4,$5)',args);await one('select return_shop_ro_stock($1,$2,$3,$4,$5)',args);assert.deepEqual(await counts(),[8,0,8]);
 await assert.rejects(one('select return_shop_ro_stock($1,$2,3,$3,$4)',[ro,part.id,'Too many',crypto.randomUUID()]),/exceeds/);
 await as(writer);await assert.rejects(one('select return_shop_ro_stock($1,$2,1,$3,$4)',[ro,part.id,'No',crypto.randomUUID()]),/management/);

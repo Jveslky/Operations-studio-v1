@@ -1319,3 +1319,12 @@ textarea {
 .inspection-row-header { flex-wrap: wrap; }
 .inspection-row-header > div { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; min-width: 0; }
 .inspection-row-header > div > strong, .inspection-row-header > div > span { overflow-wrap: anywhere; }
+
+/* Stock lines occupy their own row below estimate pricing. */
+.ro-stock-editor { margin: 16px 0; min-width: 0; }
+.ro-stock-editor h3 { margin-top: 0; }
+.ro-stock-line { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.ro-stock-line > span { flex: 1 1 260px; overflow-wrap: anywhere; }
+.ro-stock-line input { width: 110px; flex: 0 1 110px; }
+.ro-stock-editor > input { width: min(100%, 360px); margin-right: 8px; }
+@media (max-width: 600px) { .ro-stock-line > span { flex-basis: 100%; } }

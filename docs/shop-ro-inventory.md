@@ -20,3 +20,11 @@ Test walkthrough:
 5. Verify approved-estimate changes cannot bypass authorization, competing last-stock saves, response-loss retries, shop isolation, assigned-tech completion and phone layout.
 
 Automated coverage includes the migration applied twice, hold reconciliation, shortages, decline/cancel/reopen, protected count corrections, confirmation scope, simulated invoice-trigger rollback, consumption/return idempotency, history, office/tech boundaries, and UI manual-charge preservation. Full signed-in integration and phone QA are pending. The broader inventory backup/restore and full offline-write release gates remain open. No Live SQL is applied by the PR.
+
+## QA fixes — October 19
+
+Apply `supabase/shop-approval-tax-20261019.sql` to Test before testing the updated preview. New full-estimate authorizations use the tax-inclusive total. The server independently calculates tax from current shop/customer settings, records subtotal/tax/rate/total in the immutable authorization snapshot, and rejects a stale confirmed total. Custom/additional scope amounts remain explicitly entered by staff. Existing authorizations are unchanged, and the RO's existing `estimate_total` subtotal contract remains unchanged for invoicing. Older clients cannot record new authorizations after this migration until reloaded to the updated UI.
+
+Earlier-revision authorizations display as preserved history, rather than implying approval of the current revision. Superseded relationship records remain marked superseded. Stock quantities trigger the same immediate Draft/reconfirmation handling as other estimate edits. The stocked-parts editor occupies a separate full-width row below estimate pricing.
+
+Manual checkpoint: Shop C RO #1009, estimate revision 5, one $15 filter, $0.90 tax, $15.90 total; inventory 5 on hand / 1 on hold / 4 available. Earlier QA verified draft holds, quantity changes and release of an unused reservation after approval. Consumption and invoice verification remain pending. Use the latest PR108 preview, rather than PR107's `91cd6a3a` deployment.

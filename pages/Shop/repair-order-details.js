@@ -338,7 +338,10 @@ if (!repairOrder) {
             estimateDiscount: getNumberValue(estimateDiscountInput), estimateTotal: Math.max(0, calculateEstimateTotal()),
             estimateNotes: estimateNotesInput.value.trim()};
     }
-    const approvalAudit = window.createEstimateApprovalAudit(repairOrder, currentApprovalEstimate);
+    const approvalAudit = window.createEstimateApprovalAudit(repairOrder, currentApprovalEstimate, order => {
+        if (!estimateTaxSettings) throw new Error('Tax settings unavailable. Reload before recording authorization.');
+        return window.shopEstimateTax.totals(order, estimateTaxSettings);
+    });
 
     function renderEstimateStatus() {
         const status =

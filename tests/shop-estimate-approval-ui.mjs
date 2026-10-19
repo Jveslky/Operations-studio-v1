@@ -2,15 +2,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 const source=fs.readFileSync(new URL('../pages/Shop/estimate-approval-audit.js',import.meta.url),'utf8');
-async function fixture({available=true,allowed=true,failUpload=false,originalStatus='Draft',history=[]}={}) {
+async function fixture({available=true,allowed=true,failUpload=false,originalStatus='Draft',history=[],financials=null}={}) {
  const nodes=new Map(), uploads=[];
  const node=id=>{if(!nodes.has(id)) nodes.set(id,{value:'',textContent:'',checked:false,hidden:false,disabled:false,files:[],tagName:'INPUT',listeners:{},children:[],addEventListener(e,f){this.listeners[e]=f;},dispatchEvent(e){this.listeners[e.type]?.(e);},querySelectorAll(){return [];},replaceChildren(){this.children=[];},append(...items){this.children.push(...items);},click(){this.listeners.click?.();},showModal(){this.open=true;},close(){this.open=false;},});return nodes.get(id);};
  node('estimate-approval-status').value=originalStatus;
  const original={recordId:'ro-a',estimateApprovalStatus:originalStatus,estimateVersion:1,updatedAt:'2026-10-11T18:00:00Z',estimateTotal:460,approvalAuditAvailable:available};
  let counter=0;
- const context={window:{trackRightRepairOrders:{approvalSnapshot:order=>({estimate_total:order.estimateTotal ?? 460,estimate_parts_total:order.estimatePartsTotal ?? 0})},trackRightCan:()=>allowed,trackRightAuthReady:Promise.resolve({shopId:'shop-a'}),trackRightSupabase:{from(){return {select(){return this;},eq(){return this;},order:async()=>({data:history,error:null})};},storage:{from(){return {upload:async(path,file)=>{uploads.push({path,file});return {error:failUpload?{message:'Upload failed'}:null};}};}}}},document:{getElementById:node,querySelectorAll:()=>[node('estimate-parts-total')],createElement:node},crypto:{randomUUID:()=>`uuid-${++counter}`},setTimeout:f=>f(),URL:{},Event:function(type){this.type=type;}};
+ const context={window:{trackRightRepairOrders:{approvalSnapshot:order=>({estimate_total:order.estimateTotal ?? 460,estimate_parts_total:order.estimatePartsTotal ?? 0})},trackRightCan:()=>allowed,trackRightAuthReady:Promise.resolve({shopId:'shop-a'}),trackRightSupabase:{from(){return {select(){return this;},eq(){return this;},order:async()=>({data:history,error:null})};},storage:{from(){return {upload:async(path,file)=>{uploads.push({path,file});return {error:failUpload?{message:'Upload failed'}:null};}};}}}},document:{getElementById:node,querySelectorAll:()=>[node('estimate-parts-total')],createElement:tag=>node(`created-${tag}-${counter++}`)},crypto:{randomUUID:()=>`uuid-${++counter}`},setTimeout:f=>f(),URL:{},Event:function(type){this.type=type;}};
  vm.runInNewContext(source,context);
- const controller=context.window.createEstimateApprovalAudit(original,()=>original);
+ const controller=context.window.createEstimateApprovalAudit(original,()=>original,financials);
  await new Promise(resolve=>setImmediate(resolve));
  return {node,controller,original,uploads};
 }
@@ -64,3 +64,17 @@ followup.node('approval-relationship').value='additional';followup.node('approva
 assert.equal(followup.node('approval-scope').value,'custom');assert.equal(followup.node('approval-authorized-amount').value,'');assert.equal(followup.node('approval-authorized-amount').readOnly,false);
 followup.node('approval-scope-details').value='Replace tire';followup.node('approval-authorized-amount').value='150';followup.node('approval-confirm').click();
 const additional=await followup.controller.prepare({estimateApprovalStatus:'Approved'});assert.equal(additional.authorized_amount,150);assert.equal(additional.related_authorization_id,null);assert.equal(additional.authorization_relationship,'additional');
+
+let taxTotal=31.8;
+const taxed=await fixture({financials:()=>({subtotal:30,tax:taxTotal-30,total:taxTotal})});
+taxed.node('approval-method').value='written';taxed.node('approval-contact').value='Jon';taxed.node('approval-confirm').click();
+assert.equal(taxed.node('approval-summary-total').textContent,'$31.80');
+let taxedRequest=await taxed.controller.prepare({...taxed.original,estimateApprovalStatus:'Approved'});
+assert.equal(taxedRequest.authorized_amount,31.8);assert.equal(taxedRequest.expected_estimate_total,31.8);
+taxTotal=32.1;
+await assert.rejects(taxed.controller.prepare({...taxed.original,estimateApprovalStatus:'Approved'}),/changed after confirmation/);
+const older=await fixture({history:[{id:'old',estimate_version:0,authorization_amount:30,method:'verbal',recorded_at:'2026-10-11',estimate_snapshot:{},authorization_relationship:'initial'}]});
+const allText=n=>[n.textContent,...n.children.flatMap(allText)];
+assert.ok(allText(older.node('approval-history')).includes('Earlier revision — authorization preserved'));
+assert.ok(!allText(older.node('approval-history')).includes('Active authorization'));
+console.log('Tax-inclusive approval popup, saved expected total, tax-change reconfirmation and historical revision labels passed.');
