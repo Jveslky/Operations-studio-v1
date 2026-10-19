@@ -22,3 +22,12 @@ assert.equal(parse('Supplier\nSubtotal 20.00\nPrice 999.99').total,'','do not mi
 assert.equal(parse('Supplier\nGrand Total: $1,234.56 USD').total,'1234.56');
 assert.equal(parse('Supplier\nInvoice No: ABC-123').invoice_number,'ABC-123');
 console.log('AP header extraction: decorative invoice headings ignored, actual references retained, subtotal/total distinguished and unlabeled totals left for review.');
+
+const phoneText='QA Test Parts Supply\nInvoice # QA-SCAN-002 ;\n1 Subtotal 65.00\nE Sales Tax 3.60\nN TOTAL 68.60'.replaceAll('\\n','\n');
+const phone=parse(phoneText);assert.equal(phone.invoice_number,'QA-SCAN-002');assert.equal(phone.subtotal,'65.00');assert.equal(phone.tax,'3.60');assert.equal(phone.total,'68.60');
+assert.equal(parse('Supplier\nParts total 60.00').total,'');
+assert.equal(parse('Supplier\nSubtotal 65.00\nSales Tax 3.60').total,'');
+assert.equal(parse('Supplier\nTotal 68.60\nN TOTAL 88.60').total,'');
+assert.equal(parse('Supplier\nTotal 68.60\nN TOTAL 68.60').total,'68.60');
+assert.equal(parse('Supplier\nTOTAL 68.60 88.60').total,'');
+console.log('Phone OCR: single-character label artifacts accepted; unrelated labels, missing totals and conflicting amounts remain blank.');

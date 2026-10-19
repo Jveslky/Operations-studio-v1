@@ -69,11 +69,17 @@
         const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
         // Prefer an actual reference label. Decorative headings such as
         // "TEST INVOICE - NOT PAYABLE" must never become invoice numbers.
-        const invoice = text.match(/^\s*(?:invoice\s*(?:number\b|no\.?\b|#|:)|inv\.?\s*(?:no\.?\b|#|:)|ref(?:erence)?\.?\s*(?:number\b|no\.?\b|#|:))\s*[:#-]?\s*([A-Z0-9][A-Z0-9._/-]*)\s*$/im);
+        const invoice = text.match(/^\s*(?:invoice\s*(?:number\b|no\.?\b|#|:)|inv\.?\s*(?:no\.?\b|#|:)|ref(?:erence)?\.?\s*(?:number\b|no\.?\b|#|:))\s*[:#-]?\s*([A-Z0-9][A-Z0-9._/-]*)[ \t]*[;:]?[ \t]*$/im);
         const dates = [...text.matchAll(/\b(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})\b/g)].map((match) => match[1]);
         // Line starts and full labels distinguish TOTAL from SUBTOTAL.
         // Unlabelled amounts are not reliable candidates for the bill total.
-        const labeledAmount = label => text.match(new RegExp(`^\\s*${label}\\b[ \\t]*[:$-]?[ \\t]*\\$?[ \\t]*(\\d{1,7}(?:,\\d{3})*\\.\\d{2})[ \\t]*(?:USD)?[ \\t]*$`, 'im'))?.[1]?.replaceAll(',', '') || '';
+        const labeledAmount = label => {
+            // A lone OCR artifact may precede a complete label. Do not accept
+            // arbitrary words, unlabelled prices, or conflicting candidates.
+            const pattern = new RegExp(`^[ \\t]*(?:[A-Z0-9|]?[ \\t]+)?${label}\\b[ \\t]*[:$-]?[ \\t]*\\$?[ \\t]*(\\d{1,7}(?:,\\d{3})*\\.\\d{2})[ \\t]*(?:USD)?[ \\t]*$`, 'gim');
+            const values = [...text.matchAll(pattern)].map(match => match[1].replaceAll(',', ''));
+            return new Set(values).size === 1 ? values[0] : '';
+        };
         const lower = text.toLowerCase();
         const category = lower.match(/\b(tire|tyre)\b/) ? "Tires" : lower.match(/\b(fuel|gasoline|diesel)\b/) ? "Fuel" : lower.match(/\b(tool|equipment)\b/) ? "Tools & Equipment" : lower.match(/\b(part|supply|material)\b/) ? "Parts & Supplies" : "";
         const repairOrder = text.match(/\b(?:RO|repair\s+order)\s*#?\s*([A-Z0-9-]+)\b/i);
