@@ -76,7 +76,10 @@
             if(r.error){if(/^[0-9A-Z]{5}$/.test(r.error.code||'')){localStorage.removeItem(key);pending=null;}throw r.error;}
             localStorage.removeItem(key);pending=null;rows=[];by('ap-stock-rows').replaceChildren();by('ap-stock-fields').hidden=true;by('ap-stock-save').hidden=true;
             message(`Receipt ${r.data.receipt_id} recorded. Inventory increased once; AP amount and payment status unchanged. Close and reopen to view receipt history.`);
-        }catch(e){message(`${e.message}. ${pending?'Server success is uncertain. Retry the same receipt; do not enter it again.':'No receipt saved. Review and correct before confirming.'}`);}
+        }catch(e){
+            if(e.code==='23505'&&String(e.message).includes('shop_inventory_receipt_identity'))message('This delivery has already been received. Check the previously confirmed deliveries and Inventory history. No additional stock was added.');
+            else message(`${e.message}. ${pending?'Server success is uncertain. Retry the same receipt; do not enter it again.':'No receipt saved. Review and correct before confirming.'}`);
+        }
         finally{busy=false;controls();}
     }
     window.shopAPReceiving={async open(record){

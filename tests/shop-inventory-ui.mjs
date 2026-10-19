@@ -11,7 +11,7 @@ function boot(user='owner-a'){
    if(blockRead)return new Promise(resolve=>reads.push(resolve));
    return failRead?{error:{message:'Read failed'}}:{data:{count:1,rows:[{...item,on_hand:stock}],can_receive:true,can_manage:true}};
   }
-  if(name==='shop_inventory_history')return {data:{count:1,rows:[{quantity:1,kind:'receipt',reason:'<bad>',supplier:'<supplier>',invoice_reference:'<invoice>',receipt_id:'r',delivery_reference:'D',unit_cost:4,recorded_by_email:'<staff>',recorded_at:'2026-10-16T00:00:00Z'}]}};
+  if(name==='shop_inventory_history')return {data:{count:1,rows:[{quantity:1,kind:'receipt',reason:'<bad>',supplier:'<supplier>',invoice_reference:'<invoice>',delivery_reference:'D',unit_cost:4,recorded_by_email:'<staff>',recorded_at:'2026-10-16T00:00:00Z'}]}};
   if(denyReceive)return {error:{message:'Denied by database',code:'42501'}};
   const previous=requests.get(args.p_request);if(previous){assert.equal(previous,JSON.stringify(args));return {data:{}};}
   requests.set(args.p_request,JSON.stringify(args));if(name==='receive_shop_inventory')stock+=Number(args.p_lines[0].quantity);
@@ -26,7 +26,7 @@ const submit=async(app,id)=>app.node(id).listeners.submit({preventDefault(){}});
 function fillReceipt(app){action(app,'Add to receipt').listeners.click();app.node('receipt-supplier').value='QA Supplier';app.node('receipt-invoice').value='I-1';app.node('receipt-delivery').value='D-1';const row=app.node('receipt-lines').children[0];const input=row.children[0].children[0];input.value='2';input.listeners.input();}
 let app=boot();await settle();assert.equal(calls[0].args.p_shop,'shop-a');assert.equal(calls[0].args.p_size,25);
 const html=app.node('inventory-rows').children[0].innerHTML;assert.match(html,/&lt;Part&gt;/);assert.doesNotMatch(html,/<img/);
-action(app,'History').listeners.click();await settle();assert.match(app.node('inventory-history-rows').innerHTML,/&lt;staff&gt;/);assert.doesNotMatch(app.node('inventory-history-rows').innerHTML,/<supplier>/);
+action(app,'History').listeners.click();await settle();assert.match(app.node('inventory-history-rows').innerHTML,/&lt;staff&gt;/);assert.doesNotMatch(app.node('inventory-history-rows').innerHTML,/<supplier>/);assert.match(app.node('inventory-history-rows').innerHTML,/Invoice &lt;invoice&gt;/);assert.match(app.node('inventory-history-rows').innerHTML,/Delivery D/);assert.match(app.node('inventory-history-rows').innerHTML,/\$4\.00/);
 fillReceipt(app);const before=calls.length;await submit(app,'inventory-receipt-form');assert.equal(stock,7);assert.equal(app.node('inventory-pending').hidden,false);assert.match(app.node('inventory-message').textContent,/not confirmed/);
 const write=calls.slice(before).find(c=>c.name==='receive_shop_inventory');assert.equal(write.args.p_shop,'shop-a');assert.equal(write.args.p_lines[0].quantity,2);assert.equal(storage.size,1);
 await submit(app,'inventory-receipt-form');assert.equal(calls.filter(c=>c.name==='receive_shop_inventory').length,1,'pending request prevents new writes');

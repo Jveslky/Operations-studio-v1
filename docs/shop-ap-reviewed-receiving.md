@@ -24,3 +24,9 @@ First reviewable slice. Requires the existing AP scanning migration, inventory f
 Automated SQL tests use the real AP table/policies, inventory foundation/permissions and this migration twice. Cover case conversion, partial receipts, unchanged AP totals, immutable source/exclusion audit, exact replay, duplicate delivery, stale bill, invalid rows, multi-line rollback and role/tenant denial. UI tests cover conservative extraction, explicit physical conversion, pending retries, storage failure, definitive rejection and failed history gate.
 
 Pending human QA: real supplier scans, multi-page PDFs, owner and permitted writer flows, denied roles, stale bill/reload behavior, phone/tablet/desktop layout, receipt history and counts. Actual multi-connection load testing remains part of the regional simulation. No Live migration or merge is implied by this draft.
+
+## Shop C guided QA - October 18, 2026
+
+Synthetic QA-SCAN-001 PDF read vendor, reference, both dates, subtotal 20.00, tax 0.90 and total 20.90 correctly after fixing decorative-heading/reference and subtotal/total parsing. Received two QA-Filter-1 at 7.50 each, delivery QA-DEL-001. Stock increased from 4/0/4 to 6/0/6 and persisted; AP remained 20.90 Open. Reopening showed the linked delivery, quantities, receipt ID and timestamp. Filter history showed +2, actor and time. Repeating the same delivery was rejected, and Jon confirmed unchanged inventory and duplicate rejection.
+
+Final display fixes expose the supplier/invoice/unit cost already returned by the combined stock history RPC and translate the duplicate receipt identity error into a clear no-additional-stock warning. Automated checks cover receipt details even when receipt_id is absent from that RPC response. Neither fix requires new SQL. Browser verification of these final display fixes remains pending, along with real supplier layouts and phone/tablet QA.
