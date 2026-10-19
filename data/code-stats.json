@@ -1,11 +1,11 @@
 {
-  "total": 52584,
-  "files": 277,
-  "application": 44821,
+  "total": 52669,
+  "files": 279,
+  "application": 44895,
   "database": 6225,
-  "tests": 1538,
+  "tests": 1549,
   "modules": {
-    "Shop": 22941,
+    "Shop": 23015,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
@@ -13,6 +13,6 @@
     "Shared": 4861
   },
   "branch": "feat/ap-reviewed-receiving",
-  "updated_at": "2026-10-19T02:31:30.126602+00:00",
-  "commit": "684c5f5dd60a2fd6200b94d56e1a97d5500c6691"
+  "updated_at": "2026-10-19T03:09:46.600604+00:00",
+  "commit": "ab8ccdaf9f10ed1edc09c50fe54826abd1c1a238"
 }
