@@ -13,3 +13,12 @@ resolveOcr({data:{text:'Test Supplier\nInvoice # INV-22\nTotal 120.00\nOF-1 Oil 
 const first=node('bill-form').listeners.submit(event),second=node('bill-form').listeners.submit(event);await settle();assert.equal(inserts,1,'double submit cannot create two bills');assert.match(records[0].ocr_text,/OF-1/);assert.match(records[0].document_path,/shop\//);
 resolveInsert({error:{message:'Rejected'}});await Promise.all([first,second]);assert.equal(node('bill-form').hidden,false);assert.match(node('bill-review-message').textContent,/Rejected/);
 console.log('AP scan UI: OCR keeps source and bill save together, blocks submit/close during scan, preserves extracted text and prevents simultaneous bill inserts.');
+
+const parse=vm.runInNewContext(source.slice(source.indexOf('    function normalizeDate'),source.indexOf('    async function pdfCanvases'))+';suggestionsFromText');
+const sample='QA Test Parts Supply\nSYNTHETIC TEST INVOICE - NOT PAYABLE\nINVOICE # QA-SCAN-001\nInvoice Date: 10/18/2026\nDue Date: 11/17/2026\nQA-Filter-1 Test oil filter 2 7.50 15.00\nParts 15.00\nFreight 5.00\nSubtotal 20.00\nSales Tax 0.90\nTOTAL 20.90';
+const parsed=parse(sample);assert.equal(parsed.invoice_number,'QA-SCAN-001');assert.equal(parsed.total,'20.90');assert.equal(parsed.subtotal,'20.00');assert.equal(parsed.tax,'0.90');
+assert.equal(parse('TEST INVOICE - NOT PAYABLE\nInvoice Date: 10/18/2026\nSubtotal 20.00').invoice_number,'');
+assert.equal(parse('Supplier\nSubtotal 20.00\nPrice 999.99').total,'','do not mistake subtotal or largest line price for total');
+assert.equal(parse('Supplier\nGrand Total: $1,234.56 USD').total,'1234.56');
+assert.equal(parse('Supplier\nInvoice No: ABC-123').invoice_number,'ABC-123');
+console.log('AP header extraction: decorative invoice headings ignored, actual references retained, subtotal/total distinguished and unlabeled totals left for review.');

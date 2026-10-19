@@ -67,16 +67,19 @@
     function normalizeDate(value) { if (!value) return ""; const date = new Date(value); return Number.isNaN(date.getTime()) ? "" : date.toISOString().slice(0, 10); }
     function suggestionsFromText(text) {
         const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
-        const amounts = [...text.matchAll(/(?:\$\s*)?(\d{1,7}(?:,\d{3})*\.\d{2})/g)].map((match) => Number(match[1].replaceAll(",", ""))).filter(Number.isFinite);
-        const invoice = text.match(/(?:invoice|inv\.?|reference|ref\.?)\s*(?:number|no\.?|#)?\s*[:#-]?\s*([A-Z0-9-]{3,})/i);
+        // Prefer an actual reference label. Decorative headings such as
+        // "TEST INVOICE - NOT PAYABLE" must never become invoice numbers.
+        const invoice = text.match(/^\s*(?:invoice\s*(?:number\b|no\.?\b|#|:)|inv\.?\s*(?:no\.?\b|#|:)|ref(?:erence)?\.?\s*(?:number\b|no\.?\b|#|:))\s*[:#-]?\s*([A-Z0-9][A-Z0-9._/-]*)\s*$/im);
         const dates = [...text.matchAll(/\b(\d{1,2}[\/-]\d{1,2}[\/-]\d{2,4})\b/g)].map((match) => match[1]);
-        const labeledAmount = (label) => text.match(new RegExp(`${label}\\s*[:$-]?\\s*\\$?\\s*(\\d{1,7}(?:,\\d{3})*\\.\\d{2})`, "i"))?.[1]?.replaceAll(",", "") || "";
+        // Line starts and full labels distinguish TOTAL from SUBTOTAL.
+        // Unlabelled amounts are not reliable candidates for the bill total.
+        const labeledAmount = label => text.match(new RegExp(`^\\s*${label}\\b[ \\t]*[:$-]?[ \\t]*\\$?[ \\t]*(\\d{1,7}(?:,\\d{3})*\\.\\d{2})[ \\t]*(?:USD)?[ \\t]*$`, 'im'))?.[1]?.replaceAll(',', '') || '';
         const lower = text.toLowerCase();
         const category = lower.match(/\b(tire|tyre)\b/) ? "Tires" : lower.match(/\b(fuel|gasoline|diesel)\b/) ? "Fuel" : lower.match(/\b(tool|equipment)\b/) ? "Tools & Equipment" : lower.match(/\b(part|supply|material)\b/) ? "Parts & Supplies" : "";
         const repairOrder = text.match(/\b(?:RO|repair\s+order)\s*#?\s*([A-Z0-9-]+)\b/i);
         return {
             vendor: lines[0] || "", invoice_number: invoice?.[1] || "", invoice_date: normalizeDate(dates[0]), due_date: normalizeDate(dates[1]),
-            subtotal: labeledAmount("subtotal"), tax: labeledAmount("(?:sales\\s+)?tax"), total: labeledAmount("(?:amount\\s+due|invoice\\s+total|grand\\s+total|total)") || (amounts.length ? Math.max(...amounts) : ""),
+            subtotal: labeledAmount("subtotal"), tax: labeledAmount("(?:sales\\s+)?tax"), total: labeledAmount("(?:amount\\s+due|invoice\\s+total|grand\\s+total|total)"),
             category, repair_order_id: repairOrder?.[1] || ""
         };
     }
