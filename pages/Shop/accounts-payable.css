@@ -561,3 +561,14 @@ body {
 .ap-stock-dialog button { margin: .3rem; padding: .5rem .7rem; }
 .ap-stock-row { border-top: 1px solid #68707866; padding: .75rem 0; overflow-wrap: anywhere; }
 .ap-stock-dialog #ap-stock-message { font-weight: 600; }
+
+.document-scanner { width: min(94vw, 760px); max-height: 94dvh; overflow: auto; background: #f4f1eb; color: #242b2f; border: 2px solid #525b60; border-radius: 8px; padding: 18px; }
+.document-scanner::backdrop { background: #111c; }
+.document-scanner canvas { display: block; width: 100%; height: auto; touch-action: none; margin: 12px 0; }
+.scan-actions { display: flex; flex-wrap: wrap; gap: 10px; position: sticky; bottom: 0; background: #f4f1eb; padding: 12px 0; }
+.scan-actions button { min-height: 44px; padding: 10px; }
+.scan-corners { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.scan-corners input { width: 45%; min-height: 44px; }
+#bill-ocr-source { margin: 16px 0; }
+#bill-ocr-source summary { cursor: pointer; padding: 12px; }
+#bill-ocr-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; padding: 12px; background: #eee8df; }

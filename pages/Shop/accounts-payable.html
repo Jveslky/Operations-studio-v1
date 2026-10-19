@@ -255,6 +255,7 @@
 
             </div>
             <p id="bill-review-message" class="bill-review-message" role="status" aria-live="polite"></p>
+            <details id="bill-ocr-source" hidden><summary>Review captured OCR text</summary><pre id="bill-ocr-text"></pre></details>
             <div id="bill-duplicate-warning" class="bill-duplicate-warning" hidden></div>
 
 
@@ -291,6 +292,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="./ap-parts-review.js"></script>
     <script src="./ap-receiving.js"></script>
+    <script src="./document-scanner.js"></script>
     <script src="./accounts-payable.js"></script>
 
 </body>

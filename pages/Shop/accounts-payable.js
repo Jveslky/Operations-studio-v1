@@ -52,7 +52,7 @@
 
     function openForm(scanning) {
         if(scanBusy||saveBusy)return;
-        scanMode = scanning; form.reset(); documentPath = null; ocrText = ""; warning.hidden = true;
+        scanMode = scanning; form.reset(); documentPath = null; ocrText = ""; warning.hidden = true; byId("bill-ocr-source").hidden=true;
         fileField.hidden = !scanning; fileInput.required = scanning; form.hidden = false;
         setMessage(scanning ? "Choose an invoice to upload privately and prepare OCR suggestions." : "Enter and confirm the bill details.", "");
         form.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -96,8 +96,8 @@
         return result;
     }
 
-    async function runOcr(file) {
-        const sources = file.type === "application/pdf" ? await pdfCanvases(file) : [file]; let combined = "";
+    async function runOcr(file, prepared) {
+        const sources = file.type === "application/pdf" ? await pdfCanvases(file) : [prepared || file]; let combined = "";
         for (let index = 0; index < sources.length; index += 1) { setMessage(`Reading page ${index + 1} of ${sources.length}…`, ""); const result = await Tesseract.recognize(sources[index], "eng"); combined += `${result.data.text}\n`; }
         return combined;
     }
@@ -111,18 +111,21 @@
     fileInput.addEventListener("change", async function () {
         const file = fileInput.files[0]; if (!file || scanBusy || saveBusy) return;
         scanBusy=true;fileInput.disabled=true;
-        ocrText='';
+        ocrText=''; byId('bill-ocr-source').hidden=true;
         try {
             if (documentPath) { const removed=await client.storage.from("shop-ap-documents").remove([documentPath]);if(removed.error)throw removed.error;documentPath=null; }
             if (!["application/pdf", "image/jpeg", "image/png"].includes(file.type) || !file.size || file.size > 20 * 1024 * 1024) throw Error("Use a PDF, JPG, or PNG no larger than 20 MB.");
+            const prepared=file.type === "application/pdf" ? null : await window.shopDocumentScanner.prepare(file);
+            if(file.type !== "application/pdf" && !prepared){fileInput.value="";setMessage("Scan cancelled. Choose a new photo or document.", "");return;}
             for(const field of Object.values(fields))field.value='';
             const path = `${context.shopId}/${crypto.randomUUID()}.${file.name.split(".").pop().replace(/[^a-z0-9]/gi, "").toLowerCase()}`;
             setMessage("Uploading the original privately…", "");
             const upload = await client.storage.from("shop-ap-documents").upload(path, file, { contentType: file.type });
             if(upload.error)throw upload.error;documentPath=path;
-            ocrText = await runOcr(file); const suggestions = suggestionsFromText(ocrText);
+            ocrText = await runOcr(file, prepared); byId("bill-ocr-text").textContent=ocrText || "No readable text found. Retake the scan or enter the bill manually.";byId("bill-ocr-source").hidden=false; const suggestions = suggestionsFromText(ocrText);
             Object.entries(suggestions).forEach(([name, value]) => { if (value !== "") fields[name].value = value; });
-            await checkDuplicates(); setMessage("OCR suggestions are ready. Review every value before creating the bill. After saving, use Review parts for receiving.", "success");
+            const missing=["subtotal","tax","total"].filter(name=>suggestions[name] === "");
+            await checkDuplicates(); setMessage(missing.length ? `Scan needs review: ${missing.join(", ")} not recognized. Compare the original and fill missing values. Captured text is available below.` : "OCR suggestions are ready. Review every value before creating the bill. After saving, use Review parts for receiving.", missing.length ? "error" : "success");
         } catch (error) { setMessage(`${documentPath?'Original saved; enter values manually.':'Upload not confirmed.'} ${error.message}`, "error"); }
         finally {scanBusy=false;fileInput.disabled=false;}
 
