@@ -1,18 +1,18 @@
 {
-  "total": 51793,
-  "files": 267,
-  "application": 44619,
-  "database": 5876,
-  "tests": 1298,
+  "total": 52258,
+  "files": 271,
+  "application": 44666,
+  "database": 6166,
+  "tests": 1426,
   "modules": {
-    "Shop": 22739,
+    "Shop": 22786,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
     "Shared": 4861
   },
-  "branch": "master",
-  "updated_at": "2026-10-19T01:08:22.368277+00:00",
-  "commit": "49e72a8e4cd36dd3ee2bb4813260a97791599979"
+  "branch": "feat/supplement-inventory-holds",
+  "updated_at": "2026-10-19T01:19:20.029723+00:00",
+  "commit": "4e86c96e75ab278b1e2b8b739f521162be6d97b3"
 }
