@@ -164,14 +164,20 @@
     async function update(order) {
         const authContext = await context();
 
-        if (order.status === "Ready for Payment" && order.estimateStockLines?.length) {
+        if (order.status === "Ready for Payment" && order.estimateStockLines !== undefined) {
             const current = await get(order.id);
             if (current.status !== "Ready for Payment") {
                 if (JSON.stringify(current.estimateStockLines) !== JSON.stringify(order.estimateStockLines)) throw Error("Save stocked lines before marking Ready for Payment.");
-                const summary = current.estimateStockLines.map(x => `${x.part_number}: ${x.quantity} ${x.stock_unit}`).join("\n");
-                if (!window.confirm("Ready for Payment: consume these held parts?\n" + summary + "\nPreviously consumed parts will not be deducted again.")) throw Error("Stock consumption canceled. No changes saved.");
-                const confirmed = await client.rpc("confirm_shop_ro_stock", {p_ro: order.recordId, p_lines: current.estimateStockLines});
-                if (confirmed.error) throw confirmed.error;
+                const manifest = await client.rpc("get_shop_supplement_stock", {p_ro:order.recordId});
+                if (manifest.error) throw manifest.error;
+                const supplements = manifest.data || [];
+                const summary = [ ...current.estimateStockLines.map(x => `Original estimate — ${x.part_number}: ${x.quantity} ${x.stock_unit}`),
+                    ...supplements.flatMap(s => s.lines.map(x => `Supplement ${s.number} · Rev. ${s.revision} — ${x.part_number}: ${x.quantity} ${x.stock_unit}`)) ].join("\n");
+                if (summary) {
+                    if (!window.confirm("Ready for Payment: consume these held parts?\n" + summary + "\nPreviously consumed parts will not be deducted again.")) throw Error("Stock consumption canceled. No changes saved.");
+                    const confirmed = await client.rpc("confirm_shop_all_ro_stock", {p_ro:order.recordId,p_baseline:current.estimateStockLines,p_supplements:supplements});
+                    if (confirmed.error) throw confirmed.error;
+                }
             }
         }
         if (authContext.role === "technician") {

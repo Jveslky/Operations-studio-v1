@@ -30,6 +30,7 @@
         const el = id => document.getElementById(id), section = el('supplemental-estimates');
         if (!window.trackRightCan('repair_orders.write')) {section.hidden=true; return;}
         const editor = el('supplement-editor'), approvalDialog = el('supplement-approval-dialog'), sendDialog=el('supplement-send-dialog');
+        let stockEditor=null,taxSettings=null,approvalTotal=null;
         let supplements=[],history=[], editing=null, approving=null, sending=null, locked=false, ready=false, busy=false, evidencePath=null, evidenceFile=null;
         const priceKeys=['labor_hours','labor_rate','parts_total','other_charges','discount'];
         function message(error) {el('supplement-message').textContent=error.message || String(error);}
@@ -42,12 +43,20 @@
                 estimate[key]=Number(raw);
             }
             if(!estimate.description) throw new Error('Describe the additional work.');
+            if(stockEditor)estimate.stock_lines=stockEditor.lines();
             return estimate;
         }
-        function preview() {try{el('supplement-total').textContent=money(financials(readEditor()).subtotal);}catch{el('supplement-total').textContent='Complete the work description and pricing.';}}
+        function taxed(s) {
+            const captured=s.status==='Approved'?history.find(a=>a.supplement_id===s.id&&a.revision===s.revision)?.estimate_snapshot?.authorization_tax_snapshot:null;
+            if(captured)return captured;
+            if(!taxSettings)throw Error('Tax settings unavailable. Reload before approving or sharing a supplement.');
+            return window.shopEstimateTax.totals({estimateLaborHours:1,estimateLaborRate:financials(s).laborTotal,estimatePartsTotal:s.parts_total,estimateOtherCharges:s.other_charges,estimateMiscFeeTaxable:s.other_taxable===true,estimateDiscount:s.discount},taxSettings);
+        }
+        function preview() {try{const f=taxed(readEditor());el('supplement-total').textContent=`${money(f.total)} (${money(f.subtotal)} + ${money(f.tax)} tax)`;}catch{el('supplement-total').textContent='Complete the work description and pricing.';}}
         function addLine(parent,text,tag='p') {const n=document.createElement(tag);n.textContent=text;parent.append(n);return n;}
-        function button(parent,label,action,readOnly=false) {const n=document.createElement('button');n.type='button';n.textContent=label;n.className='secondary-btn';n.disabled=false;if(locked&&!readOnly){n.textContent=label+' — Locked';n.setAttribute('aria-disabled','true');n.title='This repair order has been invoiced. Supplemental changes and sending are locked.';}n.addEventListener('click',()=>{try{if(locked&&!readOnly){const notice='This repair order has been invoiced. Supplemental estimates are locked to preserve the invoice snapshot. Printing and approval evidence remain available.';message(notice);window.alert(notice);return;}if(!readOnly)assertClean();action();}catch(e){message(e);}});parent.append(n);}
-        function openEditor(s=null) {
+        function button(parent,label,action,readOnly=false) {const n=document.createElement('button');n.type='button';n.textContent=label;n.className='secondary-btn';n.disabled=false;if(locked&&!readOnly){n.textContent=label+' — Locked';n.setAttribute('aria-disabled','true');n.title='This repair order has been invoiced. Supplemental changes and sending are locked.';}n.addEventListener('click',()=>{try{if(locked&&!readOnly){const notice='This repair order has been invoiced. Supplemental estimates are locked to preserve the invoice snapshot. Printing and approval evidence remain available.';message(notice);window.alert(notice);return;}if(!readOnly)assertClean();return Promise.resolve(action()).catch(message);}catch(e){message(e);}});parent.append(n);}
+        async function openEditor(s=null) {
+            stockEditor=null;el("supplement-stock-editor").replaceChildren();
             editing=s;el('supplement-editor-title').textContent=s?`Edit Supplement ${s.supplement_number} · Rev. ${s.revision}`:'Add supplemental estimate';
             el('supplement-description').value=s?.description || '';el('supplement-notes').value=s?.notes || '';
             for(const key of priceKeys) {
@@ -57,21 +66,25 @@
             el('supplement-other-taxable').checked=s?.other_taxable===true;
             el('supplement-status').value=s?.status==='Approved'?'Draft':s?.status || 'Draft';
             el('supplement-editor-help').textContent=s?.status==='Approved'?'Changing the approved work or pricing creates a new Draft revision. Earlier authorization is preserved.':'';
-            el('supplement-editor-error').textContent='';preview();editor.showModal();
+            el('supplement-editor-error').textContent='';
+            if(s?.stock_lines!==undefined || !s) {
+                stockEditor=await window.shopROInventory.mount({order:{...order,estimateStockLines:s?.stock_lines||[]},totalInput:el('supplement-parts_total'),hostElement:el('supplement-stock-editor'),titleText:'Stocked supplement parts',allowReturns:false,changed:preview});
+            }
+            preview();editor.showModal();
         }
         function openApproval(s) {
-            approving=s;evidencePath=null;evidenceFile=null;el('supplement-evidence').value='';
+            approving=s;approvalTotal=taxed(s).total;evidencePath=null;evidenceFile=null;el('supplement-evidence').value='';
             el('supplement-approval-title').textContent=`Authorize Supplement ${s.supplement_number}`;
-            el('supplement-approval-summary').textContent=`Rev. ${s.revision} · ${s.description} · Entire supplement: ${money(s.total)}`;
+            el('supplement-approval-summary').textContent=`Rev. ${s.revision} · ${s.description} · Entire supplement including tax: ${money(approvalTotal)}${(s.stock_lines||[]).map(x=>` · ${x.part_number}: ${x.quantity} ${x.stock_unit}`).join('')}`;
             el('supplement-contact-choice').value=order.customer?'customer':'other';el('supplement-contact').value='';contactFields();
             el('supplement-method').value='';el('supplement-authorization-notes').value='';el('supplement-approval-error').textContent='';approvalDialog.showModal();
         }
         function contactFields() {el('supplement-contact-label').hidden=el('supplement-contact-choice').value!=='other';}
         el('supplement-contact-customer').textContent=order.customer || 'RO customer';
         el('supplement-contact-choice').addEventListener('change',contactFields);
-        function documentText(s) {
-            const f=financials(s);
-            return [`Supplement ${s.supplement_number} · Rev. ${s.revision}`,`RO #${order.id}`,`Customer: ${order.customer || ''}`,`Vehicle: ${order.unit || ''}`,`Status: ${s.status}`,`Additional work: ${s.description}`,`Labor: ${s.labor_hours} hours × ${money(s.labor_rate)} = ${money(f.laborTotal)}`,`Parts: ${money(s.parts_total)}`,`Other charges: ${money(s.other_charges)} (${s.other_taxable?'taxable':'non-taxable'})`,`Discount: ${money(s.discount)}`,`Supplement total before invoice tax: ${money(s.total)}`,`Notes: ${s.notes || ''}`,'This supplement is additional to the original estimate.'].join('\n');
+        function documentText(s,historical=false) {
+            const f=financials(s),tax=s.authorization_tax_snapshot || (historical?null:taxed(s));
+            return [`Supplement ${s.supplement_number} · Rev. ${s.revision}`,`RO #${order.id}`,`Customer: ${order.customer || ''}`,`Vehicle: ${order.unit || ''}`,`Status: ${s.status}`,`Additional work: ${s.description}`,`Labor: ${s.labor_hours} hours × ${money(s.labor_rate)} = ${money(f.laborTotal)}`,`Parts: ${money(s.parts_total)}`,...(s.stock_lines||[]).map(x=>`${x.part_number} · ${x.description} · ${x.quantity} ${x.stock_unit} × ${money(x.unit_price)}`),`Other charges: ${money(s.other_charges)} (${s.other_taxable?'taxable':'non-taxable'})`,`Discount: ${money(s.discount)}`,`Subtotal: ${money(f.subtotal)}`,`Tax: ${tax?money(tax.tax):"Not captured in this historical authorization"}`,`Supplement total${tax?"":" before invoice tax"}: ${money(tax?tax.total:s.total)}`,`Notes: ${s.notes || ''}`,'This supplement is additional to the original estimate.'].join('\n');
         }
         function print(s) {
             const popup=window.open('','_blank');if(!popup) throw new Error('Allow the print window and retry.');
@@ -83,9 +96,14 @@
             if(!supplements.length) addLine(list,'No supplemental estimates yet.');
             for(const s of supplements) {
                 const article=document.createElement('article');article.className='approval-history-entry';
-                addLine(article,`Supplement ${s.supplement_number} · Rev. ${s.revision} · ${s.status} · ${money(s.total)}`,'strong');addLine(article,s.description);
+                addLine(article,`Supplement ${s.supplement_number} · Rev. ${s.revision} · ${s.status} · ${money(taxed(s).total)} including tax`,'strong');addLine(article,s.description);
                 addLine(article,`Labor ${s.labor_hours} hrs × ${money(s.labor_rate)} · Parts ${money(s.parts_total)} · Other ${money(s.other_charges)} · Discount ${money(s.discount)}`);
                 if(s.notes)addLine(article,s.notes);
+                for(const line of s.stock_lines||[]) {
+                    const stockRow=document.createElement('div');stockRow.className='ro-stock-line';addLine(stockRow,`${line.part_number} · ${line.quantity} ${line.stock_unit}`,'span');
+                    if(locked&&window.trackRightCan('inventory.manage'))button(stockRow,'Return unused stock',()=>window.shopSupplementStock.returnPart(order,s,line,message),true);
+                    article.append(stockRow);
+                }
                 const actions=document.createElement('div');actions.className='detail-actions';
                 button(actions,'Edit',()=>openEditor(s));
                 if(s.status!=='Approved')button(actions,'Record approval',()=>openApproval(s));
@@ -95,7 +113,7 @@
                 const approvals=history.filter(a=>a.supplement_id===s.id);
                 for(const a of approvals) {
                     const details=document.createElement('details');addLine(details,`Authorization Rev. ${a.revision} · ${money(a.authorized_amount)} · ${a.revision===s.revision&&s.status==='Approved'?'Current supplement approval':'Earlier authorization'} — View snapshot`,'summary');
-                    addLine(details,`Authorized by ${a.customer_contact} · ${a.method}`);addLine(details,`Recorded by ${a.recorded_by_email} · ${new Date(a.recorded_at).toLocaleString()}`);addLine(details,`Customer acknowledgment: ${a.notes || 'None recorded'}`);addLine(details,documentText(a.estimate_snapshot),'pre');
+                    addLine(details,`Authorized by ${a.customer_contact} · ${a.method}`);addLine(details,`Recorded by ${a.recorded_by_email} · ${new Date(a.recorded_at).toLocaleString()}`);addLine(details,`Customer acknowledgment: ${a.notes || 'None recorded'}`);addLine(details,documentText(a.estimate_snapshot,true),'pre');
                     if(a.evidence_path)button(details,'Open approval evidence',async()=>{try{const r=await client.storage.from('shop-approval-evidence').download(a.evidence_path);if(r.error)throw r.error;const url=URL.createObjectURL(r.data),link=document.createElement('a');link.href=url;link.download=a.evidence_name || 'authorization';link.click();setTimeout(()=>URL.revokeObjectURL(url),60000);}catch(e){message(e);}},true);
                     article.append(details);
                 }
@@ -105,11 +123,12 @@
         async function load() {
             const invoices=await window.trackRightInvoices.list();locked=invoices.some(i=>i.repairOrderRecordId===order.recordId);
             [supplements,history]=await Promise.all([window.trackRightSupplements.list(order.recordId),window.trackRightSupplements.history(order.recordId)]);
+            const ctx=await window.trackRightAuthReady;taxSettings=await window.shopEstimateTax.resolve(client,ctx.shopId,order.customerId);
             ready=true;el('supplement-add').disabled=locked;
             el('supplement-message').textContent=locked?'This repair order is invoiced. Supplemental estimates are locked; their snapshots remain available.':'Approved supplements are added to the invoice once. Draft, Sent and Declined supplements are excluded.';render();
         }
         el('supplement-add').disabled=true;
-        el('supplement-add').addEventListener('click',()=>{try{assertClean();if(ready&&!locked)openEditor();}catch(e){message(e);}});
+        el('supplement-add').addEventListener('click',async()=>{try{assertClean();if(ready&&!locked)await openEditor();}catch(e){message(e);}});
         for(const n of editor.querySelectorAll('input,textarea,select'))n.addEventListener('input',preview);
         for(const key of priceKeys) {
             const input=el('supplement-'+key);
@@ -128,7 +147,7 @@
                 const file=el('supplement-evidence').files[0];
                 if(file){if(file.size===0||file.size>10*1024*1024||!['application/pdf','image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Evidence must be PDF, JPG, PNG or WebP up to 10 MB.');
                     if(file!==evidenceFile){const ctx=await window.trackRightAuthReady;const ext={'application/pdf':'pdf','image/jpeg':'jpg','image/png':'png','image/webp':'webp'}[file.type];const path=`${ctx.shopId}/${order.recordId}/${crypto.randomUUID()}.${ext}`;const r=await client.storage.from('shop-approval-evidence').upload(path,file,{contentType:file.type,upsert:false});if(r.error)throw r.error;evidencePath=path;evidenceFile=file;}}
-                await approve(approving,{method,customer_contact:contact,notes,evidence_path:file?evidencePath:null,evidence_name:file?file.name:null});approvalDialog.close();window.location.reload();
+                await approve(approving,{expected_total:approvalTotal,method,customer_contact:contact,notes,evidence_path:file?evidencePath:null,evidence_name:file?file.name:null});approvalDialog.close();window.location.reload();
             } catch(e){el('supplement-approval-error').textContent=e.message;}finally{busy=false;el('supplement-approve').disabled=false;}
         });
         for(const id of ['supplement-editor','supplement-approval-dialog','supplement-send-dialog'])el(id).querySelector('[data-close]').addEventListener('click',()=>el(id).close());

@@ -465,7 +465,7 @@
 
         <section id="supplemental-estimates" class="detail-card">
             <h2>Supplemental estimates</h2>
-            <p>Price additional work separately from the original estimate. Totals are before invoice tax.</p>
+            <p>Price additional work separately from the original estimate. Review applicable tax before authorization.</p>
             <button id="supplement-add" type="button" class="primary-btn">Add supplemental estimate</button>
             <p id="supplement-message" role="status" aria-live="polite">Loading supplemental estimates…</p>
             <div id="supplement-list"></div>
@@ -491,7 +491,8 @@
             <label><input id="supplement-other-taxable" type="checkbox"> Other charges taxable</label>
             <label>Estimate notes<textarea id="supplement-notes" class="detail-input" rows="3" maxlength="4000"></textarea></label>
         </div>
-        <p>Supplement total before invoice tax: <strong id="supplement-total"></strong></p>
+        <div id="supplement-stock-editor"></div>
+        <p>Supplement total including tax: <strong id="supplement-total"></strong></p>
         <p id="supplement-editor-error" role="alert"></p>
         <div class="approval-dialog-actions"><button type="button" data-close>Cancel</button><button id="supplement-save" type="button" class="primary-btn">Save supplemental estimate</button></div>
         <p>Saves this supplement immediately. The original estimate remains separate.</p>
@@ -627,6 +628,7 @@
     <script src="./shop-invoices-data.js"></script>
     <script src="./shop-workflow.js"></script>
     <script src="./estimate-approval-audit.js"></script>
+    <script src="./shop-supplement-stock.js"></script>
     <script src="./shop-supplemental-estimates.js"></script>
     <script src="./shop-estimate-tax.js"></script>
     <script src="./shop-ro-inventory.js"></script>
