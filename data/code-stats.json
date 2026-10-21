@@ -1,7 +1,7 @@
 {
-  "total": 52928,
-  "files": 278,
-  "application": 44785,
+  "total": 52941,
+  "files": 279,
+  "application": 44798,
   "database": 6496,
   "tests": 1647,
   "modules": {
@@ -10,9 +10,9 @@
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
-    "Shared": 4942
+    "Shared": 4955
   },
-  "branch": "master",
-  "updated_at": "2026-10-21T04:30:50.980322+00:00",
-  "commit": "bb9b723fb2529753bd561f793e8814f73d510cc6"
+  "branch": "preview/shop-workspace",
+  "updated_at": "2026-10-21T05:10:23.412038+00:00",
+  "commit": "ea61baf07dc6c198d5885ef0eea8354fd36858b6"
 }
