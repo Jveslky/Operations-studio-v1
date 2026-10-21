@@ -28,7 +28,7 @@ function mount({context,header,rootPath}){
  const settings=document.createElement('button');settings.type='button';settings.textContent='⚙';settings.setAttribute('aria-label','Utility bar settings');dock.append(settings);
  const panel=document.createElement('dialog');panel.className='ls-utility-settings';panel.setAttribute('aria-label','Utility bar settings');
  const title=document.createElement('h2');title.textContent='Your utility bar';const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';label.append(input,document.createTextNode(' Show utility bar on phone'));
- const close=document.createElement('button');close.type='button';close.textContent='Close';close.onclick=()=>panel.close();panel.append(title,label,close);document.body.append(dock,panel);
+ const close=document.createElement('button');close.type='button';close.className='ls-utility-close';close.textContent='Close';close.onclick=()=>panel.close();panel.append(title,label,close);document.body.append(dock,panel);
  const fallback=document.createElement('div');fallback.className='ls-phone-alert-host';
  const compact=document.createElement('div');compact.className='ls-header-actions';
  const account=header.querySelector('#account-controls');
@@ -43,7 +43,7 @@ function mount({context,header,rootPath}){
  // Settings stay reachable while the phone bar is disabled.
  const customize=document.createElement('button');customize.type='button';customize.className='ls-phone-customize';customize.textContent='Utilities';customize.setAttribute('role','menuitem');customize.tabIndex=-1;
  customize.onclick=()=>{const controls=header.querySelector('#account-controls');if(controls){const menu=controls.querySelector('.account-menu');if(menu)menu.hidden=true;controls.classList.remove('open');const b=controls.querySelector('.account-menu-button');if(b)b.setAttribute('aria-expanded','false')}panel.showModal()};
- const accountMenu=header.querySelector('.account-menu');if(accountMenu)accountMenu.prepend(customize);else header.append(customize);
+ const accountMenu=header.querySelector('.account-menu');if(accountMenu)menuTitle.after(customize);else header.append(customize);
  const ticker=document.createElement('div');ticker.className='ls-ticker';ticker.hidden=true;ticker.setAttribute('role','status');document.body.append(ticker);let known=null,timer;
  window.addEventListener('longshift:alerts',e=>{const f=e.detail;phoneAlert.setAttribute('aria-label','Alerts, '+f.unread+' unread');phoneAlert.dataset.unread=f.unread?String(f.unread):'';if(known){const fresh=f.items.find(a=>!known.has(a.id)&&!a.read_at&&!a.resolved_at);if(fresh&&!document.hidden&&(!media.matches||enabled)){ticker.textContent=fresh.title;ticker.hidden=false;clearTimeout(timer);timer=setTimeout(()=>ticker.hidden=true,4500)}}known=new Set(f.items.map(a=>a.id))});
  window.addEventListener('pagehide',()=>{clearTimeout(timer);media.removeEventListener('change',place)},{once:true});
