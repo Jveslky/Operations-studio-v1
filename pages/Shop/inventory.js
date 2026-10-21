@@ -6,6 +6,8 @@
     const quantity=value=>Number(value||0).toLocaleString('en-US',{maximumFractionDigits:3});
     let context,page=0,count=0,generation=0,historyGeneration=0,historyPage=0,historyCount=0,historyItem=null,timer;
     let rows=[],basket=[],editing=null,adjusting=null,canReceive=false,canManage=false,loaded=false,busy=false,pending=null,storageKey='',dirty=false;
+    const receivingView=new URLSearchParams(window.location.search).get('view')==='receiving';
+    if(receivingView){document.querySelector('.inventory-heading h1').textContent='Receiving';document.title='Receiving | Long Shift';el('inventory-receipt').hidden=false;}
     const allowedRPCs=new Set(['save_shop_inventory_item','receive_shop_inventory','adjust_shop_inventory']);
     function readPending(){
         const keys=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key===storageKey||key?.startsWith(storageKey+':'))keys.push(key);}
@@ -29,6 +31,7 @@
         el('inventory-retry').disabled=busy||!pending;
         el('inventory-pending').hidden=!pending;
         if(pending)el('inventory-pending-text').textContent=pending.summary+' This request is saved on this browser, but server success is not confirmed. Retry the same save before making another change.';
+        if(receivingView)el('inventory-receipt').hidden=false;
         pager();render();
     }
     function pager(){el('inventory-previous').disabled=page===0||!loaded;el('inventory-next').disabled=!loaded||(page+1)*25>=count;el('inventory-page-label').textContent=count?`${page*25+1}–${Math.min((page+1)*25,count)} of ${count}`:'0 parts';}
@@ -79,7 +82,7 @@
         basket.push({item,quantity:'1',unit_cost:item.last_unit_cost==null?'':String(item.last_unit_cost)});renderBasket();controls();
     }
     function renderBasket(){
-        el('inventory-receipt').hidden=!basket.length;const container=el('receipt-lines');container.replaceChildren();
+        el('inventory-receipt').hidden=!receivingView&&!basket.length;const container=el('receipt-lines');container.replaceChildren();
         for(const line of basket){
             const row=document.createElement('div');row.className='receipt-line';row.innerHTML=`<div><strong>${escape(line.item.part_number)}</strong><p>${escape(line.item.description)} · ${escape(line.item.stock_unit)}</p></div>`;
             for(const [key,label,step,max] of [['quantity','Received stock units','0.001','99999999999.999'],['unit_cost','Cost / stock unit','0.0001','9999999999.9999']]){

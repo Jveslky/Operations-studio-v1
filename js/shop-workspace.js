@@ -9,13 +9,17 @@ function mount({context,header,rootPath}){
  const page=p=>p.replace(/\/+$/,'').split('/').pop().replace(/\.html$/,'');
  const current=page(location.pathname),can=window.trackRightCan;
  const permission={customers:'customers.read','repair-orders':'repair_orders.read',invoices:'invoices.read','accounts-payable':'expenses.read',schedule:'schedule.manage',inventory:'inventory.read'};
- const category=p=>/invoice|accounts-payable|net-accounts|report/.test(p)?'Finance':/inventory|receiving/.test(p)?'Inventory':'Workflow';
+ const category=p=>/invoice|accounts-payable|net-accounts|report/.test(p)?'Finance':/inventory|receiving|prebuilt-jobs/.test(p)?'Inventory':'Workflow';
  if(nav){
   const entries=Array.from(nav.querySelectorAll('a')).filter(a=>{const p=page(new URL(a.href,location.href).pathname);return !permission[p]||can(permission[p])}).map(a=>({a,p:page(new URL(a.href,location.href).pathname)}));
-  const groups=['Workflow','Inventory','Finance'].filter(g=>entries.some(e=>category(e.p)===g));
+  const parts=entries.find(e=>e.p==='inventory');
+  if(parts){parts.a.textContent='Parts';const a=document.createElement('a');a.href=parts.a.href.split('?')[0]+'?view=receiving';a.textContent='Receiving';entries.push({a,p:'receiving'});}
+  const inventoryOrder=['inventory','receiving','prebuilt-jobs'];entries.sort((a,b)=>{const x=inventoryOrder.indexOf(a.p),y=inventoryOrder.indexOf(b.p);return x-y});
+  const groups=['Workflow' ,'Inventory','Finance'].filter(g=>entries.some(e=>category(e.p)===g));
   let selected=category(current);if(!groups.includes(selected))selected=groups[0];
   const top=document.createElement('nav'),bottom=document.createElement('nav');top.className='ls-groups';top.setAttribute('aria-label','Shop sections');bottom.className='ls-pages';bottom.setAttribute('aria-label','Shop pages');
-  const active=p=>p===current||(p==='repair-orders'&&current==='repair-order-details')||(p==='invoices'&&current==='invoice-details');
+  const receiving=current==='inventory'&&new URL(location.href).searchParams.get('view')==='receiving';
+  const active=p=>p==='receiving'?receiving:(p===current&&!(p==='inventory'&&receiving))||(p==='repair-orders'&&current==='repair-order-details')||(p==='invoices'&&current==='invoice-details');
   const strip=document.createElement('div');strip.className='ls-page-strip';
   function arrow(direction){const b=document.createElement('button');b.type='button';b.className='ls-nav-arrow ls-nav-'+direction;b.setAttribute('aria-label',direction==='next'?'Show more Shop pages':'Show previous Shop pages');b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="'+(direction==='next'?'M9 5l7 7-7 7':'M15 5l-7 7 7 7')+'"/></svg>';b.onclick=()=>bottom.scrollBy({left:(direction==='next'?1:-1)*Math.max(120,bottom.clientWidth*.7),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});return b}
   const previous=arrow('previous'),next=arrow('next');previous.hidden=next.hidden=true;strip.append(previous,bottom,next);
