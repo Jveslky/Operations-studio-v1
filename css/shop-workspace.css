@@ -22,3 +22,11 @@
  .shop-workspace .ls-pages{min-height:49px;padding:7px 0}
  .shop-workspace .ls-pages a{flex:0 0 auto;padding:9px 10px}
 }
+/* Keep the phone brand beside the menu; reserve space for account and alerts. */
+@media(max-width:700px){
+ .shop-workspace .ls-header{grid-template-columns:32px minmax(0,1fr) auto;column-gap:10px!important}
+ .shop-workspace .ls-header>.app-brand{justify-self:start;align-items:flex-start;text-align:left}
+ .shop-workspace .ls-header .brand-title{font-size:20px!important}
+ .shop-workspace .ls-header .brand-module{font-size:8px!important;letter-spacing:.7px}
+ .shop-workspace .ls-header-actions{gap:5px}
+}
