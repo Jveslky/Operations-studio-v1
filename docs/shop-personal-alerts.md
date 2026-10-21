@@ -24,3 +24,7 @@ Manual Test walkthrough (not yet performed):
 5. Unassign tech: old RO alert content disappears. Disable membership and verify feed access fails. Verify another shop cannot retrieve this shop's feed.
 
 Remaining alert types: confirmed web payments, low-stock threshold crossings, new team documents and PTO requests. Integration into the utility bar and event-driven updates remain future slices.
+
+## Shop C manual QA — October 20, 2026
+
+Confirmed assignment alerts for ROs 1014/1015; opening 1015 marked that alert read and retained both records. Estimate authorization on 1015 produced one new alert; explicit mark-read persisted. Personal assignment opt-out suppressed a fresh assignment. Required-by-shop locked the preference and delivered RO1017 despite the opt-out (four total, two unread). Unassigning 1017 hid its alert (three total, one unread). Disabling assignment alerts shop-wide suppressed the fresh RO1018 assignment. Core walkthrough passed; PR114 merged separately from prebuilts.

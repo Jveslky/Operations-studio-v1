@@ -25,5 +25,15 @@ const required=prefs.children[3].children[0].children[0];assert.equal(required.d
 fail=true;checkbox.checked=true;await checkbox.events.change();assert.equal(checkbox.checked,false);assert.match(dialog.children[3].textContent,/offline/);
 const read=list.children[1].children[2];await read.events.click();assert.equal(read.disabled,false);assert.equal(button.textContent,'Alerts (1)');
 fail=false;await read.events.click();await flush();assert.equal(button.textContent,'Alerts');assert.equal(list.children[1].children[2].disabled,true);
+items=[{id:'stock',event_type:'stock_low',source_record_id:'part',title:'Stock',created_at:'2026-10-21',resolved_at:'now'},
+{id:'payment',event_type:'payment_recorded',title:'Payment',created_at:'2026-10-21'},
+{id:'pto',event_type:'pto_requested',title:'PTO',created_at:'2026-10-21'},
+{id:'doc',event_type:'team_document_shared',title:'Document',created_at:'2026-10-21'}];
+await dialog.children[2].events.click();await flush();
+assert.equal(list.children[1].children[0].href,'../../pages/Shop/inventory.html');
+assert.match(list.children[1].children[0].textContent,/Resolved/);
+assert.equal(list.children[2].children[0].href,'../../pages/Shop/invoices.html');
+assert.equal(list.children[3].children[0].href,'../../pages/Shop/shop-settings.html#requests');
+assert.equal(list.children[4].children[0].href,'../../pages/Shop/technician-dashboard.html#tech-document-list');
 dialog.children[1].events.click();assert.equal(dialog.open,false);
 console.log('Personal alerts UI: modal, links, scoped preferences, required controls, failed save rollback and confirmed read count passed.');
