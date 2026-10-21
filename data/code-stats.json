@@ -1,18 +1,18 @@
 {
-  "total": 52928,
-  "files": 278,
-  "application": 44785,
+  "total": 52993,
+  "files": 281,
+  "application": 44842,
   "database": 6496,
-  "tests": 1647,
+  "tests": 1655,
   "modules": {
     "Shop": 22824,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
-    "Shared": 4942
+    "Shared": 4999
   },
-  "branch": "master",
-  "updated_at": "2026-10-21T04:30:50.980322+00:00",
-  "commit": "bb9b723fb2529753bd561f793e8814f73d510cc6"
+  "branch": "feat/shop-workspace",
+  "updated_at": "2026-10-21T05:46:33.034597+00:00",
+  "commit": "ca37392838a8ae502ad5d56de5f72385352a2c18"
 }
