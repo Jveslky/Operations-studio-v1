@@ -56,3 +56,7 @@
 .shop-workspace .ls-nav-arrow svg{display:block;width:20px;height:20px}
 .shop-workspace .ls-page-strip .ls-nav-arrow:hover{color:#fff;background:#3d484e}
 .shop-workspace .ls-page-strip .ls-nav-arrow:disabled{visibility:hidden}
+/* Legacy requests now live in the bottom dock, so their menu opens upward. */
+.shop-workspace #shop-utility-bar .shop-notifications{position:static;margin-left:0}
+.shop-workspace #shop-utility-bar .shop-notification-menu{top:auto;bottom:calc(100% + 10px);right:auto;left:50%;transform:translateX(-50%);width:min(390px,calc(100vw - 24px));max-width:calc(100vw - 24px);box-sizing:border-box;max-height:min(480px,calc(100dvh - 120px));z-index:1002}
+.shop-workspace .ls-alert-dialog{z-index:1002;box-sizing:border-box}
