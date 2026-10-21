@@ -16,10 +16,19 @@ function mount({context,header,rootPath}){
   let selected=category(current);if(!groups.includes(selected))selected=groups[0];
   const top=document.createElement('nav'),bottom=document.createElement('nav');top.className='ls-groups';top.setAttribute('aria-label','Shop sections');bottom.className='ls-pages';bottom.setAttribute('aria-label','Shop pages');
   const active=p=>p===current||(p==='repair-orders'&&current==='repair-order-details')||(p==='invoices'&&current==='invoice-details');
-  function render(){top.replaceChildren();bottom.replaceChildren();for(const group of groups){const b=document.createElement('button');b.type='button';b.textContent=group;b.setAttribute('aria-pressed',String(group===selected));b.onclick=()=>{selected=group;render()};top.append(b)}for(const e of entries.filter(e=>category(e.p)===selected)){e.a.classList.toggle('active',active(e.p));if(active(e.p))e.a.setAttribute('aria-current','page');else e.a.removeAttribute('aria-current');bottom.append(e.a)}}
+  const strip=document.createElement('div');strip.className='ls-page-strip';
+  function arrow(direction){const b=document.createElement('button');b.type='button';b.className='ls-nav-arrow ls-nav-'+direction;b.setAttribute('aria-label',direction==='next'?'Show more Shop pages':'Show previous Shop pages');b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="'+(direction==='next'?'M9 5l7 7-7 7':'M15 5l-7 7 7 7')+'"/></svg>';b.onclick=()=>bottom.scrollBy({left:(direction==='next'?1:-1)*Math.max(120,bottom.clientWidth*.7),behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});return b}
+  const previous=arrow('previous'),next=arrow('next');previous.hidden=next.hidden=true;strip.append(previous,bottom,next);
+  function updateEdges(){const overflow=bottom.scrollWidth>strip.clientWidth+2;previous.hidden=next.hidden=!overflow;previous.disabled=bottom.scrollLeft<=2;next.disabled=bottom.scrollWidth-bottom.clientWidth-bottom.scrollLeft<=2}
+  function revealCurrent(){const a=Array.from(bottom.children).find(a=>a.getAttribute('aria-current')==='page');if(a){const r=a.getBoundingClientRect(),v=bottom.getBoundingClientRect();if(r.left<v.left)bottom.scrollLeft-=v.left-r.left;else if(r.right>v.right)bottom.scrollLeft+=r.right-v.right}updateEdges()}
+  bottom.addEventListener('scroll',updateEdges,{passive:true});
+  const resize=new ResizeObserver(revealCurrent);resize.observe(bottom);
+  sheet.addEventListener('load',revealCurrent,{once:true});
+  window.addEventListener('pagehide',()=>resize.disconnect(),{once:true});
+  function render(){top.replaceChildren();bottom.replaceChildren();for(const group of groups){const b=document.createElement('button');b.type='button';b.textContent=group;b.setAttribute('aria-pressed',String(group===selected));b.onclick=()=>{selected=group;render()};top.append(b)}for(const e of entries.filter(e=>category(e.p)===selected)){e.a.classList.toggle('active',active(e.p));if(active(e.p))e.a.setAttribute('aria-current','page');else e.a.removeAttribute('aria-current');bottom.append(e.a)}bottom.scrollLeft=0;requestAnimationFrame(revealCurrent)}
   const shell=document.createElement('div');shell.className='ls-navigation';
   // A technician's small work menu needs no extra group-selection row.
-  if(context.role!=='technician'&&groups.length>1)shell.append(top);shell.append(bottom);nav.replaceWith(shell);render();
+  if(context.role!=='technician'&&groups.length>1)shell.append(top);shell.append(strip);nav.replaceWith(shell);render();
  }
  const dock=document.createElement('div');dock.id='shop-utility-bar';dock.setAttribute('aria-label','Shop utilities');
  const host=document.createElement('div');host.className='ls-alert-host';dock.append(host);
