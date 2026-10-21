@@ -4,7 +4,7 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
  const context=await window.trackRightAuthReady;if(!window.trackRightCan('repair_orders.write')||!['owner','admin','service_writer'].includes(context.role))return;
  const host=document.getElementById('stocked-estimate-parts');if(!host)return;
  const section=document.createElement('section');section.className='detail-card';const title=document.createElement('h3');title.textContent='Prebuilt jobs';const link=document.createElement('a');link.href='prebuilt-jobs.html';link.target='_blank';link.rel='noopener';link.textContent='Manage shop catalog';const select=document.createElement('select');select.setAttribute('aria-label','Choose prebuilt job');const button=document.createElement('button');button.type='button';button.className='secondary-btn';button.textContent='Review prebuilt';const status=document.createElement('p');status.setAttribute('role','status');const allocation=document.createElement('p');allocation.id='prebuilt-allocation-summary';section.append(title,link,select,button,status,allocation);host.before(section);
- let templates=[],busy=false;
+ let templates=[],busy=false,pickerOpen=false;
  if(order.estimatePrebuiltJobs===undefined||!order.prebuiltAllocationsAvailable){status.textContent='Prebuilt migration is required before adding jobs.';button.disabled=true;return;}
  async function load(){const r=await window.trackRightSupabase.from('shop_prebuilt_jobs').select('*').eq('shop_id',context.shopId).eq('archived',false).order('updated_at',{ascending:false}).limit(200);if(r.error)throw r.error;templates=r.data;select.replaceChildren();for(const t of templates){const o=document.createElement('option');o.value=t.id;o.textContent=`${t.definition.name} · ${t.definition.mode}`;select.append(o);}button.disabled=!templates.length;status.textContent=templates.length?'Choose a job, review quantities and prices, then save the RO to reserve stock.':'Create a prebuilt in the shop catalog first.';}
  button.onclick=async()=>{if(busy)return;busy=true;button.disabled=true;try{
@@ -27,6 +27,19 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
   Object.assign(order,{estimatePrebuiltLaborTotal:window.shopPrebuiltPricing.totals(order.estimatePrebuiltJobs).labor,estimatePrebuiltPartsTotal:window.shopPrebuiltPricing.totals(order.estimatePrebuiltJobs).parts});
   changed();status.textContent='Added to the unsaved estimate. Review totals and tax, then save; normal approval revision and stock checks apply.';
  }catch(e){status.textContent=e.message;}finally{busy=false;button.disabled=!templates.length;}};
+ window.shopPrebuiltApply.openCurrent=async()=>{
+  if(busy||pickerOpen)return;pickerOpen=true;
+  const dialog=document.createElement('dialog');dialog.className='prebuilt-dialog';dialog.setAttribute('aria-label','Add prebuilt to current repair order');
+  const heading=document.createElement('h2');heading.textContent='Add prebuilt';
+  const info=document.createElement('p');info.textContent=`Current repair order${order.customer?' · '+order.customer:''} · Labor rate $${Number(fields.rate.value||0).toFixed(2)}/h`;
+  const picker=document.createElement('select');picker.setAttribute('aria-label','Active prebuilt jobs');
+  const note=document.createElement('p');note.setAttribute('role','status');note.textContent='Loading active jobs…';
+  const actions=document.createElement('div');actions.className='prebuilt-actions';const review=document.createElement('button');review.type='button';review.textContent='Review prebuilt';review.disabled=true;
+  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel';cancel.onclick=()=>dialog.close();actions.append(review,cancel);dialog.append(heading,info,picker,note,actions);document.body.append(dialog);dialog.addEventListener('close',()=>{pickerOpen=false;dialog.remove()},{once:true});dialog.showModal();
+  try{await load();if(!dialog.open)return;for(const t of templates){const option=document.createElement('option');option.value=t.id;option.textContent=`${t.definition.name} · ${t.definition.mode}`;picker.append(option)}review.disabled=!templates.length;note.textContent=templates.length?'Review parts, quantities and pricing before adding to this estimate.':'No active jobs. Create one in Inventory → Prebuilt Jobs.';}catch(e){note.textContent='Catalog unavailable: '+e.message;}
+  review.onclick=async()=>{if(review.disabled)return;select.value=picker.value;dialog.close();await button.onclick();section.scrollIntoView({block:'center'});};
+ };
+ window.dispatchEvent(new CustomEvent('longshift:prebuilt-ready'));
  try{await load();}catch(e){status.textContent='Prebuilt catalog unavailable: '+e.message;button.disabled=true;}
 }};
 })();

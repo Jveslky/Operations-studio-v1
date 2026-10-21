@@ -37,6 +37,13 @@ function mount({context,header,rootPath}){
  }
  const dock=document.createElement('div');dock.id='shop-utility-bar';dock.setAttribute('aria-label','Shop utilities');
  const host=document.createElement('div');host.className='ls-alert-host';dock.append(host);
+ // The page owns its current RO and review flow; the dock never guesses an RO ID.
+ if(['owner','admin','service_writer'].includes(context.role)&&can('repair_orders.write')){
+  const prebuilt=document.createElement('button');prebuilt.type='button';prebuilt.textContent=current==='repair-order-details'?'Add prebuilt':'Prebuilt Jobs';
+  const syncPrebuilt=()=>{prebuilt.disabled=current==='repair-order-details'&&!window.shopPrebuiltApply?.openCurrent;prebuilt.title=prebuilt.disabled?'Prebuilt review is not available for this repair order':'';};
+  prebuilt.onclick=()=>{if(current==='repair-order-details')window.shopPrebuiltApply?.openCurrent?.();else location.href=rootPath+'pages/Shop/prebuilt-jobs.html';};
+  window.addEventListener('longshift:prebuilt-ready',syncPrebuilt);syncPrebuilt();dock.append(prebuilt);
+ }
  const legacy=document.getElementById('shop-notifications');if(legacy){const b=legacy.querySelector('button');if(b)b.childNodes[0].textContent='Requests ';dock.append(legacy)}
  const name=document.createElement('span');name.className='ls-shop-name';name.textContent=context.shop?.name||'Shop';dock.append(name);
  const settings=document.createElement('button');settings.type='button';settings.textContent='⚙';settings.setAttribute('aria-label','Utility bar settings');dock.append(settings);
