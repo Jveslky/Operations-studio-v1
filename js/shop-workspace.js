@@ -9,13 +9,14 @@ function mount({context,header,rootPath}){
  const page=p=>p.replace(/\/+$/,'').split('/').pop().replace(/\.html$/,'');
  const current=page(location.pathname),can=window.trackRightCan;
  const permission={customers:'customers.read','repair-orders':'repair_orders.read',invoices:'invoices.read','accounts-payable':'expenses.read',schedule:'schedule.manage',inventory:'inventory.read'};
- const category=p=>/invoice|accounts-payable|net-accounts|report/.test(p)?'Finance':/inventory|receiving|prebuilt-jobs/.test(p)?'Inventory':'Workflow';
+ const category=p=>p==='integrations'?'Integrations':/invoice|accounts-payable|net-accounts|report/.test(p)?'Finance':/inventory|receiving|prebuilt-jobs/.test(p)?'Inventory':'Workflow';
  if(nav){
   const entries=Array.from(nav.querySelectorAll('a')).filter(a=>{const p=page(new URL(a.href,location.href).pathname);return !permission[p]||can(permission[p])}).map(a=>({a,p:page(new URL(a.href,location.href).pathname)}));
+  if(context.role!=='technician'&&!entries.some(e=>e.p==='integrations')){const a=document.createElement('a');a.href=rootPath+'pages/Shop/integrations.html';a.textContent='Tools & subscriptions';entries.push({a,p:'integrations'});}
   const parts=entries.find(e=>e.p==='inventory');
   if(parts){parts.a.textContent='Parts';const a=document.createElement('a');a.href=parts.a.href.split('?')[0]+'?view=receiving';a.textContent='Receiving';entries.push({a,p:'receiving'});}
   const inventoryOrder=['inventory','receiving','prebuilt-jobs'];entries.sort((a,b)=>{const x=inventoryOrder.indexOf(a.p),y=inventoryOrder.indexOf(b.p);return x-y});
-  const groups=['Workflow' ,'Inventory','Finance'].filter(g=>entries.some(e=>category(e.p)===g));
+  const groups=['Workflow','Inventory','Finance','Integrations'].filter(g=>entries.some(e=>category(e.p)===g));
   let selected=category(current);if(!groups.includes(selected))selected=groups[0];
   const top=document.createElement('nav'),bottom=document.createElement('nav');top.className='ls-groups';top.setAttribute('aria-label','Shop sections');bottom.className='ls-pages';bottom.setAttribute('aria-label','Shop pages');
   const receiving=current==='inventory'&&new URL(location.href).searchParams.get('view')==='receiving';
