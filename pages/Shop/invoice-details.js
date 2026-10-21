@@ -357,7 +357,7 @@ const pageParameters =
         window.location.search
     );
 
-const invoiceId =
+let invoiceId =
     pageParameters.get("id");
 
 let currentInvoice = null;
@@ -371,10 +371,7 @@ function findCurrentInvoice() {
                     String(invoiceId)
                 );
             }
-    ) || {
-        email: currentInvoice.customerEmail || "",
-        phone: currentInvoice.customerPhone || ""
-    };
+    ) || null;
 }
 
 
@@ -690,6 +687,12 @@ async function initializeInvoiceDetails() {
         await window.trackRightInvoices.migrateBrowserInvoices();
         const cloudInvoices = await window.trackRightInvoices.list();
         invoices.splice(0, invoices.length, ...cloudInvoices);
+        // Alerts carry the stable database UUID; older page links use the invoice number.
+        // Resolve only from this authenticated shop's loaded invoices before any actions run.
+        const linkedInvoice = cloudInvoices.find((item) =>
+            String(item.id) === String(invoiceId) || item.recordId === invoiceId ||
+            (item.legacyLocalId != null && String(item.legacyLocalId) === String(invoiceId)));
+        if (linkedInvoice) invoiceId = String(linkedInvoice.id);
         renderInvoice();
         const context = await window.trackRightAuthReady;
         const query = new URLSearchParams(window.location.search);
