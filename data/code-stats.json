@@ -1,11 +1,11 @@
 {
-  "total": 52604,
-  "files": 281,
-  "application": 44829,
-  "database": 6255,
-  "tests": 1520,
+  "total": 52848,
+  "files": 282,
+  "application": 44850,
+  "database": 6455,
+  "tests": 1543,
   "modules": {
-    "Shop": 22943,
+    "Shop": 22964,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
@@ -13,6 +13,6 @@
     "Shared": 4867
   },
   "branch": "feat/shop-prebuilt-jobs",
-  "updated_at": "2026-10-21T00:45:08.936111+00:00",
-  "commit": "1cd489be436e1026c47ac6f598eb4f390172b091"
+  "updated_at": "2026-10-21T01:18:01.216673+00:00",
+  "commit": "f825c382e23d41b66ec14b56d99669bc8b920c6a"
 }
