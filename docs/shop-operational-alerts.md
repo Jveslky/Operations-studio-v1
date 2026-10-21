@@ -34,3 +34,11 @@ Manual Test QA remains pending:
 4. Upload a test document privately for the tech: no subject alert. Share it: one alert; its link opens the private document. Hide/archive: the alert disappears from the tech feed. Re-share: no duplicate.
 5. On a disposable Test invoice, record a small payment through the normal office flow. One accurately labeled Payment recorded alert appears. Exact request retry does not duplicate it. Reversal resolves the original; no second positive-payment alert is emitted.
 6. Confirm personal opt-outs and shop-required/disabled controls work on an operational type. Removed relevant permission hides its feed content.
+
+## Document lifecycle controls
+
+Team Documents now offers Restore on archived rows (enable Show archived), and Share with employee / Hide from employee on active rows. Restore retains the prior sharing setting; confirmation states whether the employee will regain read-only access or the document stays office-only. Controls use existing team_documents.manage authorization and shop-scoped updates with an updated_at match. A denied or stale zero-row update is not reported as success. Pending writes disable the document's mutation buttons.
+
+No further SQL is required. Existing alert identity remains tied to the document UUID: restore and re-share reveal the original alert rather than creating a second one. Tests cover archive/restore/share/hide, stale/failed writes and permission gates, plus database feed access and delivery deduplication across restore/re-share.
+
+Shop C manual QA observed low-stock crossing/recovery/re-crossing with exactly two episodes, both resolved after returning threshold to 2; stock stayed 8/0/8. PTO submission generated one alert, approval resolved it and created the scheduled October 21–22 absence. Private document was absent from the tech dashboard/feed; shared upload produced one alert and opened its file. Archiving removed it from the tech document list. New lifecycle controls and payment-alert walkthrough remain pending.

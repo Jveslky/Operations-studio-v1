@@ -55,6 +55,10 @@ await as(tech);assert.equal((await feed()).items.length,1);assert.equal((await f
 await root();await db.query('update shop_team_documents set visible_to_subject=false where id=$1',[doc]);await as(tech);assert.equal((await feed()).items.length,0);
 await root();await db.query('update shop_team_documents set visible_to_subject=true where id=$1',[doc]);await as(tech);assert.equal((await feed()).items.length,1);
 await root();await db.query('update shop_team_documents set archived_at=now() where id=$1',[doc]);await as(tech);assert.equal((await feed()).items.length,0);
+await root();await db.query('update shop_team_documents set archived_at=null where id=$1',[doc]);await as(tech);assert.equal((await feed()).items.length,1);
+await root();await db.query('update shop_team_documents set visible_to_subject=false where id=$1',[doc]);await as(tech);assert.equal((await feed()).items.length,0);
+await root();await db.query('update shop_team_documents set visible_to_subject=true where id=$1',[doc]);await as(tech);assert.equal((await feed()).items.length,1);
+await root();await db.query('update shop_team_documents set archived_at=now() where id=$1',[doc]);
 await root();const req=(await db.query("insert into shop_requests(shop_id,request_type) values($1,'pto') returning id",[shop])).rows[0].id;
 await as(owner);f=await feed();assert.equal(f.items.filter(x=>x.event_type==='pto_requested').length,1);
 await root();await db.query("update shop_requests set status='approved' where id=$1",[req]);await as(owner);assert.ok((await feed()).items.find(x=>x.event_type==='pto_requested').resolved_at);

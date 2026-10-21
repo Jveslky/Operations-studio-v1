@@ -19,6 +19,7 @@
     let context = null;
     let members = new Map();
     let documents = [];
+    const pendingDocuments = new Set();
 
     function status(text, state) {
         message.textContent = text;
@@ -69,9 +70,19 @@
             const expiry = document.createElement("span"); expiry.className = `document-expiry ${state.className}`; expiry.textContent = item.archived_at ? "Archived" : state.label;
             const actions = document.createElement("div"); actions.className = "inspection-template-actions";
             const view = document.createElement("button"); view.type = "button"; view.textContent = "View"; view.addEventListener("click", () => openDocument(item.object_path)); actions.appendChild(view);
-            if (canManage() && !item.archived_at) {
-                const archive = document.createElement("button"); archive.type = "button"; archive.textContent = "Archive";
-                archive.addEventListener("click", () => archiveDocument(item)); actions.appendChild(archive);
+            if (canManage()) {
+                const archive = document.createElement("button"); archive.type = "button";
+                archive.textContent = item.archived_at ? "Restore" : "Archive";
+                archive.disabled = pendingDocuments.has(item.id);
+                archive.addEventListener("click", () => changeDocument(item, item.archived_at ? "restore" : "archive"));
+                actions.appendChild(archive);
+                if (!item.archived_at) {
+                    const share = document.createElement("button"); share.type = "button";
+                    share.textContent = item.visible_to_subject ? "Hide from employee" : "Share with employee";
+                    share.disabled = pendingDocuments.has(item.id);
+                    share.addEventListener("click", () => changeDocument(item, item.visible_to_subject ? "hide" : "share"));
+                    actions.appendChild(share);
+                }
             }
             row.append(details, expiry, actions); list.appendChild(row);
         });
@@ -94,11 +105,35 @@
         });
     }
 
-    async function archiveDocument(item) {
-        if (!confirm(`Archive ${item.title}? The file and history will be retained.`)) return;
-        const result = await client.from("shop_team_documents").update({ archived_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", item.id).eq("shop_id", context.shopId);
-        if (result.error) { status(`Document could not be archived: ${result.error.message}`, "error"); return; }
-        await loadDocuments(); status("Document archived. Its file and history were retained.", "success");
+    async function changeDocument(item, action) {
+        if (!canManage() || pendingDocuments.has(item.id)) return;
+        const prompts = {
+            archive: `Archive ${item.title}? The file and history will be retained.`,
+            restore: `Restore ${item.title}? ${item.visible_to_subject ? "It will be shared read-only with its assigned employee again." : "It will remain office only."}`,
+            share: `Share ${item.title} read-only with its assigned employee?`,
+            hide: `Hide ${item.title} from its assigned employee? Office access and the file will be retained.`
+        };
+        if (!Object.hasOwn(prompts, action) || !confirm(prompts[action])) return;
+        const changes = action === "archive" ? { archived_at: new Date().toISOString() }
+            : action === "restore" ? { archived_at: null }
+            : { visible_to_subject: action === "share" };
+        changes.updated_at = new Date().toISOString();
+        pendingDocuments.add(item.id); render();
+        try {
+            // Require an actual returned row: RLS denial or a stale snapshot must not look like success.
+            const result = await client.from("shop_team_documents").update(changes)
+                .eq("id", item.id).eq("shop_id", context.shopId).eq("updated_at", item.updated_at)
+                .select("id").single();
+            if (result.error) throw result.error;
+            if (!result.data?.id) throw new Error("Document changed or access is unavailable. Refresh and try again.");
+            await loadDocuments();
+            const labels = { archive: "archived", restore: "restored", share: "shared with its employee", hide: "hidden from its employee" };
+            status(`Document ${labels[action]}. Its file and history were retained.`, "success");
+        } catch (error) {
+            status(`Document change could not be confirmed: ${error.message}. Refresh before retrying.`, "error");
+        } finally {
+            pendingDocuments.delete(item.id); render();
+        }
     }
 
     form.addEventListener("submit", async function (event) {
