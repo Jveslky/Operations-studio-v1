@@ -1,0 +1,10 @@
+.prebuilt-page { max-width:1100px; margin:auto; padding:24px; }
+.prebuilt-dialog { width:min(94vw,900px); max-height:92dvh; overflow:auto; padding:22px; background:#f4f0e8; color:#242b2f; border:2px solid #444; }
+.prebuilt-dialog::backdrop { background:#111b; }
+.prebuilt-grid,.prebuilt-dialog fieldset { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:12px; }
+.prebuilt-dialog label { display:flex; flex-direction:column; gap:6px; }
+.prebuilt-dialog input,.prebuilt-dialog select { width:100%; min-width:0; min-height:44px; padding:8px; box-sizing:border-box; }
+.prebuilt-dialog fieldset { margin:18px 0; padding:14px; border:1px solid #aaa; }
+.prebuilt-actions { display:flex; flex-wrap:wrap; gap:10px; padding:12px 0; }
+.prebuilt-dialog button,.prebuilt-page button { min-height:44px; padding:10px; cursor:pointer; }
+.prebuilt-card { padding:16px; border-bottom:1px solid #aaa; }

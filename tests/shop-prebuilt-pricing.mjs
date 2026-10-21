@@ -1,0 +1,23 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+const window={};vm.runInNewContext(fs.readFileSync(new URL('../pages/Shop/shop-prebuilt-pricing.js',import.meta.url),'utf8'),{window,structuredClone});const {quote}=window.shopPrebuiltPricing;
+const oil={description:'Oil',quantity:5,included_quantity:5,pricing:'included',unit_price:8,allowance:8,extra_price:9};
+const filter={description:'Filter',quantity:1,included_quantity:1,pricing:'included',unit_price:12,allowance:10,extra_price:12};
+const base={name:'Service',mode:'flat',base_price:89.95,labor_hours:.5,billable_hours:.5,expected_hours:.75,base_labor:35,base_parts:54.95,labor_pricing:'included',lines:[oil,filter]};
+assert.equal(quote(base,150).total,89.95);assert.equal(quote({...base,lines:[{...oil,quantity:6},filter]},150).total,98.95);
+assert.equal(quote({...base,lines:[oil,{...filter,pricing:'difference'}]},150).total,91.95);
+assert.equal(quote({...base,lines:[oil,{...filter,pricing:'difference',unit_price:7}]},150).total,89.95,'cheaper substitute does not silently discount package');
+assert.equal(quote({...base,mode:'itemized'},150).total,127);
+assert.equal(quote({...base,mode:'mixed',lines:[oil,{...filter,pricing:'itemized'}]},150).total,101.95);
+assert.equal(quote({...base,mode:'mixed',labor_pricing:'hours'},150).total,164.95);
+assert.equal(quote({...base,lines:[{...oil,quantity:15,included_quantity:15}]},150).total,89.95);
+assert.throws(()=>quote({...base,lines:[{...oil,quantity:-1}]},150),/Invalid/);assert.throws(()=>quote({...base,base_price:NaN},150),/Invalid/);
+assert.equal(quote(base,150).labor,35);assert.equal(quote(base,150).parts,54.95);assert.equal(quote(base,150).expectedHours,.75);assert.equal(quote({...base,expected_hours:4},150).total,89.95);assert.throws(()=>quote({...base,base_labor:20},150),/allocations/);
+assert.equal(base.lines[0].quantity,5,'review never mutates saved template');
+console.log('Prebuilt pricing: flat, itemized, mixed, extra quarts, substitution allowance, diesel quantity and snapshot isolation passed.');
+
+const revenues=window.shopPrebuiltPricing.revenue({laborTotal:150,partsTotal:134.95,prebuiltLaborTotal:35,prebuiltPartsTotal:54.95});assert.equal(revenues.totalLabor,185);assert.equal(revenues.totalParts,134.95);assert.equal(revenues.regularParts,80);
+const invoiceSource=fs.readFileSync(new URL('../pages/Shop/invoices.js',import.meta.url),'utf8');
+const financialFunction=invoiceSource.slice(invoiceSource.indexOf('function getRepairOrderFinancials('),invoiceSource.indexOf('/* =========================\n   REPAIR ORDER DROPDOWN'));
+const invoiceFinancials=vm.runInNewContext(financialFunction+';getRepairOrderFinancials');
+const invoice=invoiceFinancials({estimateLaborHours:1,estimateLaborRate:150,estimatePrebuiltLaborTotal:35,estimatePrebuiltPartsTotal:54.95,estimatePartsTotal:134.95});
+assert.equal(invoice.subtotal,319.95);assert.equal(invoice.taxableBase,319.95);assert.equal(invoice.laborTotal,150);assert.equal(invoice.prebuiltLaborTotal,35);assert.equal(invoice.partsTotal,134.95);assert.equal(invoice.prebuiltPartsTotal,54.95);

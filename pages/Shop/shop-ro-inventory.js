@@ -27,6 +27,15 @@ if(pending&&pending.p_item!==line.item_id){message.textContent='A return for ano
 const qty=pending?String(pending.p_quantity):window.prompt('Quantity physically returned to stock?');if(qty===null)return;const reason=pending?pending.p_reason:window.prompt('Return reason?');if(!reason?.trim())return;if(!window.confirm(`Return ${qty} ${line.stock_unit} of ${line.part_number} to stock?`))return;busy=true;ret.disabled=true;try{const args=pending||{p_ro:order.recordId,p_item:line.item_id,p_quantity:Number(qty),p_reason:reason,p_request:crypto.randomUUID()};localStorage.setItem(pendingKey,JSON.stringify(args));const r=await client.rpc('return_shop_ro_stock',args);if(r.error){if(/^[0-9A-Z]{5}$/.test(r.error.code||''))localStorage.removeItem(pendingKey);throw r.error;}localStorage.removeItem(pendingKey);message.textContent='Physical return recorded. Refresh inventory to see counts.';}catch(e){message.textContent=e.message+' If server success is uncertain, click Return again to retry the saved request.';}finally{busy=false;ret.disabled=false;}});row.append(ret);}
    list.append(row);}}
   find.addEventListener('click',async()=>{find.disabled=true;found.replaceChildren();try{const r=await client.rpc('shop_inventory_directory',{p_shop:context.shopId,p_search:search.value,p_filter:'active',p_page:0,p_size:25});if(r.error)throw r.error;results=r.data.rows;for(const item of results){const button=document.createElement('button');button.type='button';button.textContent=`${item.part_number} · On hand ${item.on_hand} · On hold ${item.on_hold} · Available ${item.available}`;button.addEventListener('click',()=>{if(lines.some(x=>x.item_id===item.id)){message.textContent='Change the quantity on the existing line.';return;}apply([...lines,{item_id:item.id,part_number:item.part_number,description:item.description,stock_unit:item.stock_unit,quantity:1,unit_price:Number(item.sale_price)}]);});found.append(button);}message.textContent='Availability is checked again when the repair order is saved.';}catch(e){message.textContent=e.message;}finally{find.disabled=false;}});
-  draw();return {lines:()=>structuredClone(lines)};
+  draw();return {lines:()=>structuredClone(lines),addLines(additions){
+   if(!office)throw Error('Office estimate access is required.');
+   const next=structuredClone(lines);
+   for(const addition of additions){const existing=next.find(x=>x.item_id===addition.item_id);
+    if(existing){const value=Math.round(existing.quantity*existing.unit_price*100)/100;existing.quantity=Math.round((Number(existing.quantity)+Number(addition.quantity))*1000)/1000;existing.unit_price=Math.floor((value/existing.quantity)*100)/100;}
+    else next.push(structuredClone(addition));
+   }
+   if(next.length>100)throw Error('At most 100 stocked lines per estimate.');
+   apply(next);
+  }};
  }};
 })();
