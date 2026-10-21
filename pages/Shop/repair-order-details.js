@@ -327,6 +327,10 @@ if (!repairOrder) {
         changed: () => { hasUnsavedChanges = true; renderEstimateTotal(); }
     }) : null;
 
+    if(window.shopPrebuiltApply) await window.shopPrebuiltApply.mount({order:repairOrder,stockEditor,
+        fields:{rate:estimateLaborRateInput,hours:estimateLaborHoursInput,parts:estimatePartsTotalInput,other:estimateOtherChargesInput,otherTaxable:estimateMiscFeeTaxableInput,otherLabel:estimateMiscFeeLabelInput,notes:estimateNotesInput},
+        changed:()=>{hasUnsavedChanges=true;renderEstimateTotal();}});
+
     function currentApprovalEstimate() {
         return {...repairOrder, ...(stockEditor ? {estimateStockLines: stockEditor.lines()} : {}),
             complaint: complaintInput.value.trim(), partsNeeded: partsNeededInput.value.trim(),

@@ -218,6 +218,12 @@
             if (linkedPage === "accounts-payable.html" && !canUseAccountsPayable) link.remove();
             if (linkedPage === "inventory.html" && !canUseInventory) link.remove();
         });
+        const canUsePrebuilts = ["owner","admin","service_writer"].includes(context.role) && window.trackRightCan("repair_orders.write");
+        if(page === "prebuilt-jobs.html" && !canUsePrebuilts){window.location.replace(`${rootPath}pages/Shop/shop-dashboard.html`);return;}
+        if(canUsePrebuilts && window.location.pathname.includes("/pages/Shop/"))document.querySelectorAll(".app-nav").forEach(nav=>{
+            if(nav.querySelector('a[href$="prebuilt-jobs.html"]'))return;
+            const link=document.createElement('a');link.href=`${rootPath}pages/Shop/prebuilt-jobs.html`;link.textContent='Prebuilt Jobs';nav.appendChild(link);
+        });
         if (canUseInventory && window.location.pathname.includes("/pages/Shop/")) {
             document.querySelectorAll(".app-nav").forEach(function (nav) {
                 if (nav.querySelector('[data-inventory]')) return;

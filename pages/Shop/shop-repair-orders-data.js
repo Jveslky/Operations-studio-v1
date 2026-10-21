@@ -49,6 +49,7 @@
             estimateLaborHours: number(row.estimate_labor_hours),
             estimateLaborRate: number(row.estimate_labor_rate),
             estimateStockLines: row.estimate_stock_lines,
+            estimatePrebuiltJobs: row.estimate_prebuilt_jobs,
             stockLinesOriginal: row.estimate_stock_lines,
             estimatePartsTotal: number(row.estimate_parts_total),
             estimateOtherCharges: number(row.estimate_other_charges),
@@ -105,6 +106,8 @@
         };
 
         if (order.estimateStockLines !== undefined) { row.estimate_stock_lines = order.estimateStockLines; row.stock_lines_expected = order.stockLinesOriginal ?? []; }
+
+        if (order.estimatePrebuiltJobs !== undefined) {row.estimate_prebuilt_jobs = order.estimatePrebuiltJobs;row.prebuilt_expected_updated_at = order.updatedAt || null;}
 
         if (order.approvalRequest) row.approval_request = order.approvalRequest;
 

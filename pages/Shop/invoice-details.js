@@ -309,6 +309,9 @@ function renderInvoiceBreakdown(invoice) {
         return Number(row.amount) !== 0;
     });
 
+    for(const job of fees.prebuiltJobs || []) {
+        const summary=document.createElement('p');summary.textContent=`Prebuilt added: ${job.summary} (included in the totals below; subsequent estimate adjustments may apply)`;invoiceBreakdownList.appendChild(summary);
+    }
     for (const supplement of fees.supplements || []) {
         const financials = window.trackRightSupplements.financials(supplement);
         rows.push({label:`Supplement ${supplement.supplement_number} · Rev. ${supplement.revision}: ${supplement.description} — Labor (${supplement.labor_hours} hrs × ${formatCurrency(supplement.labor_rate)})`,amount:financials.laborTotal,taxable:true});

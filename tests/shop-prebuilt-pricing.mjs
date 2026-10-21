@@ -1,0 +1,15 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+const window={};vm.runInNewContext(fs.readFileSync(new URL('../pages/Shop/shop-prebuilt-pricing.js',import.meta.url),'utf8'),{window,structuredClone});const {quote}=window.shopPrebuiltPricing;
+const oil={description:'Oil',quantity:5,included_quantity:5,pricing:'included',unit_price:8,allowance:8,extra_price:9};
+const filter={description:'Filter',quantity:1,included_quantity:1,pricing:'included',unit_price:12,allowance:10,extra_price:12};
+const base={name:'Service',mode:'flat',base_price:89.95,labor_hours:.5,labor_pricing:'included',lines:[oil,filter]};
+assert.equal(quote(base,150).total,89.95);assert.equal(quote({...base,lines:[{...oil,quantity:6},filter]},150).total,98.95);
+assert.equal(quote({...base,lines:[oil,{...filter,pricing:'difference'}]},150).total,91.95);
+assert.equal(quote({...base,lines:[oil,{...filter,pricing:'difference',unit_price:7}]},150).total,89.95,'cheaper substitute does not silently discount package');
+assert.equal(quote({...base,mode:'itemized'},150).total,127);
+assert.equal(quote({...base,mode:'mixed',lines:[oil,{...filter,pricing:'itemized'}]},150).total,101.95);
+assert.equal(quote({...base,mode:'mixed',labor_pricing:'hours'},150).total,164.95);
+assert.equal(quote({...base,lines:[{...oil,quantity:15,included_quantity:15}]},150).total,89.95);
+assert.throws(()=>quote({...base,lines:[{...oil,quantity:-1}]},150),/Invalid/);assert.throws(()=>quote({...base,base_price:NaN},150),/Invalid/);
+assert.equal(base.lines[0].quantity,5,'review never mutates saved template');
+console.log('Prebuilt pricing: flat, itemized, mixed, extra quarts, substitution allowance, diesel quantity and snapshot isolation passed.');

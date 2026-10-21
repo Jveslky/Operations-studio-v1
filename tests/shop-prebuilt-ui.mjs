@@ -1,0 +1,16 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+function node(tag='div'){return {tag,children:[],value:'',checked:false,events:{},append(...a){this.children.push(...a)},before(n){this.previous=n},replaceChildren(){this.children=[]},setAttribute(){},addEventListener(e,f){this.events[e]=f},dispatchEvent(){},closest(){return {parentElement:this}}};}
+const root=node(),fields=Object.fromEntries(['parts','hours','rate','other','otherTaxable','otherLabel','notes'].map(k=>[k,node('input')]));fields.parts.value='20';fields.hours.value='1';fields.rate.value='150';fields.other.value='0';
+let changes=0,q={definition:{name:'5 qt',mode:'flat'},packagePrice:89.95,parts:9,laborHours:0,lines:[{item_id:'part',quantity:1,part_number:'FILTER',description:'Filter',stock_unit:'each',charge:9}]};
+const order={recordId:'ro',estimateStockLines:[{item_id:'part',quantity:1,unit_price:15,part_number:'FILTER',description:'Filter',stock_unit:'each'}],estimatePrebuiltJobs:[]};
+const template={id:'template',version:2,definition:{name:'5 qt',mode:'flat',lines:[]}},writes=[];
+const client={from(){return {select(){return this},eq(){return this},order(){return this},limit:async()=>({data:[template]}),single:async()=>({data:template})}},rpc:async(name)=>{writes.push(name);return {data:{rows:[]}}}};
+const window={trackRightSupabase:client,trackRightCan:()=>true,trackRightAuthReady:Promise.resolve({shopId:'a',user:{id:'writer'},role:'service_writer'}),shopPrebuiltEditor:{edit:async()=>q}};
+const context={window,document:{createElement:node,getElementById:()=>root},structuredClone,Event:function(type){this.type=type},crypto};
+vm.runInNewContext(fs.readFileSync(new URL('../pages/Shop/shop-ro-inventory.js',import.meta.url),'utf8'),context);
+const editor=await window.shopROInventory.mount({order,totalInput:fields.parts,changed:()=>{changes++}});
+vm.runInNewContext(fs.readFileSync(new URL('../pages/Shop/shop-prebuilt-apply.js',import.meta.url),'utf8'),context);
+await window.shopPrebuiltApply.mount({order,stockEditor:editor,fields,changed:()=>changes++});root.previous.children.find(n=>n.tag==='select').value='template';const button=root.previous.children.find(n=>n.tag==='button');await button.onclick();
+assert.equal(fields.parts.value,'29.00');assert.equal(fields.other.value,'89.95');assert.equal(fields.hours.value,'1','flat package does not fabricate billed hours');assert.equal(editor.lines()[0].quantity,2,'included stock still reserves actual quantity');assert.equal(editor.lines()[0].unit_price,7.5,'existing stock charge preserved without a second part charge');assert.equal(order.estimatePrebuiltJobs[0].template_version,2);assert.match(fields.notes.value,/89.95/);assert.deepEqual(writes,[],'adding a prebuilt does not post stock or financial transactions');
+const before=JSON.stringify(order);q=null;await button.onclick();assert.equal(JSON.stringify(order),before,'cancelling review does not add a job');assert.ok(changes>0);
+console.log('Prebuilt UI: copied review, flat-price application, duplicate-stock merge, no fabricated labor hours, cancel and no immediate transactions passed.');
