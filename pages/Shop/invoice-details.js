@@ -280,11 +280,13 @@ function renderInvoiceBreakdown(invoice) {
         {
             label: fees.laborHours
                 ? `Labor (${fees.laborHours} hrs × ${formatCurrency(fees.laborRate)})`
-                : "Labor",
+                : "Regular labor",
             amount: fees.laborTotal,
             taxable: true
         },
-        { label: "Parts", amount: fees.partsTotal, taxable: true },
+        { label: "Prebuilt labor", amount: fees.prebuiltLaborTotal, taxable: true },
+        { label: "Regular parts", amount: Number(fees.partsTotal||0)-Number(fees.prebuiltPartsTotal||0), taxable: true },
+        { label: "Prebuilt parts", amount: fees.prebuiltPartsTotal, taxable: true },
         {
             label: "Shop supplies",
             amount: fees.shopSupplies,

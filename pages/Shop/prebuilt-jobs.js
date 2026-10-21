@@ -17,7 +17,7 @@ async function load(){list.replaceChildren();try{let query=client.from('shop_pre
  if(manage){const editButton=document.createElement('button');editButton.textContent='Edit';editButton.onclick=()=>edit(t);const archive=document.createElement('button');archive.textContent=t.archived?'Restore':'Archive';archive.onclick=()=>{if(window.confirm(`${archive.textContent} ${t.definition.name}? Existing jobs stay unchanged.`))save({p_shop:context.shopId,p_id:t.id,p_request:crypto.randomUUID(),p_expected:t.version,p_definition:t.definition,p_archived:!t.archived});};card.append(editButton,archive);}list.append(card);
  }status.textContent=r.data.length?'Showing up to 200 templates.':'No templates yet.';
 }catch(e){status.textContent='Catalog unavailable. '+e.message;}}
-by('prebuilt-new').hidden=!manage;by('prebuilt-new').onclick=()=>edit({id:crypto.randomUUID(),definition:{name:'',mode:'flat',base_price:0,labor_hours:0,labor_pricing:'included',lines:[]}});
+by('prebuilt-new').hidden=!manage;by('prebuilt-new').onclick=()=>edit({id:crypto.randomUUID(),definition:{name:'',mode:'flat',base_price:0,labor_hours:0,billable_hours:0,expected_hours:0,base_labor:0,base_parts:0,labor_pricing:'included',lines:[]}});
 by('prebuilt-refresh').onclick=load;by('prebuilt-archived').onchange=load;by('prebuilt-retry').onclick=()=>{try{const args=pending();if(args)save(args);}catch(e){status.textContent=e.message;}};
 try{by('prebuilt-retry').hidden=!pending();}catch(e){status.textContent='Local save recovery unavailable. '+e.message;return;}await load();
 })();

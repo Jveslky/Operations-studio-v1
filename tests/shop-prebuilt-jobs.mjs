@@ -29,9 +29,9 @@ for(const f of ['shop-ready-payment-drafts-20261015.sql','shop-inventory-foundat
 await db.exec(`update shops set default_taxable=true,default_tax_rate=6 where id='${A}';update members set role='owner' where user_id='${writer}';set role authenticated;`);
 
 const migration=read('shop-prebuilt-jobs-20261021.sql');
-await db.exec('reset role');await db.exec(migration);await db.exec(migration);await db.exec('set role authenticated');
+await db.exec('reset role');await db.exec(migration);await db.exec(migration);const allocations=read('shop-prebuilt-allocations-20261021.sql');await db.exec(allocations);await db.exec(allocations);await db.exec('set role authenticated');
 const id=crypto.randomUUID(),request=crypto.randomUUID();
-const definition={name:'5 qt service',mode:'flat',base_price:89.95,labor_hours:.5,labor_pricing:'included',lines:[]};
+const definition={name:'5 qt service',mode:'flat',base_price:89.95,base_labor:35,base_parts:54.95,expected_hours:.75,billable_hours:.5,labor_hours:.5,labor_pricing:'included',lines:[]};
 const args=[A,id,request,null,JSON.stringify(definition),false];
 const save=async a=>(await one('select save_shop_prebuilt_job($1,$2,$3,$4,$5,$6) d',a)).d;
 const first=await save(args);assert.equal(first.version,1);assert.equal((await save(args)).version,1,'exact retry does not revise template');
@@ -58,6 +58,17 @@ await assert.rejects(one('update shop_repair_orders set estimate_prebuilt_jobs=$
 const updated=await one('update shop_repair_orders set estimate_prebuilt_jobs=$1,prebuilt_expected_updated_at=$2,estimate_other_charges=89.95,estimate_misc_fee_taxable=true where id=$3 returning *',[JSON.stringify(snapshot),ro.updated_at,ro.id]);assert.equal(updated.estimate_version,ro.estimate_version+1,'snapshot addition revises approval estimate');
 const invoice=await one("insert into shop_invoices(shop_id,repair_order_id,customer_name,subtotal,total,created_by) values($1,$2,'Test',89.95,89.95,$3) returning *",[A,ro.id,writer]);assert.equal(invoice.fee_snapshot.prebuiltJobs[0].template_version,2,'invoice freezes copied prebuilt');
 await assert.rejects(one('update shop_repair_orders set estimate_prebuilt_jobs=$1,prebuilt_expected_updated_at=$2 where id=$3 returning *',[JSON.stringify([]),updated.updated_at,ro.id]),/locked/);
-await save([A,id,crypto.randomUUID(),2,JSON.stringify({...definition,base_price:120}),false]);
+await save([A,id,crypto.randomUUID(),2,JSON.stringify({...definition,base_price:120,base_parts:85}),false]);
 const preserved=await one('select estimate_prebuilt_jobs from shop_repair_orders where id=$1',[ro.id]);assert.equal(preserved.estimate_prebuilt_jobs[0].definition.base_price,89.95,'template edits do not rewrite existing jobs');
+const allocationRO=await one("insert into shop_repair_orders(shop_id,customer_id,complaint,estimate_labor_rate,estimate_labor_hours) values($1,$2,'Allocated prebuilt',150,1) returning *",[A,writer]);
+const q2={labor:35,parts:54.95,total:89.95,rate:150,expectedHours:.75,laborHours:0};
+const job2={schema_version:2,instance_id:crypto.randomUUID(),template_id:id,template_version:2,definition,quote:q2,summary:'Flat oil service'};
+await assert.rejects(one('update shop_repair_orders set estimate_prebuilt_jobs=$1,estimate_parts_total=54.95,prebuilt_expected_updated_at=$2 where id=$3 returning *',[JSON.stringify([{...job2,quote:{...q2,labor:34}}]),allocationRO.updated_at,allocationRO.id]),/quote does not match/);
+const withJob=await one('update shop_repair_orders set estimate_prebuilt_jobs=$1,estimate_parts_total=54.95,prebuilt_expected_updated_at=$2 where id=$3 returning *',[JSON.stringify([job2]),allocationRO.updated_at,allocationRO.id]);
+assert.equal(Number(withJob.estimate_prebuilt_labor_total),35);assert.equal(Number(withJob.estimate_prebuilt_parts_total),54.95);assert.equal(Number(withJob.estimate_labor_hours),1,'regular billed hours unchanged');assert.equal(Number(withJob.labor_hours),0,'actual technician time unchanged');assert.equal(Number(withJob.estimate_other_charges),0,'no package revenue in Other');
+await db.exec('reset role');const financial=(await one('select shop_estimate_authorization_totals(to_jsonb(r)) f from shop_repair_orders r where id=$1',[allocationRO.id])).f;assert.equal(Number(financial.subtotal),239.95);assert.equal(Number(financial.total),254.35);await db.exec('set role authenticated');
+await one("update shop_repair_orders set status='Ready for Payment' where id=$1 returning *",[allocationRO.id]);
+const automatic=await one('select * from shop_invoices where repair_order_id=$1',[allocationRO.id]);assert.equal(Number(automatic.subtotal),239.95);assert.equal(Number(automatic.total),254.35);assert.equal(Number(automatic.fee_snapshot.laborTotal),150);assert.equal(Number(automatic.fee_snapshot.prebuiltLaborTotal),35);assert.equal(Number(automatic.fee_snapshot.partsTotal),54.95);assert.equal(Number(automatic.fee_snapshot.prebuiltPartsTotal),54.95);
+await db.exec('reset role');const sqlquote=await one('select shop_prebuilt_quote($1,150) q',[JSON.stringify({...definition,mode:'itemized'})]);assert.equal(Number(sqlquote.q.labor),75);assert.equal(Number(sqlquote.q.expectedHours),.75);
+await assert.rejects(one('select shop_prebuilt_quote($1,150)',[JSON.stringify({...definition,base_parts:40})]),/allocations/);
 await db.close();console.log('Prebuilt database: rerunnable migration, exact retry, stale edits, input validation, writer read-only catalog and tenant isolation passed.');

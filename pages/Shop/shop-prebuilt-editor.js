@@ -8,9 +8,10 @@ async function edit(template,{shopId,rate,readOnly=false}){
  const form=el('form'),grid=el('div');grid.className='prebuilt-grid';form.append(grid);dialog.append(form);
  const name=field(grid,'Job name',data.name),modeLabel=el('label','Pricing'),mode=el('select');
  for(const [v,t] of [['flat','Flat package'],['itemized','Itemized labor + parts'],['mixed','Flat base + selected charges']]){const o=el('option',t);o.value=v;mode.append(o);}mode.value=data.mode;modeLabel.append(mode);grid.append(modeLabel);
- const base=field(grid,'Flat / base package price',data.base_price,'number'),hours=field(grid,'Labor guide hours',data.labor_hours,'number');
+ const base=field(grid,'Flat / base package price',data.base_price,'number'),expected=field(grid,'Expected job time (hours)',data.expected_hours ?? data.labor_hours ?? 0,'number'),hours=field(grid,'Billable labor hours (itemized / mixed)',data.billable_hours ?? (data.mode==='itemized'?data.labor_hours:0) ?? 0,'number');
+ const baseLabor=field(grid,'Prebuilt labor allocation',data.base_labor ?? 0,'number'),baseParts=field(grid,'Prebuilt parts allocation',data.base_parts ?? 0,'number');
  const laborLabel=el('label','Labor in mixed mode'),labor=el('select');for(const [v,t] of [['included','Included in base price'],['hours','Hours × current estimate rate']]){const o=el('option',t);o.value=v;labor.append(o);}labor.value=data.labor_pricing;laborLabel.append(labor);grid.append(laborLabel);
- dialog.append(el('p',`Current estimate labor rate: $${Number(rate).toFixed(2)}. Flat pricing includes labor; guide hours do not add a second charge.`));
+ dialog.append(el('p',`Current estimate labor rate: $${Number(rate).toFixed(2)}. Expected job time is your planning target. It never changes pricing or actual time worked. Flat/base labor and parts allocations must equal the package price. Itemized pricing uses separate billable hours.`));
  const rows=el('div'),state=[];form.append(rows);
  function row(value){
   const l={...value},box=el('fieldset'),head=el('legend','Part / material');box.append(head);rows.append(box);
@@ -27,11 +28,11 @@ async function edit(template,{shopId,rate,readOnly=false}){
  }
  data.lines.forEach(row);const add=el('button','Add part / material');add.type='button';add.onclick=()=>row({description:'',quantity:1,included_quantity:1,pricing:'included',unit_price:0,allowance:0,extra_price:0,item_id:null,stock_unit:'each'});form.append(add);
  const status=el('p');status.setAttribute('role','status');form.append(status);const actions=el('div');actions.className='prebuilt-actions';const review=el('button','Calculate review'),accept=el('button',readOnly?'Add to estimate':'Save template'),cancel=el('button','Cancel');review.type=cancel.type='button';accept.type='submit';accept.disabled=true;actions.append(review,accept,cancel);form.append(actions);
- let approved=null;const read=()=>({name:name.value.trim(),mode:mode.value,base_price:base.value,labor_hours:hours.value,labor_pricing:labor.value,lines:state.map(e=>e.read())});
+ let approved=null;const read=()=>({name:name.value.trim(),mode:mode.value,base_price:base.value,labor_hours:hours.value,billable_hours:hours.value,expected_hours:expected.value,base_labor:baseLabor.value,base_parts:baseParts.value,labor_pricing:labor.value,lines:state.map(e=>e.read())});
  form.oninput=form.onchange=()=>{approved=null;accept.disabled=true;};
  // Button-driven structural / stock changes also invalidate a prior review.
  form.addEventListener('click',e=>{if(e.target.tagName==='BUTTON'&&e.target!==review&&e.target!==accept){approved=null;accept.disabled=true;}});
- review.onclick=()=>{try{approved=window.shopPrebuiltPricing.quote(read(),rate);status.textContent=`Package $${approved.packagePrice.toFixed(2)} + labor $${approved.labor.toFixed(2)} + parts / extras $${approved.parts.toFixed(2)} = $${approved.total.toFixed(2)} before tax. ${approved.lines.map(l=>`${l.description}: ${l.quantity} ${l.stock_unit||'units'}, $${l.charge.toFixed(2)}`).join('; ')}`;accept.disabled=false;}catch(e){approved=null;accept.disabled=true;status.textContent=e.message;}};
+ review.onclick=()=>{try{approved=window.shopPrebuiltPricing.quote(read(),rate);status.textContent=`Prebuilt labor $${approved.labor.toFixed(2)} + prebuilt parts $${approved.parts.toFixed(2)} = $${approved.total.toFixed(2)} before tax. Expected job time: ${approved.expectedHours} h; billable hours: ${approved.laborHours} h. ${approved.lines.map(l=>`${l.description}: ${l.quantity} ${l.stock_unit||'units'}, $${l.charge.toFixed(2)}`).join('; ')}`;accept.disabled=false;}catch(e){approved=null;accept.disabled=true;status.textContent=e.message;}};
  document.body.append(dialog);dialog.showModal();return new Promise(resolve=>{const done=value=>{dialog.close();dialog.remove();resolve(value);};cancel.onclick=()=>done(null);dialog.addEventListener('cancel',e=>{e.preventDefault();done(null);});form.onsubmit=e=>{e.preventDefault();if(approved)done(approved);};});
 }
 window.shopPrebuiltEditor={edit};
