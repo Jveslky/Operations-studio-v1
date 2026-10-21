@@ -348,6 +348,12 @@
         if (context.workspace === "shop" && ["owner", "admin", "service_writer"].includes(context.role)) {
             addShopNotifications(context, header, rootPath);
         }
+        if (context.workspace === "shop" && ["owner", "admin", "service_writer", "technician"].includes(context.role)) {
+            const personalAlerts = document.createElement("script");
+            personalAlerts.src = rootPath + "js/alerts.js";
+            personalAlerts.onload = () => window.LongShiftAlerts.mount({ client, context, header, rootPath });
+            document.head.appendChild(personalAlerts);
+        }
         const profileName = context.user.user_metadata?.full_name ||
             context.user.user_metadata?.name || "";
         const accountName = context.workspace === "personal_fleet"
