@@ -351,7 +351,17 @@
         if (context.workspace === "shop" && ["owner", "admin", "service_writer", "technician"].includes(context.role)) {
             const personalAlerts = document.createElement("script");
             personalAlerts.src = rootPath + "js/alerts.js";
-            personalAlerts.onload = () => window.LongShiftAlerts.mount({ client, context, header, rootPath });
+            personalAlerts.onload = () => {
+                const workspaceScript = document.createElement("script");
+                workspaceScript.src = rootPath + "js/shop-workspace.js";
+                const mountAlerts = (layout = {}) => {
+                    window.LongShiftAlerts.mount({ client, context, header: layout.alertsHost || header, rootPath });
+                    if (layout.afterAlerts) layout.afterAlerts();
+                };
+                workspaceScript.onload = () => mountAlerts(window.LongShiftWorkspace.mount({context,header,rootPath}));
+                workspaceScript.onerror = () => mountAlerts();
+                document.head.appendChild(workspaceScript);
+            };
             document.head.appendChild(personalAlerts);
         }
         const profileName = context.user.user_metadata?.full_name ||
