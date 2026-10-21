@@ -12,7 +12,7 @@ function mount({context,header,rootPath}){
  const category=p=>/invoice|accounts-payable|net-accounts|report/.test(p)?'Finance':/inventory|receiving/.test(p)?'Inventory':'Workflow';
  if(nav){
   const entries=Array.from(nav.querySelectorAll('a')).filter(a=>{const p=page(new URL(a.href,location.href).pathname);return !permission[p]||can(permission[p])}).map(a=>({a,p:page(new URL(a.href,location.href).pathname)}));
-  const groups=[...new Set(entries.map(e=>category(e.p)))];
+  const groups=['Workflow','Inventory','Finance'].filter(g=>entries.some(e=>category(e.p)===g));
   let selected=category(current);if(!groups.includes(selected))selected=groups[0];
   const top=document.createElement('nav'),bottom=document.createElement('nav');top.className='ls-groups';top.setAttribute('aria-label','Shop sections');bottom.className='ls-pages';bottom.setAttribute('aria-label','Shop pages');
   const active=p=>p===current||(p==='repair-orders'&&current==='repair-order-details')||(p==='invoices'&&current==='invoice-details');
@@ -29,12 +29,18 @@ function mount({context,header,rootPath}){
  const panel=document.createElement('dialog');panel.className='ls-utility-settings';panel.setAttribute('aria-label','Utility bar settings');
  const title=document.createElement('h2');title.textContent='Your utility bar';const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';label.append(input,document.createTextNode(' Show utility bar on phone'));
  const close=document.createElement('button');close.type='button';close.textContent='Close';close.onclick=()=>panel.close();panel.append(title,label,close);document.body.append(dock,panel);
- const fallback=document.createElement('div');fallback.className='ls-phone-alert-host';header.append(fallback);
+ const fallback=document.createElement('div');fallback.className='ls-phone-alert-host';
+ const compact=document.createElement('div');compact.className='ls-header-actions';
+ const account=header.querySelector('#account-controls');
+ if(account){const b=account.querySelector('.account-menu-button');if(b)b.setAttribute('aria-label',context.shop?.name||'Shop account');compact.append(account)}
+ compact.append(fallback);header.append(compact);
  const key='longshift.utilities.mobile.'+context.user.id;let enabled=false;try{enabled=localStorage.getItem(key)==='true'}catch{}input.checked=enabled;
  const media=matchMedia('(max-width:700px)');function place(){const phone=media.matches;dock.hidden=phone&&!enabled;const b=document.getElementById('personal-shop-alerts');if(b)(phone&&!enabled?fallback:host).append(b);fallback.hidden=!(phone&&!enabled)}
  input.onchange=()=>{enabled=input.checked;try{localStorage.setItem(key,String(enabled))}catch{}place()};settings.onclick=()=>panel.showModal();media.addEventListener('change',place);place();
  // Settings stay reachable while the phone bar is disabled.
- const customize=document.createElement('button');customize.type='button';customize.className='ls-phone-customize';customize.textContent='Utilities';customize.onclick=()=>panel.showModal();header.append(customize);
+ const customize=document.createElement('button');customize.type='button';customize.className='ls-phone-customize';customize.textContent='Utilities';customize.setAttribute('role','menuitem');customize.tabIndex=-1;
+ customize.onclick=()=>{const controls=header.querySelector('#account-controls');if(controls){const menu=controls.querySelector('.account-menu');if(menu)menu.hidden=true;controls.classList.remove('open');const b=controls.querySelector('.account-menu-button');if(b)b.setAttribute('aria-expanded','false')}panel.showModal()};
+ const accountMenu=header.querySelector('.account-menu');if(accountMenu)accountMenu.prepend(customize);else header.append(customize);
  const ticker=document.createElement('div');ticker.className='ls-ticker';ticker.hidden=true;ticker.setAttribute('role','status');document.body.append(ticker);let known=null,timer;
  window.addEventListener('longshift:alerts',e=>{const f=e.detail;if(known){const fresh=f.items.find(a=>!known.has(a.id)&&!a.read_at&&!a.resolved_at);if(fresh&&!document.hidden&&(!media.matches||enabled)){ticker.textContent=fresh.title;ticker.hidden=false;clearTimeout(timer);timer=setTimeout(()=>ticker.hidden=true,4500)}}known=new Set(f.items.map(a=>a.id))});
  window.addEventListener('pagehide',()=>{clearTimeout(timer);media.removeEventListener('change',place)},{once:true});
