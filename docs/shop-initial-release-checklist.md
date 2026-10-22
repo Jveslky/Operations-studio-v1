@@ -7,7 +7,7 @@ Scope: current Shop features plus document-file invoice OCR and reviewed receivi
 - Existing PDF/JPG/PNG upload, private original, editable OCR suggestions, explicit bill creation.
 - Reviewed receiving requires catalog match, physical quantities, pack conversion, exclusions and confirmation; never automatically pays AP or adds RO charges.
 - Automated parser/UI and transactional receiving tests are included in the Shop suite.
-- Actual browser extraction, complete multi-page PDFs and representative supplier layouts still require verification. Camera-device OCR is outside this release scope.
+- Controlled browser verification passed for an uploaded image (saved at $20.90, reload and original attachment) and two-page PDF extraction with page-two totals (cancelled without bill creation). Representative supplier layouts remain unverified. Camera-device OCR is outside this release scope.
 - Include reviewed receiving SQL in the deployment plan; Test and Live schemas must be verified separately.
 
 ## Visual conformity
@@ -27,3 +27,9 @@ The simulation is a release gate, not proof that missing recovery features exist
 ## Release preparation
 
 Reconcile the combined Test work with outstanding PRs, rerun affected checks, review migrations and rollback/recovery procedures, and obtain release authorization. Test deployment is separate from merging or releasing Live.
+
+## Btest desk
+
+`pages/Shop/btest.html` is a Test-host-only manual run journal for owner/admin accounts. It loads the normal Test authentication, records results and evidence in shop/user-scoped browser storage, and exports JSON. It does not inject faults or execute the scenarios. No scenario begins passed. Offline queue, inventory-inclusive restore and ambiguous AP creation recovery begin blocked. Marking a pass requires a build reference and evidence notes. Browser storage failures remain explicit; exported evidence is needed for portability. Up to 50 recent runs are retained locally.
+
+Wide dashboard layout activates at 1600 CSS pixels and above. Mobile keeps the existing responsive layout. Physical 27-inch display verification depends on screen resolution and browser scaling.

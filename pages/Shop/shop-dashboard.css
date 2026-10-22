@@ -849,3 +849,21 @@ body.shop-workspace[data-tr-shop-theme] .shop-dashboard .shop-dashboard-intro { 
 @media(prefers-reduced-motion:reduce) { .shop-dashboard .dashboard-activity-item { transition:none; } }
 
 .shop-dashboard .shop-finance-grid .shop-kpi-card { border-right-color:#dbd1c4; }
+
+/* Wide desktop: use the working width while keeping each activity column readable. */
+@media(min-width:1600px) {
+ .shop-dashboard { width:min(1840px,calc(100% - 96px)); padding-top:24px; }
+ .shop-workspace .ls-header { max-width:1888px; padding-top:12px!important; }
+ .shop-workspace .ls-pages { min-height:46px; }
+ .shop-dashboard .shop-dashboard-intro { padding-bottom:18px; margin-bottom:20px; }
+ .shop-dashboard .shop-kpi-grid { gap:20px; margin-bottom:20px; }
+ .shop-dashboard .shop-kpi-grid .shop-kpi-card { min-height:94px; padding:16px 22px; }
+ .shop-dashboard .shop-finance-section { padding:15px 22px; margin-bottom:20px; }
+ .shop-dashboard .shop-finance-grid .shop-kpi-card { min-height:68px; }
+ .shop-dashboard .shop-dashboard-panels { gap:24px; margin-bottom:24px; }
+ .shop-dashboard .shop-dashboard-panel .panel-heading { padding:16px 22px; }
+ .shop-dashboard .dashboard-activity-item { padding:13px 18px; }
+ .shop-dashboard .activity-customer { margin-top:7px; }
+ .shop-dashboard .shop-module-grid { gap:24px; }
+ .shop-dashboard .shop-module-card { min-height:130px; }
+}
