@@ -563,3 +563,12 @@ body {
 .ap-stock-dialog #ap-stock-message { font-weight: 600; }
 
 #bill-ocr-text { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 18rem; overflow: auto; }
+
+/* Keep the complete receiving dialog inside the viewport, including its title. */
+.ap-stock-dialog { box-sizing:border-box; position:fixed; inset:0; margin:auto; max-height:calc(100dvh - 32px); border:1px solid #bac6c8; border-top:3px solid #68a7af; border-radius:12px; padding:24px; background:#f3eee7; }
+.ap-stock-dialog h2 { margin:0 0 16px; font-size:24px; }
+.ap-stock-dialog button { font:600 14px/1.3 Arial,sans-serif; min-height:44px; padding:10px 14px; border:1px solid #bac4c8; border-radius:7px; background:#fff; color:#343f45; }
+.ap-stock-dialog input:not([type=checkbox]),.ap-stock-dialog select { font:inherit; border:1px solid #c4cdd0; border-radius:7px; min-height:44px; padding:10px 12px; }
+.ap-stock-dialog label { font-size:13px; color:#465158; }
+.ap-stock-dialog #ap-stock-save { background:#d96326; border-color:#d96326; color:#fff; }
+@media(max-width:600px) { .ap-stock-dialog { padding:18px; width:calc(100vw - 24px); max-height:calc(100dvh - 24px); } }

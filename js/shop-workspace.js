@@ -46,7 +46,7 @@ function mount({context,header,rootPath}){
  }
  const legacy=document.getElementById('shop-notifications');if(legacy){const b=legacy.querySelector('button');if(b)b.childNodes[0].textContent='Requests ';dock.append(legacy)}
  const name=document.createElement('span');name.className='ls-shop-name';name.textContent=context.shop?.name||'Shop';dock.append(name);
- const settings=document.createElement('button');settings.type='button';settings.textContent='⚙';settings.setAttribute('aria-label','Utility bar settings');dock.append(settings);
+ const settings=document.createElement('button');settings.type='button';settings.className='ls-utility-preferences';settings.textContent='⚙';settings.setAttribute('aria-label','Utility bar settings');dock.append(settings);
  const panel=document.createElement('dialog');panel.className='ls-utility-settings';panel.setAttribute('aria-label','Utility bar settings');
  const title=document.createElement('h2');title.textContent='Your utility bar';const label=document.createElement('label'),input=document.createElement('input');input.type='checkbox';label.append(input,document.createTextNode(' Show utility bar on phone'));
  const close=document.createElement('button');close.type='button';close.className='ls-utility-close';close.textContent='Close';close.onclick=()=>panel.close();panel.append(title,label,close);document.body.append(dock,panel);

@@ -716,3 +716,64 @@
 .shop-dashboard a.shop-kpi-card { color: inherit; text-decoration: none; }
 .shop-dashboard a.shop-kpi-card:hover { border-color: #df6424; }
 .shop-dashboard a.shop-kpi-card:focus-visible { outline: 3px solid #df6424; outline-offset: 3px; }
+
+/* Working overview: compact introduction, clear numbers, quieter activity. */
+.shop-dashboard { width:min(1440px,calc(100% - 48px)); padding:30px 0 48px; }
+.shop-dashboard .shop-dashboard-intro { display:flex; align-items:center; justify-content:space-between; gap:24px; margin-bottom:24px; padding:0 0 22px; background:transparent; border:0; border-bottom:1px solid #cdd4d4; border-radius:0; box-shadow:none; }
+.shop-dashboard .shop-dashboard-intro h1 { font-size:30px; letter-spacing:-.7px; margin:0 0 8px; }
+.shop-dashboard .shop-dashboard-intro p:last-child { color:#657177; font-size:14px; }
+.shop-dashboard .dashboard-eyebrow,.shop-dashboard .panel-eyebrow { color:#b65025; font-size:10px; letter-spacing:1.4px; }
+.dashboard-primary-action { display:inline-flex; align-items:center; justify-content:center; gap:20px; padding:12px 18px; min-height:44px; border:1px solid #d96326; border-radius:7px; background:#d96326; color:#fff; text-decoration:none; font-size:14px; font-weight:700; white-space:nowrap; }
+.dashboard-primary-action:hover { background:#bd511f; color:#fff; }
+.shop-dashboard .shop-kpi-grid { gap:16px; }
+.shop-dashboard .shop-kpi-card { min-height:110px; padding:20px 22px; gap:10px; box-shadow:0 3px 10px #252a3006; border-color:#d1d7d8; }
+.shop-dashboard a.shop-kpi-card { border-top:3px solid #68a7af; transition:border-color .15s,background .15s; }
+.shop-dashboard a.shop-kpi-card:hover { background:#f6faf9; border-color:#609da5; }
+.shop-dashboard .shop-kpi-value { font-size:32px; letter-spacing:-.8px; font-variant-numeric:tabular-nums; line-height:1.15; }
+.shop-dashboard .shop-kpi-label { font-size:11px; letter-spacing:.4px; line-height:1.5; }
+.shop-dashboard .shop-finance-section { padding:20px 22px; border:1px solid #d1d7d8; border-radius:10px; background:#eaf0ef; margin-bottom:24px; }
+.shop-dashboard .shop-finance-grid { gap:0; }
+.shop-dashboard .shop-finance-grid .shop-kpi-card { min-height:85px; background:transparent; border:0; border-right:1px solid #c9d3d3; border-radius:0; padding:8px 22px; box-shadow:none; justify-content:flex-start; gap:6px; }
+.shop-dashboard .shop-finance-grid .shop-kpi-card:first-child { padding-left:0; }
+.shop-dashboard .shop-finance-grid .shop-kpi-card:last-child { border-right:0; }
+.shop-dashboard .shop-finance-grid .shop-kpi-value { font-size:27px; }
+.shop-dashboard .section-heading h2 { font-size:18px; }
+.shop-dashboard .shop-dashboard-panels { gap:20px; }
+.shop-dashboard .shop-dashboard-panel { box-shadow:0 3px 10px #252a3006; }
+.shop-dashboard .shop-dashboard-panel .panel-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 22px; margin:0; background:#fff; border:0; border-top:3px solid #68a7af; border-bottom:1px solid #dde2e2; border-radius:0; }
+.shop-dashboard .panel-heading h2 { font-size:19px; }
+.shop-dashboard .panel-heading a { font-size:12px; text-align:right; }
+.shop-dashboard .panel-heading .panel-eyebrow { margin:0 0 6px; }
+.shop-dashboard .dashboard-activity-item { padding:16px 22px; }
+.shop-dashboard .dashboard-activity-item:hover { background:#f7f9f8; }
+.shop-dashboard .activity-customer { font-size:14px; }
+.shop-dashboard .activity-detail { font-size:12px; line-height:1.5; }
+.shop-dashboard .shop-module-section { padding:0; background:transparent; border:0; box-shadow:none; }
+.shop-dashboard .shop-module-card { min-height:150px; background:#fff; padding:20px; box-shadow:none; border-color:#d1d7d8; }
+.shop-dashboard .shop-module-card h3 { margin:10px 0 8px; font-size:18px; }
+.shop-dashboard .shop-module-card p { font-size:13px; }
+.shop-dashboard .module-action { margin-top:14px; }
+@media(max-width:1000px) {
+ .shop-dashboard .shop-dashboard-panels { grid-template-columns:1fr 1fr; }
+ .shop-dashboard .shop-finance-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px 0; }
+ .shop-dashboard .shop-finance-grid .shop-kpi-card:nth-child(2) { border-right:0; }
+ .shop-dashboard .shop-finance-grid .shop-kpi-card:nth-child(3) { padding-left:0; }
+}
+@media(max-width:700px) {
+ .shop-dashboard { width:calc(100% - 32px); padding:24px 0 40px; }
+ .shop-dashboard .shop-dashboard-intro { flex-wrap:wrap; gap:16px; }
+ .shop-dashboard .shop-dashboard-intro h1 { font-size:28px; }
+ .shop-dashboard .shop-kpi-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+ .shop-dashboard .shop-kpi-card { min-height:105px; padding:16px; }
+ .shop-dashboard .shop-kpi-value { font-size:29px; }
+ .shop-dashboard .shop-dashboard-panels { grid-template-columns:minmax(0,1fr); }
+ .shop-dashboard .shop-finance-section { padding:18px; }
+ .shop-dashboard .shop-finance-grid .shop-kpi-card { padding:6px 12px; }
+ .shop-dashboard .shop-finance-grid .shop-kpi-value { font-size:23px; overflow-wrap:anywhere; }
+ .shop-dashboard .shop-finance-grid .shop-kpi-card:nth-child(odd) { padding-left:0; }
+ .shop-dashboard .shop-dashboard-panel .panel-heading { padding:16px 18px; margin:0; }
+ .shop-dashboard .panel-heading h2 { font-size:18px; }
+ .shop-dashboard .shop-module-grid { grid-template-columns:minmax(0,1fr); gap:12px; }
+}
+@media(prefers-reduced-motion:reduce) { .shop-dashboard .shop-module-card { transition:none; } }
+body.shop-workspace[data-tr-shop-theme] .shop-dashboard .shop-dashboard-intro { background:transparent; border:0; border-bottom:1px solid #cdd4d4; }
