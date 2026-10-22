@@ -129,7 +129,7 @@
                 </p>
             </div>
 
-            <div class="ap-header-actions"><button id="scan-bill-button" type="button">Scan Invoice</button><button id="add-bill-button" type="button">Add Bill Manually</button></div>
+            <div class="ap-header-actions"><button id="scan-bill-button" type="button">Upload Invoice</button><button id="add-bill-button" type="button">Add Bill Manually</button></div>
         </section>
 
 
@@ -213,7 +213,7 @@
 
 
             <div class="bill-form-grid">
-                <label id="bill-document-field" class="bill-document-field" hidden>Invoice document<input id="bill-document" type="file" accept="application/pdf,image/jpeg,image/png"><span>PDF, JPG, or PNG · 20 MB maximum · OCR runs on this device</span></label>
+                <label id="bill-document-field" class="bill-document-field" hidden>Invoice document<input id="bill-document" type="file" accept="application/pdf,image/jpeg,image/png"><span>PDF, JPG, or PNG · 20 MB maximum · PDFs up to 10 pages · Review extracted values before saving</span></label>
 
                 <label>
                     Vendor
@@ -255,6 +255,7 @@
 
             </div>
             <p id="bill-review-message" class="bill-review-message" role="status" aria-live="polite"></p>
+            <details id="bill-ocr-source" hidden><summary>Review captured OCR text</summary><pre id="bill-ocr-text"></pre></details>
             <div id="bill-duplicate-warning" class="bill-duplicate-warning" hidden></div>
 
 
@@ -289,6 +290,8 @@
     <script src="../../js/auth.js"></script>
     <script src="../../js/shop-appearance.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <script src="./ap-parts-review.js"></script>
+    <script src="./ap-receiving.js"></script>
     <script src="./accounts-payable.js"></script>
 
 </body>

@@ -21,7 +21,7 @@
     }
 
     function totals(order, settings) {
-        const labor = number(order.estimateLaborHours) * number(order.estimateLaborRate);
+        const labor = number(order.estimateLaborHours) * number(order.estimateLaborRate) + number(order.estimatePrebuiltLaborTotal);
         const parts = number(order.estimatePartsTotal);
         const supplies = number(order.estimateShopSupplies);
         const environmental = number(order.estimateEnvironmentalFee);

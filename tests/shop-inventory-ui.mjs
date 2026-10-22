@@ -2,10 +2,10 @@ import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:asser
 const source=fs.readFileSync(new URL('../pages/Shop/inventory.js',import.meta.url),'utf8');
 const storage=new Map(),calls=[],requests=new Map();let stock=5,dropResponse=true,failRead=false,denyReceive=false,blockRead=false,storageFailure=false;const reads=[];
 const item={id:'item-a',part_number:'<Part>',manufacturer:'<Maker>',description:'<img onerror=bad>',stock_unit:'each',location:'A-1',sale_price:10,reorder_point:2,last_unit_cost:4,updated_at:'2026-10-16T00:00:00Z'};
-function boot(user='owner-a'){
+function boot(user='owner-a',search=''){
  const nodes=new Map();let seq=0;
  function node(id){if(!nodes.has(id))nodes.set(id,{id,type:id==='item-archived'?'checkbox':'text',value:id==='inventory-filter'?'active':'',checked:false,hidden:false,disabled:false,textContent:'',innerHTML:'',children:[],listeners:{},classList:{toggle(){}},replaceChildren(){this.children=[];this.innerHTML='';},append(n){this.children.push(n);},addEventListener(e,f){this.listeners[e]=f;},focus(){},reset(){},querySelector(selector){return node(this.id+selector);}});return nodes.get(id);}
- const window={trackRightAuthReady:Promise.resolve({shopId:'shop-a',role:'owner',user:{id:user}}),confirm:()=>true,addEventListener(){},trackRightSupabase:{async rpc(name,args){
+ const window={location:{search},trackRightAuthReady:Promise.resolve({shopId:'shop-a',role:'owner',user:{id:user}}),confirm:()=>true,addEventListener(){},trackRightSupabase:{async rpc(name,args){
   calls.push({name,args:JSON.parse(JSON.stringify(args))});
   if(name==='shop_inventory_directory'){
    if(blockRead)return new Promise(resolve=>reads.push(resolve));
@@ -17,7 +17,7 @@ function boot(user='owner-a'){
   requests.set(args.p_request,JSON.stringify(args));if(name==='receive_shop_inventory')stock+=Number(args.p_lines[0].quantity);
   return dropResponse?{error:{message:'Fetch failed'}}:{data:{}};
  }}};
- vm.runInNewContext(source,{window,document:{getElementById:node,createElement:()=>node('generated-'+seq++)},localStorage:{get length(){return storage.size;},key:i=>[...storage.keys()][i]??null,getItem:k=>storage.get(k)||null,setItem:(k,v)=>{if(storageFailure)throw Error('Storage disabled');storage.set(k,v);},removeItem:k=>storage.delete(k)},crypto:{randomUUID:()=>crypto.randomUUID()},setTimeout,clearTimeout,console});
+ vm.runInNewContext(source,{window,URLSearchParams,document:{querySelector:node,getElementById:node,createElement:()=>node('generated-'+seq++)},localStorage:{get length(){return storage.size;},key:i=>[...storage.keys()][i]??null,getItem:k=>storage.get(k)||null,setItem:(k,v)=>{if(storageFailure)throw Error('Storage disabled');storage.set(k,v);},removeItem:k=>storage.delete(k)},crypto:{randomUUID:()=>crypto.randomUUID()},setTimeout,clearTimeout,console});
  return {node,window,nodes};
 }
 const settle=()=>new Promise(r=>setTimeout(r,0));
@@ -45,3 +45,5 @@ const secondArgs={...write.args,p_request:'second-request'};requests.set(secondA
 storage.set('long-shift-inventory-pending:shop-a:owner-a:second-request',JSON.stringify({rpc:'receive_shop_inventory',args:secondArgs,summary:'Second saved request'}));
 app=boot();await settle();assert.equal(storage.size,2);await app.node('inventory-retry').listeners.click();await settle();assert.equal(storage.size,1);assert.equal(app.node('inventory-pending').hidden,false);await app.node('inventory-retry').listeners.click();await settle();assert.equal(storage.size,0);assert.equal(stock,7);
 console.log('Inventory UI: bounded/scoped reads, escaped data/history, stale-response denial, lost-response reload/retry identity, failed-form retention, user-scoped recovery and storage-failure write blocking passed.');
+
+const receiving=boot('receiving-owner','?view=receiving');await settle();assert.equal(receiving.node('.inventory-heading h1').textContent,'Receiving');assert.equal(receiving.node('inventory-receipt').hidden,false);assert.equal(receiving.node('inventory-receipt-save').disabled,true);console.log('Receiving opens an empty receipt without enabling an empty stock submission');

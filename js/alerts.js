@@ -8,6 +8,7 @@
   const button=node('button','Alerts'); button.id='personal-shop-alerts'; button.type='button';
   const dialog=node('dialog'); dialog.setAttribute('aria-label','Alerts & Preferences');
   dialog.style.cssText='width:min(620px,calc(100vw - 32px));max-height:85vh;overflow:auto;background:#f3efe7;color:#242b2f;border:2px solid #d96524;border-radius:10px;padding:20px';
+  dialog.className='ls-alert-dialog';
   const title=node('h2','Alerts & Preferences'), close=node('button','Close'), status=node('p'), list=node('section'), prefs=node('section');
   close.type='button'; close.addEventListener('click',()=>dialog.close());
   const refresh=node('button','Refresh'); refresh.type='button';
@@ -21,6 +22,7 @@
    if(busy)return; busy=true; status.textContent='Loading alerts…';
    try {
     const [feed,settings]=await Promise.all([rpc('list_my_shop_alerts'),rpc('my_shop_alert_preferences')]);
+    window.dispatchEvent(new CustomEvent('longshift:alerts',{detail:feed}));
     button.textContent=feed.unread?`Alerts (${feed.unread})`:'Alerts'; list.replaceChildren(node('h3','Recent alerts'));
     if(!feed.items.length)list.append(node('p','No alerts yet.'));
     for(const a of feed.items) {
@@ -67,9 +69,9 @@
     status.textContent=`${feed.unread} unread. Showing the latest ${feed.items.length} alerts.`;
    }catch(e){error(e);}finally{busy=false;}
   }
-  button.addEventListener('click',()=>{dialog.showModal();load();});refresh.addEventListener('click',load);
+  button.addEventListener('click',()=>{if(document.body.classList.contains('shop-workspace'))dialog.show();else dialog.showModal();load();});refresh.addEventListener('click',load);
   // Poll only in a visible tab. The database remains authoritative; no optimistic read counts.
-  async function count(){if(document.hidden||dialog.open)return;try{const f=await rpc('list_my_shop_alerts');button.textContent=f.unread?`Alerts (${f.unread})`:'Alerts';}catch(e){button.title='Alerts unavailable. Open to retry.';}}
+  async function count(){if(document.hidden||dialog.open)return;try{const f=await rpc('list_my_shop_alerts');window.dispatchEvent(new CustomEvent('longshift:alerts',{detail:f}));button.textContent=f.unread?`Alerts (${f.unread})`:'Alerts';}catch(e){button.title='Alerts unavailable. Open to retry.';}}
   count();const timer=setInterval(count,60000);window.addEventListener('pagehide',()=>clearInterval(timer),{once:true});
  }
 })();

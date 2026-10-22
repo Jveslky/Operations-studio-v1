@@ -190,20 +190,22 @@ function getRepairOrderFinancials(order) {
     const laborHours = Number(order.estimateLaborHours) || 0;
     const laborRate = Number(order.estimateLaborRate) || 0;
     const laborTotal = laborHours * laborRate;
+    const prebuiltLaborTotal = Number(order.estimatePrebuiltLaborTotal)||0;
+    const prebuiltPartsTotal = Number(order.estimatePrebuiltPartsTotal)||0;
     const partsTotal = Number(order.estimatePartsTotal) || 0;
     const shopSupplies = Number(order.estimateShopSupplies) || 0;
     const environmentalFee = Number(order.estimateEnvironmentalFee) || 0;
     const miscellaneousFee = Number(order.estimateOtherCharges) || 0;
     const discount = Number(order.estimateDiscount) || 0;
     const grossSubtotal =
-        laborTotal +
+        laborTotal + prebuiltLaborTotal +
         partsTotal +
         shopSupplies +
         environmentalFee +
         miscellaneousFee;
     const subtotal = Math.round(Math.max(0, grossSubtotal - discount) * 100) / 100;
     const taxableBeforeDiscount =
-        laborTotal +
+        laborTotal + prebuiltLaborTotal +
         partsTotal +
         (order.estimateShopSuppliesTaxable === false ? 0 : shopSupplies) +
         (order.estimateEnvironmentalFeeTaxable === true ? environmentalFee : 0) +
@@ -213,6 +215,7 @@ function getRepairOrderFinancials(order) {
         laborHours,
         laborRate,
         laborTotal,
+        prebuiltLaborTotal,prebuiltPartsTotal,prebuiltJobs:order.estimatePrebuiltJobs||[],
         partsTotal,
         shopSupplies,
         shopSuppliesTaxable:

@@ -1,1 +1,43 @@
 .inventory-page{max-width:1280px;margin:32px auto;padding:0 20px 60px;color:#24313b}.inventory-heading,.inventory-actions,.inventory-pager{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.inventory-heading h1{margin:4px 0 12px}.eyebrow{font-size:.78rem;font-weight:800;letter-spacing:.12em;color:#e85e1d}.inventory-page button{cursor:pointer;border:1px solid #98a9b3;border-radius:5px;padding:10px 15px;background:#fff;color:#24313b;font-weight:700;min-height:42px}.inventory-page button:disabled{opacity:.5;cursor:default}.inventory-page input,.inventory-page select,.inventory-page textarea{display:block;box-sizing:border-box;max-width:100%;width:100%;padding:10px;border:1px solid #aab7c0;border-radius:4px;margin-top:6px;color:#24313b;background:#fff;font:inherit}.inventory-page label{font-size:.88rem;font-weight:700;min-width:0}.inventory-page fieldset{border:0;padding:0;margin:0;min-width:0}.inventory-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.inventory-grid .wide{grid-column:1/-1}.inventory-panel{background:#fff;border:1px solid #c5cfd6;border-top:3px solid #f36a2a;border-radius:7px;padding:22px;margin:24px 0}.inventory-help{color:#526773;font-size:.9rem;line-height:1.5}.inventory-warning{padding:18px;background:#fff2cf;border:1px solid #b47a16;border-radius:6px;margin:20px 0;overflow-wrap:anywhere}.inventory-warning h2{font-size:1.1rem}.inventory-toolbar{display:grid;grid-template-columns:minmax(0,1fr) 230px;gap:16px;margin:26px 0 16px}.inventory-part{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,220px) auto;gap:20px;background:#fff;border:1px solid #c5cfd6;border-radius:7px;padding:20px;margin:12px 0;align-items:center;overflow-wrap:anywhere}.inventory-part h3{margin:0 0 8px}.inventory-part p{margin:5px 0}.inventory-part .count{font-size:1.5rem;font-weight:800}.inventory-part .low{color:#9a5800}.inventory-part .inventory-actions{max-width:300px;justify-content:flex-start}.inventory-pager{justify-content:center;margin:18px 0}.inventory-page .inventory-check{display:flex;align-items:center;gap:8px}.inventory-check input{width:auto}.receipt-line{display:grid;grid-template-columns:minmax(0,1fr) 140px 140px auto;gap:14px;align-items:end;padding:16px 0;border-top:1px solid #d4dce0}.receipt-line p{margin:4px 0}.movement{border-top:1px solid #d4dce0;padding:16px 0;overflow-wrap:anywhere}.movement p{margin:5px 0}.is-error{color:#a62a20}#inventory-receipt-save,#inventory-item-save,#inventory-adjustment-save{background:#237f8e;color:#fff;border-color:#237f8e}.inventory-page [hidden]{display:none!important}@media(max-width:800px){.inventory-part{grid-template-columns:minmax(0,1fr) 160px}.inventory-part>.inventory-actions{grid-column:1/-1;max-width:none}.receipt-line{grid-template-columns:1fr 1fr}.receipt-line>div{grid-column:1/-1}}@media(max-width:480px){.inventory-page{padding:0 12px 40px}.inventory-panel{padding:16px}.inventory-grid,.inventory-toolbar,.inventory-part{grid-template-columns:minmax(0,1fr)}.inventory-part>.inventory-actions{grid-column:auto}.receipt-line{grid-template-columns:minmax(0,1fr)}.inventory-actions button{flex:1}.inventory-heading{align-items:flex-start}.inventory-heading>div{min-width:0}}
+
+/* Shop visual conformity: catalog and receiving share one set of controls. */
+.inventory-page { max-width:1440px; margin:0 auto; padding:34px 24px 48px; color:#262d31; }
+.inventory-heading { gap:20px; margin-bottom:20px; }
+.inventory-heading h1 { font-size:32px; letter-spacing:-.6px; margin:6px 0 10px; }
+.inventory-heading p:last-child { color:#657177; line-height:1.5; margin-bottom:0; }
+.inventory-page .eyebrow { color:#bc5427; font-size:11px; letter-spacing:1.4px; margin:0; }
+.inventory-page button { font:600 14px/1.3 Arial,sans-serif; border-color:#bac4c8; border-radius:7px; min-height:44px; padding:11px 16px; transition:background .15s,border-color .15s; }
+.inventory-page button:hover:not(:disabled) { background:#eef4f4; border-color:#609da5; }
+.inventory-page #inventory-new { background:#d96326; border-color:#d96326; color:white; }
+.inventory-page #inventory-new:hover { background:#bd511f; }
+.inventory-page input,.inventory-page select,.inventory-page textarea { border-color:#c4cdd0; border-radius:7px; min-height:44px; font:400 14px/1.4 Arial,sans-serif; padding:11px 12px; }
+.inventory-page label { color:#465158; font-size:13px; }
+.inventory-page .inventory-help { color:#657177; font-size:13px; }
+.inventory-page > .inventory-help { padding:14px 18px; background:#e9f1f1; border-left:3px solid #68a7af; border-radius:0 7px 7px 0; }
+#inventory-message { font-size:13px; color:#657177; min-height:20px; }
+.inventory-toolbar { padding:18px; background:#fff; border:1px solid #d1d7d8; border-radius:10px; gap:20px; margin:22px 0 18px; }
+.inventory-part { grid-template-columns:minmax(0,1fr) minmax(180px,230px) 290px; padding:24px; border-color:#d1d7d8; border-radius:10px; box-shadow:0 3px 10px #252a3008; margin:12px 0; }
+.inventory-part h3 { font-size:19px; color:#262d31; }
+.inventory-part p { font-size:14px; line-height:1.5; color:#657177; }
+.inventory-part .count { font-size:27px; letter-spacing:-.5px; color:#262d31; }
+.inventory-part .count.low { color:#9a5800; }
+.inventory-part .inventory-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; max-width:none; }
+.inventory-part .inventory-actions button { padding:10px 8px; }
+.inventory-panel { padding:24px; border-color:#d1d7d8; border-top:3px solid #68a7af; border-radius:10px; box-shadow:0 3px 10px #252a3008; }
+.inventory-panel h2 { font-size:22px; margin:0 0 12px; }
+.inventory-panel > p { color:#657177; font-size:14px; line-height:1.6; }
+.inventory-panel .inventory-actions { margin-top:18px; justify-content:flex-start; }
+.inventory-panel #inventory-receipt-cancel { margin-left:auto; }
+@media(max-width:1000px) {
+ .inventory-part { grid-template-columns:minmax(0,1fr) 210px; }
+ .inventory-part > .inventory-actions { grid-column:1/-1; display:flex; flex-wrap:wrap; }
+}
+@media(max-width:600px) {
+ .inventory-page { padding:24px 16px 40px; }
+ .inventory-heading h1 { font-size:28px; }
+ .inventory-heading > .inventory-actions { width:100%; justify-content:flex-start; }
+ .inventory-toolbar,.inventory-part,.inventory-grid { grid-template-columns:minmax(0,1fr); }
+ .inventory-part,.inventory-panel { padding:20px; }
+ .inventory-part > .inventory-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .inventory-panel #inventory-receipt-cancel { margin-left:0; }
+}

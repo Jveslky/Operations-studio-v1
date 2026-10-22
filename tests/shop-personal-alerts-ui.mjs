@@ -13,7 +13,8 @@ const client={rpc:async(name,args)=>{calls.push({name,args});if(fail)return {err
  if(name==='my_shop_alert_preferences')return {data:settings};
  if(name==='read_my_shop_alert')items=items.map(x=>({...x,read_at:'now'}));
  return {data:null};}};
-const window={addEventListener(){}};vm.runInNewContext(fs.readFileSync(new URL('../js/alerts.js',import.meta.url),'utf8'),{window,document,setInterval:()=>1,clearInterval(){},console});
+body.classList={contains:()=>false};
+const emitted=[];const window={addEventListener(){},dispatchEvent(e){emitted.push(e)}};vm.runInNewContext(fs.readFileSync(new URL('../js/alerts.js',import.meta.url),'utf8'),{window,document,setInterval:()=>1,clearInterval(){},CustomEvent:class {constructor(type,options){this.type=type;this.detail=options.detail;}},console});
 window.LongShiftAlerts.mount({client,context:{shopId:'shop',role:'technician'},header,rootPath:'../../'});
 const flush=async()=>{for(let i=0;i<15;i++)await Promise.resolve();};
 await flush();const button=header.children[0];assert.equal(button.textContent,'Alerts (1)');
@@ -37,3 +38,5 @@ assert.equal(list.children[3].children[0].href,'../../pages/Shop/shop-settings.h
 assert.equal(list.children[4].children[0].href,'../../pages/Shop/technician-dashboard.html#tech-document-list');
 dialog.children[1].events.click();assert.equal(dialog.open,false);
 console.log('Personal alerts UI: modal, links, scoped preferences, required controls, failed save rollback and confirmed read count passed.');
+
+assert.ok(emitted.some(e=>e.type==='longshift:alerts'),'authoritative feeds reach utility bar');

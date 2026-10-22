@@ -17,7 +17,7 @@
 <link rel="apple-touch-icon" sizes="180x180" href="./icons/shop-v2-180.png">
 <meta name="apple-mobile-web-app-title" content="Long Shift Shop">
 <meta name="theme-color" content="#1e2428">
-</head>
+<link rel="stylesheet" href="prebuilt-jobs.css"></head>
 
 <body>
     <header class="app-header">
@@ -30,6 +30,10 @@
 
                 <a href="shop-dashboard.html">
                     Dashboard
+                </a>
+
+                <a href="schedule.html">
+                    Schedule
                 </a>
 
                 <a href="customers.html">
@@ -319,7 +323,7 @@
                 </label>
 
                 <label>
-                    Parts Total
+                    Parts Total (includes prebuilt parts)
 
                     <input id="estimate-parts-total"
                            class="detail-input"
@@ -485,7 +489,7 @@
             <label>Status<select id="supplement-status" class="detail-input"><option>Draft</option><option>Sent</option><option>Declined</option></select></label>
             <label>Labor hours<input id="supplement-labor_hours" class="detail-input" type="number" min="0" step="0.01" value="0"></label>
             <label>Labor rate<input id="supplement-labor_rate" class="detail-input" type="number" min="0" step="0.01" value="0"></label>
-            <label>Parts total<input id="supplement-parts_total" class="detail-input" type="number" min="0" step="0.01" value="0"></label>
+            <label>Parts total (includes prebuilt parts)<input id="supplement-parts_total" class="detail-input" type="number" min="0" step="0.01" value="0"></label>
             <label>Other charges<input id="supplement-other_charges" class="detail-input" type="number" min="0" step="0.01" value="0"></label>
             <label>Discount<input id="supplement-discount" class="detail-input" type="number" min="0" step="0.01" value="0"></label>
             <label><input id="supplement-other-taxable" type="checkbox"> Other charges taxable</label>
@@ -632,7 +636,8 @@
     <script src="./shop-supplemental-estimates.js"></script>
     <script src="./shop-estimate-tax.js"></script>
     <script src="./shop-ro-inventory.js"></script>
-    <script src="./repair-order-details.js"></script>
+    <script src="shop-prebuilt-pricing.js"></script><script src="shop-prebuilt-editor.js"></script><script src="shop-prebuilt-apply.js"></script>
+<script src="./repair-order-details.js"></script>
     <script src="./repair-order-media.js"></script>
 </body>
 </html>

@@ -35,3 +35,6 @@ assert.match(page,/shopEstimateTax\.lines\(estimateFinancials\(\)\)/);
 assert.match(page,/printEstimateButton\.disabled = !available/);
 assert.match(page,/sendEstimateButton\.disabled = !available/);
 console.log('Estimate tax: taxable/exempt/inherited settings, scoped reads, fee flags, discounts, cents, share totals and unavailable-tax guards passed.');
+const pbTotals=api.totals({estimateLaborHours:1,estimateLaborRate:150,estimatePrebuiltLaborTotal:35,estimatePartsTotal:134.95},{taxable:true,rate:6});
+assert.equal(pbTotals.subtotal,319.95);assert.equal(pbTotals.total,339.15);
+assert.equal(api.totals({estimatePrebuiltLaborTotal:35,estimatePartsTotal:54.95},{taxable:false,rate:6}).total,89.95);

@@ -287,6 +287,7 @@ if (!repairOrder) {
 
         return (
             laborTotal +
+            Number(repairOrder.estimatePrebuiltLaborTotal || 0) +
             partsTotal +
             shopSupplies +
             environmentalFee +
@@ -302,6 +303,9 @@ if (!repairOrder) {
         return window.shopEstimateTax.totals(currentApprovalEstimate(), estimateTaxSettings);
     }
     function renderEstimateTotal() {
+        const allocation=document.getElementById('prebuilt-allocation-summary');
+        if(allocation){const pb=window.shopPrebuiltPricing.totals(repairOrder.estimatePrebuiltJobs||[]);allocation.textContent=`Regular labor: $${(getNumberValue(estimateLaborHoursInput)*getNumberValue(estimateLaborRateInput)).toFixed(2)} · Prebuilt labor: $${pb.labor.toFixed(2)} · Regular parts: $${(getNumberValue(estimatePartsTotalInput)-pb.parts).toFixed(2)} · Prebuilt parts: $${pb.parts.toFixed(2)} · Expected prebuilt job time: ${pb.expectedHours} h. Actual time worked is recorded separately.`;}
+
         const subtotal = Math.round(Math.max(0, calculateEstimateTotal()) * 100) / 100;
         document.getElementById('estimate-subtotal').textContent = window.shopEstimateTax.money(subtotal);
         const available = Boolean(estimateTaxSettings);
@@ -326,6 +330,10 @@ if (!repairOrder) {
         order: repairOrder, totalInput: estimatePartsTotalInput,
         changed: () => { hasUnsavedChanges = true; renderEstimateTotal(); }
     }) : null;
+
+    if(window.shopPrebuiltApply) await window.shopPrebuiltApply.mount({order:repairOrder,stockEditor,
+        fields:{rate:estimateLaborRateInput,hours:estimateLaborHoursInput,parts:estimatePartsTotalInput,other:estimateOtherChargesInput,otherTaxable:estimateMiscFeeTaxableInput,otherLabel:estimateMiscFeeLabelInput,notes:estimateNotesInput},
+        changed:()=>{hasUnsavedChanges=true;renderEstimateTotal();}});
 
     function currentApprovalEstimate() {
         return {...repairOrder, ...(stockEditor ? {estimateStockLines: stockEditor.lines()} : {}),
