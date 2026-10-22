@@ -784,7 +784,7 @@ body.shop-workspace[data-tr-shop-theme] .shop-dashboard .shop-dashboard-intro { 
  box-shadow:0 2px 3px #252a3005,0 7px 18px #252a3009,inset 0 1px 0 #fff;
 }
 .shop-dashboard .shop-finance-section {
- background:linear-gradient(125deg,#f5efe5,#eee4d6);
+ background:linear-gradient(125deg,#fcf0e4,#f6dfc9);
  box-shadow:0 4px 12px #252a3008,inset 0 1px 0 #ffffffc9;
 }
 .shop-dashboard .shop-dashboard-panel {
@@ -794,7 +794,7 @@ body.shop-workspace[data-tr-shop-theme] .shop-dashboard .shop-dashboard-intro { 
 }
 .shop-dashboard .shop-dashboard-panel .panel-heading {
  padding:20px 22px;
- background:linear-gradient(120deg,#fffaf2,#f1e8dc);
+ background:linear-gradient(120deg,#f1f8f8,#deedef);
  border-bottom:1px solid #d9cfc1;
  box-shadow:0 2px 6px #252a3004;
 }
