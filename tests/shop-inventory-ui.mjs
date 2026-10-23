@@ -2,10 +2,10 @@ import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:asser
 const source=fs.readFileSync(new URL('../pages/Shop/inventory.js',import.meta.url),'utf8');
 const storage=new Map(),calls=[],requests=new Map();let stock=5,dropResponse=true,failRead=false,denyReceive=false,blockRead=false,storageFailure=false;const reads=[];
 const item={id:'item-a',part_number:'<Part>',manufacturer:'<Maker>',description:'<img onerror=bad>',stock_unit:'each',location:'A-1',sale_price:10,reorder_point:2,last_unit_cost:4,updated_at:'2026-10-16T00:00:00Z'};
-function boot(user='owner-a',search=''){
+function boot(user='owner-a',search='',hostname='',role='owner'){
  const nodes=new Map();let seq=0;
- function node(id){if(!nodes.has(id))nodes.set(id,{id,type:id==='item-archived'?'checkbox':'text',value:id==='inventory-filter'?'active':'',checked:false,hidden:false,disabled:false,textContent:'',innerHTML:'',children:[],listeners:{},classList:{toggle(){}},replaceChildren(){this.children=[];this.innerHTML='';},append(n){this.children.push(n);},addEventListener(e,f){this.listeners[e]=f;},focus(){},reset(){},querySelector(selector){return node(this.id+selector);}});return nodes.get(id);}
- const window={location:{search},trackRightAuthReady:Promise.resolve({shopId:'shop-a',role:'owner',user:{id:user}}),confirm:()=>true,addEventListener(){},trackRightSupabase:{async rpc(name,args){
+ function node(id){if(!nodes.has(id))nodes.set(id,{id,type:id==='item-archived'?'checkbox':'text',value:id==='inventory-filter'?'active':'',checked:false,hidden:false,disabled:false,textContent:'',innerHTML:'',children:[],listeners:{},classList:{toggle(){}},replaceChildren(){this.children=[];this.innerHTML='';},append(n){this.children.push(n);},addEventListener(e,f){this.listeners[e]=f;},focus(){},reset(){},after(){},setAttribute(){},querySelector(selector){return node(this.id+selector);}});return nodes.get(id);}
+ const window={location:{search,hostname},trackRightAuthReady:Promise.resolve({shopId:'shop-a',role,user:{id:user}}),confirm:()=>true,addEventListener(){},trackRightSupabase:{async rpc(name,args){
   calls.push({name,args:JSON.parse(JSON.stringify(args))});
   if(name==='shop_inventory_directory'){
    if(blockRead)return new Promise(resolve=>reads.push(resolve));
@@ -47,3 +47,13 @@ app=boot();await settle();assert.equal(storage.size,2);await app.node('inventory
 console.log('Inventory UI: bounded/scoped reads, escaped data/history, stale-response denial, lost-response reload/retry identity, failed-form retention, user-scoped recovery and storage-failure write blocking passed.');
 
 const receiving=boot('receiving-owner','?view=receiving');await settle();assert.equal(receiving.node('.inventory-heading h1').textContent,'Receiving');assert.equal(receiving.node('inventory-receipt').hidden,false);assert.equal(receiving.node('inventory-receipt-save').disabled,true);console.log('Receiving opens an empty receipt without enabling an empty stock submission');
+
+// The live-database fault control is opt-in, exact Test-host and office-role gated.
+for(const [host,role,enabled] of [['example.com','owner',false],['long-shift-test.pages.dev.evil.com','owner',false],['test-shop-combined.long-shift-test.pages.dev','writer',false],['test-shop-combined.long-shift-test.pages.dev','owner',true]]){
+ storage.clear();dropResponse=false;
+ const probe=boot('fault-owner','?btest=receipt-response-loss',host,role);await settle();
+ const arm=[...probe.nodes.values()].find(n=>n.textContent==='Arm next receipt response loss');assert.equal(!!arm,enabled);
+ if(enabled){arm.listeners.click();const initial=stock;fillReceipt(probe);await submit(probe,'inventory-receipt-form');assert.equal(stock,initial+2);assert.match(probe.node('inventory-message').textContent,/Btest injected/);assert.equal(storage.size,1);
+ const restored=boot('fault-owner','?btest=receipt-response-loss',host,role);await settle();await restored.node('inventory-retry').listeners.click();await settle();assert.equal(stock,initial+2);assert.equal(storage.size,0);}
+}
+console.log('Test fault control: exact host/role opt-in, one accepted response discarded, pending request preserved and reload retry does not duplicate stock.');

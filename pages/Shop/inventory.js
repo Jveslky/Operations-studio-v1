@@ -8,6 +8,18 @@
     let rows=[],basket=[],editing=null,adjusting=null,canReceive=false,canManage=false,loaded=false,busy=false,pending=null,storageKey='',dirty=false;
     const receivingView=new URLSearchParams(window.location.search).get('view')==='receiving';
     if(receivingView){document.querySelector('.inventory-heading h1').textContent='Receiving';document.title='Receiving | Long Shift';el('inventory-receipt').hidden=false;}
+    let responseLossArmed=false,responseLossButton=null,responseLossStatus=null;
+    const responseLossEnabled=()=>window.location.hostname==='test-shop-combined.long-shift-test.pages.dev'&&new URLSearchParams(window.location.search).get('btest')==='receipt-response-loss'&&['owner','admin'].includes(context?.role)&&canReceive;
+    function setupResponseLoss(){
+        if(!responseLossEnabled())return;
+        const panel=document.createElement('section');panel.className='inventory-notice';
+        const title=document.createElement('strong');title.textContent='Btest · receipt response loss (Test only)';
+        const description=document.createElement('p');description.textContent='Arming discards one successful receipt response after the Test server accepts it. Real Test stock changes. Reload and Retry same save must not add it twice. This is an application-boundary fault, not a network outage.';
+        responseLossButton=document.createElement('button');responseLossButton.type='button';responseLossButton.textContent='Arm next receipt response loss';
+        responseLossStatus=document.createElement('p');responseLossStatus.setAttribute('role','status');responseLossStatus.textContent='Disarmed. No fault is injected on reload.';
+        responseLossButton.addEventListener('click',()=>{if(busy||pending||!responseLossEnabled())return;responseLossArmed=!responseLossArmed;responseLossButton.textContent=responseLossArmed?'Disarm receipt response loss':'Arm next receipt response loss';responseLossStatus.textContent=responseLossArmed?'Armed for one successful receipt response.':'Disarmed.';});
+        panel.append(title,description,responseLossButton,responseLossStatus);el('inventory-message').after(panel);
+    }
     const allowedRPCs=new Set(['save_shop_inventory_item','receive_shop_inventory','adjust_shop_inventory']);
     function readPending(){
         const keys=[];for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key===storageKey||key?.startsWith(storageKey+':'))keys.push(key);}
@@ -120,6 +132,11 @@
                 if(result.error.code&&/^[0-9A-Z]{5}$/.test(result.error.code)&&!result.error.code.startsWith('PGRST')){localStorage.removeItem(action.storageKey);pending=readPending();}
                 throw result.error;
             }
+            if(action.rpc==='receive_shop_inventory'&&responseLossArmed&&responseLossEnabled()){
+                responseLossArmed=false;responseLossButton.textContent='Arm next receipt response loss';
+                responseLossStatus.textContent='Injected once: successful server response discarded. Check stock/history independently, then reload and retry the preserved request.';
+                throw Error('Btest injected receipt response loss after server success');
+            }
             localStorage.removeItem(action.storageKey);pending=readPending();dirty=false;
             if(action.rpc==='save_shop_inventory_item'){editing=null;el('inventory-editor').hidden=true;}
             if(action.rpc==='receive_shop_inventory'){basket=[];el('inventory-receipt-form').reset();renderBasket();}
@@ -146,7 +163,7 @@
         context=await window.trackRightAuthReady;if(!context?.shopId||!context?.user?.id)throw Error('Shop session unavailable.');
         storageKey=`long-shift-inventory-pending:${context.shopId}:${context.user.id}`;
         pending=readPending();
-        await load();
+        await load();setupResponseLoss();
     }catch(error){message(error.message,true);loaded=false;controls();}}
     initialize();
 })();
