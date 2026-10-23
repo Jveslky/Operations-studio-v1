@@ -64,6 +64,13 @@
         summary.append(identity, roleSelect, status, activeLabel);
         row.append(summary);
 
+        const accessSummary = document.createElement("p");
+        accessSummary.className = "owner-note";
+        accessSummary.textContent = member.role === "owner" || member.effective_permissions?.["repair_orders.write"] === true
+            ? "Repair orders: create and edit allowed."
+            : "Repair orders: create and edit denied by saved access.";
+        row.append(accessSummary);
+
         if (member.role === "owner") {
             roleSelect.disabled = true;
             active.disabled = true;
