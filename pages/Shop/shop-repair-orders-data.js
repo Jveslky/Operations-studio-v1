@@ -163,7 +163,20 @@
             .select("*")
             .single();
 
-        if (error) throw error;
+        if (error) {
+            if (error.message === "Assignment permission required") {
+                const access = await client.rpc("shop_has_permission", {
+                    requested_shop_id: authContext.shopId,
+                    requested_permission: "repair_orders.write"
+                });
+                if (!access.error) {
+                    throw new Error(access.data === true
+                        ? "Your session allows repair-order creation, but the server rejected assignment during creation. No order was created. Report this to your shop owner."
+                        : "Your current shop session does not allow repair-order creation. No order was created. Ask your shop owner to review your access, then sign in again.");
+                }
+            }
+            throw error;
+        }
         return toModel(data);
     }
 
