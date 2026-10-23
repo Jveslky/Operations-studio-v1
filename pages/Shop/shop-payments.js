@@ -6,7 +6,18 @@
     let invoice,rerender,entries=[],generation=0,requestId,reverseId=null,busy=false;
     const dialog=document.createElement('dialog');dialog.className='payment-dialog';dialog.innerHTML=`<form id="payment-form"><h2 id="payment-heading">Record Payment</h2><p id="payment-summary"></p><p>Records money received through your existing payment method.</p><div id="payment-fields"><label>Amount<input id="payment-amount" type="number" min="0.01" step="0.01" required></label><label>Method<select id="payment-method"><option value="cash">Cash</option><option value="card">Card</option><option value="check">Check</option><option value="bank_transfer">Bank transfer</option><option value="other">Other</option></select></label><label>Payment date<input id="payment-date" type="date" required></label><label>Reference<input id="payment-reference" maxlength="200" placeholder="Check number or processor reference"></label></div><label id="payment-notes-label">Notes<textarea id="payment-notes" maxlength="2000"></textarea></label><p id="payment-error" role="alert"></p><div class="payment-actions"><button id="payment-submit" type="submit">Record Payment</button><button id="payment-cancel" type="button">Cancel</button></div></form>`;document.body.append(dialog);
     const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
-    async function rpc(name,args){const result=await window.trackRightSupabase.rpc(name,args);if(result.error)throw new Error(result.error.message);return result.data;}
+    let faultRole='',faultArmed=false,faultPanel=null,faultButton=null,faultStatus=null;
+    const faultAllowed=()=>window.location?.hostname==='test-shop-combined.long-shift-test.pages.dev'&&new URLSearchParams(window.location.search).get('btest')==='payment-response-loss'&&['owner','admin'].includes(faultRole);
+    function setupFault(){
+        if(!faultAllowed()||faultPanel)return;
+        faultPanel=document.createElement('section');faultPanel.className='payment-warning';
+        const text=document.createElement('p');text.textContent='Btest (Test only): discard one successful payment/reversal response at the application boundary. Test ledger entries are real Test writes. Retry in the same open dialog; this does not verify recovery after reload.';
+        faultButton=document.createElement('button');faultButton.type='button';faultButton.textContent='Arm next payment response loss';
+        faultStatus=document.createElement('p');faultStatus.textContent='Disarmed.';
+        faultButton.addEventListener('click',()=>{if(busy||!faultAllowed())return;faultArmed=!faultArmed;faultStatus.textContent=faultArmed?'Armed for one payment or reversal response.':'Disarmed.';});
+        faultPanel.append(text,faultButton,faultStatus);el('invoice-payments').before(faultPanel);
+    }
+    async function rpc(name,args){const result=await window.trackRightSupabase.rpc(name,args);if(result.error)throw new Error(result.error.message);if(faultArmed&&faultAllowed()&&['record_shop_invoice_payment','reverse_shop_invoice_payment'].includes(name)){faultArmed=false;faultStatus.textContent='Injected once after server acceptance. Retry unchanged in the same open dialog.';throw new Error('Btest response loss after server acceptance. Retry unchanged in this dialog.');}return result.data;}
     async function history(){const request=++generation,panel=el('invoice-payments');panel.hidden=false;panel.textContent='Loading payment history…';try{
         const data=await rpc('shop_invoice_payment_history',{p_invoice:invoice.recordId});if(request!==generation)return;
         entries=data.entries;const latest=window.trackRightInvoices.model(data.invoice);Object.assign(invoice,latest);
@@ -21,5 +32,5 @@
         catch(error){el('payment-error').textContent=error.message;}
         finally{busy=false;el('payment-submit').disabled=false;el('payment-cancel').disabled=false;dialog.querySelectorAll('input,select,textarea').forEach(field=>field.disabled=!!reverseId&&field.closest('#payment-fields'));}
     });
-    window.shopPayments={open,async bind(value,render){invoice=value;rerender=render;const request=++generation;const context=await window.trackRightAuthReady;if(request!==generation)return;const office=['owner','admin','service_writer'].includes(context?.role);el('mark-paid-button').hidden=!office||invoice.status!=='Sent'||invoice.balanceDue<=0;if(!office){el('invoice-payments').hidden=true;return;}history();}};
+    window.shopPayments={open,async bind(value,render){invoice=value;rerender=render;const request=++generation;const context=await window.trackRightAuthReady;if(request!==generation)return;faultRole=context?.role;setupFault();const office=['owner','admin','service_writer'].includes(context?.role);el('mark-paid-button').hidden=!office||invoice.status!=='Sent'||invoice.balanceDue<=0;if(!office){el('invoice-payments').hidden=true;return;}history();}};
 })();
