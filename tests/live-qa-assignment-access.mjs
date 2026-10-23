@@ -111,7 +111,17 @@ await denied("select update_shop_repair_order_work($1,'Complete','forged',9,'for
 await denied('select attach_shop_inspection($1)',[unassigned.id]);
 await denied('insert into shop_repair_orders(shop_id) values($1)',[qa]);
 assert.equal((await db.query("update shop_repair_orders set technician='tr.qa.tech@proton.me' where id=$1 returning id",[assigned.id])).rows.length,0);
+// Simulate record-based authorization drift: a BEFORE INSERT row is not yet queryable.
+await db.exec('reset role');
+await db.exec(`create or replace function public.sync_shop_ro_assignments() returns trigger language plpgsql security definer set search_path=public as $$ begin
+ if public.live_qa_assignment_scope(new.shop_id) and not public.shop_can_access_ro(new.shop_id,new.id::text,'assign') then raise exception 'Assignment permission required'; end if; return new; end $$;`);
 await actor(writer);
+await denied('insert into shop_repair_orders(shop_id,technician,created_by) values($1,$2,$3)',[qa,'Unassigned',writer]);
+await db.exec('reset role');
+const repair=read('shop-ro-assignment-create-repair-20261023.sql').replace(/^begin;$/m,'').replace(/^commit;$/m,'');
+await db.exec(repair);await db.exec(repair);
+await actor(writer);
+await denied('insert into shop_repair_orders(shop_id,technician,created_by) values($1,$2,$3)',[qa,'tr.qa.owner+shopb@gmail.com',writer]);
 for(const label of ['Unassigned','tr.qa.tech@proton.me']) assert.equal((await db.query('insert into shop_repair_orders(shop_id,technician,created_by) values($1,$2,$3) returning id',[qa,label,writer])).rows.length,1);
 await db.query("update shop_repair_orders set technician='Unassigned' where id=$1",[assigned.id]);
 await actor(tech);
