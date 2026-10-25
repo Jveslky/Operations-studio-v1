@@ -1,0 +1,24 @@
+name: PR static checks
+
+on:
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  syntax-and-diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check JavaScript syntax
+        run: find js pages -type f -name '*.js' -print0 | xargs -0 -n1 node --check
+      - name: Check patch whitespace
+        run: git diff --check "${{ github.event.pull_request.base.sha || 'HEAD^' }}" HEAD
