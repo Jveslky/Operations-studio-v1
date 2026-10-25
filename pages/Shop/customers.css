@@ -351,6 +351,13 @@ body {
 .vin-lookup button:hover, .vin-lookup-result button:hover { background: #ffe8d6; }
 .vin-lookup button:disabled { opacity: .65; cursor: wait; }
 .vin-lookup small { color: #59656e; line-height: 1.4; }
+.manufacturer-lookup { flex-basis: 100%; border: 1px solid #d8dee1; border-radius: 8px; padding: 9px 12px; background: #f8fafb; }
+.manufacturer-lookup summary { cursor: pointer; font-weight: 750; color: #284b5c; }
+.manufacturer-lookup p { margin: 10px 0; color: #59656e; line-height: 1.4; }
+.manufacturer-lookup-groups { display: flex; flex-wrap: wrap; gap: 16px 30px; }
+.manufacturer-lookup-groups > div { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
+.manufacturer-lookup-groups strong { font-size: 12px; color: #354852; }
+.manufacturer-lookup-groups a { width: fit-content; }
 .vin-lookup-result { margin: 14px 0; padding: 14px; border: 1px solid #d8dee1; border-left: 4px solid #e1662b; border-radius: 8px; background: #f8fafb; }
 .vin-lookup-result p { margin: 0 0 9px; line-height: 1.45; }
 .vin-lookup-result dl { display: flex; flex-wrap: wrap; gap: 10px 24px; margin: 0 0 12px; }
