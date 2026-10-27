@@ -36,7 +36,7 @@
                 const days = Math.ceil((new Date(`${bill.due_date}T00:00:00`) - today) / 86400000);
                 if (days < 0) { display = "Overdue"; overdue += 1; } else if (days <= 7) { display = "Due Soon"; soon += 1; }
             }
-            const card = document.createElement("article"); card.className = "bill-card";
+            const card = document.createElement("article"); card.className = "bill-card"; card.dataset.billId = bill.id;
             const identity = document.createElement("div"); const vendor = document.createElement("strong"); vendor.textContent = bill.vendor; const reference = document.createElement("span"); reference.textContent = bill.invoice_number || "No reference"; identity.append(vendor, reference);
             const amount = document.createElement("div"); const amountLabel = document.createElement("span"); amountLabel.textContent = "Amount"; const amountValue = document.createElement("strong"); amountValue.textContent = money(bill.total); amount.append(amountLabel, amountValue);
             const due = document.createElement("div"); const dueLabel = document.createElement("span"); dueLabel.textContent = "Due"; const dueValue = document.createElement("strong"); dueValue.textContent = dateOnly(bill.due_date) || "No due date"; due.append(dueLabel, dueValue);
@@ -80,6 +80,16 @@
             apFaultArmed=false;result={error:{message:'Btest: response lost after the server accepted the bill.'}};
         }
         saveBusy=false;
+        if(result.error && String(result.error.message || '').includes('AP_DUPLICATE_REVIEW_REQUIRED')) {
+            const rejected=pendingBill;
+            try { localStorage.removeItem(pendingKey()); pendingBill=null; } catch (_) { recoveryUnavailable=true; drawRecovery(); return; }
+            const record=rejected.record; form.hidden=false; scanMode=!!record.document_path; documentPath=record.document_path; ocrText=record.ocr_text || '';
+            Object.keys(fields).forEach(key=>{fields[key].value=record[key] ?? '';});
+            fileField.hidden=!scanMode; fileInput.required=false;
+            try { await loadBills(); checkDuplicates(); setMessage('A matching bill appeared before this request was saved. Review it before deciding whether to create another.', 'error'); }
+            catch (_) { setMessage('The bill was not created, but the bill list could not refresh. Reload and review the ledger before continuing.', 'error'); }
+            drawRecovery(); return;
+        }
         if(result.error){setMessage(`Bill outcome is uncertain: ${result.error.message} Check the bill list and retry the saved request.`, 'error');drawRecovery();return;}
         try {localStorage.removeItem(pendingKey());pendingBill=null;}catch(_){recoveryUnavailable=true;}
         form.dataset.saved='true';await closeForm();drawRecovery();
@@ -144,10 +154,21 @@
         return combined;
     }
 
-    async function checkDuplicates() {
-        warning.hidden = true; const vendor = fields.vendor.value.trim().toLowerCase(); const number = fields.invoice_number.value.trim().toLowerCase();
-        const match = bills.find((bill) => (number && bill.invoice_number?.toLowerCase() === number && bill.vendor.toLowerCase() === vendor) || (Number(fields.total.value) > 0 && Number(bill.total) === Number(fields.total.value) && dateOnly(bill.invoice_date) === fields.invoice_date.value));
-        if (match) { warning.textContent = `Possible duplicate: ${match.vendor} · ${match.invoice_number || "no reference"} · ${money(match.total)}. Review carefully before confirming.`; warning.hidden = false; }
+    function checkDuplicates() {
+        const vendor=fields.vendor.value.trim().toLowerCase(), number=fields.invoice_number.value.trim().toLowerCase(), date=fields.invoice_date.value;
+        const matches=bills.filter(bill=>{
+            if(!vendor || bill.status==='void' || String(bill.vendor || '').trim().toLowerCase()!==vendor)return false;
+            if(number)return String(bill.invoice_number || '').trim().toLowerCase()===number;
+            if(!date || !dateOnly(bill.invoice_date) || !fields.total.value)return false;
+            return Number(bill.total)===Number(fields.total.value) && Math.abs(Date.parse(dateOnly(bill.invoice_date))-Date.parse(date))<=3*86400000;
+        });
+        warning.replaceChildren(); warning.hidden=!matches.length;
+        if(matches.length){
+            const title=document.createElement('p');title.textContent=number?'Possible duplicate: same vendor and invoice number.':'Possible duplicate: same vendor and amount, with an invoice date within three days.';warning.append(title);
+            matches.forEach(bill=>{const line=document.createElement('p');line.textContent=`${bill.vendor} · ${bill.invoice_number || 'no reference'} · ${money(bill.total)} · ${dateOnly(bill.invoice_date) || 'no invoice date'} · ${bill.status}`;warning.append(line);});
+            const view=document.createElement('button');view.type='button';view.textContent='View existing bills';view.addEventListener('click',()=>list.scrollIntoView({behavior:'smooth',block:'start'}));warning.append(view);
+        }
+        return matches;
     }
 
     fileInput.addEventListener("change", async function () {
@@ -178,8 +199,11 @@
         event.preventDefault(); if(scanBusy||saveBusy){setMessage("Wait for the current scan or save to finish.", "error");return;}
         if(recoveryUnavailable||pendingBill){drawRecovery();setMessage('Review the pending bill before starting another.','error');return;}
         pendingBill=readPending();if(recoveryUnavailable||pendingBill){drawRecovery();setMessage('Review the pending bill before starting another.','error');return;}
-        await checkDuplicates(); if(saveBusy||pendingBill||recoveryUnavailable)return; if(scanMode&&!documentPath){setMessage('Upload the original invoice before confirming.','error');return;}
+        try { await loadBills(); } catch (_) { setMessage('Could not check existing bills. No bill was submitted; try again when the list is available.', 'error');return; }
+        const matches=checkDuplicates(); if(saveBusy||pendingBill||recoveryUnavailable)return; if(scanMode&&!documentPath){setMessage('Upload the original invoice before confirming.','error');return;}
+        if(matches.length && !window.confirm(`Possible duplicate: ${matches.length} matching bill${matches.length===1?'':'s'} shown above. Create another bill anyway? This decision will be recorded.`))return;
         const record = { shop_id: context.shopId, vendor: fields.vendor.value.trim(), invoice_number: fields.invoice_number.value.trim() || null, invoice_date: fields.invoice_date.value || null, due_date: fields.due_date.value || null, subtotal: fields.subtotal.value ? Number(fields.subtotal.value) : null, tax: fields.tax.value ? Number(fields.tax.value) : null, total: Number(fields.total.value), category: fields.category.value.trim() || null, repair_order_id: fields.repair_order_id.value.trim() || null, notes: fields.notes.value.trim() || null, document_path: documentPath, ocr_text: ocrText || null, status: "open", created_by: context.user.id };
+        if(matches.length)record.duplicate_override_ids=matches.map(bill=>bill.id).sort();
         const request={version:1,shop:context.shopId,actor:context.user.id,request:crypto.randomUUID(),record};
         try {localStorage.setItem(pendingKey(),JSON.stringify(request));pendingBill=request;drawRecovery();}catch(_){recoveryUnavailable=true;drawRecovery();setMessage('Could not save bill recovery information. No bill request was sent.','error');return;}
         await sendPending();
