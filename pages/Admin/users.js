@@ -70,6 +70,14 @@
             ? "Repair orders: create and edit allowed."
             : "Repair orders: create and edit denied by saved access.";
         row.append(accessSummary);
+        if (member.role !== "owner") {
+            const assignmentSummary = document.createElement("p");
+            assignmentSummary.className = "owner-note";
+            assignmentSummary.textContent = member.effective_permissions?.["repair_orders.assign"] === true
+                ? "Technician assignment: allowed by saved access."
+                : "Technician assignment: denied by saved access.";
+            row.append(assignmentSummary);
+        }
 
         if (member.role === "owner") {
             roleSelect.disabled = true;
