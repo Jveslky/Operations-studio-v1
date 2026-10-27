@@ -19,3 +19,31 @@ storage.setItem(key,'{');assert.throws(()=>api.list(context,storage));console.lo
  failStorage=true;save.onclick();assert.match(attached.children[2].textContent,/not saved/i);
  console.log('Offline note mount: offline device save, reconnect sync, normal-save guard and storage failure passed.');
 }
+
+// A reviewed version is persisted separately from the original and retried unchanged.
+{
+ const original={...p,state:'conflict',resolution:{request:'review-request',expected:'new-version',note:'reviewed note'}};
+ storage.setItem(key,JSON.stringify(original));let attempts=[];
+ const lost={rpc:async(_name,args)=>{attempts.push(JSON.stringify(args));return {error:{message:'lost'}}}};
+ assert.equal(await api.send(lost,storage,api.list(context,storage)[0]),'pending');
+ assert.equal(api.list(context,storage)[0].note,p.note);
+ const conflict={rpc:async(_name,args)=>{attempts.push(JSON.stringify(args));return {data:{status:'conflict'}}}};
+ assert.equal(await api.send(conflict,storage,api.list(context,storage)[0]),'conflict');
+ const saved=api.list(context,storage)[0];assert.equal(saved.note,p.note);assert.equal(saved.reviewDraft,'reviewed note');assert.equal(saved.resolution,undefined);assert.equal(attempts[0],attempts[1]);
+ storage.setItem(key,JSON.stringify(original));assert.equal(await api.send({rpc:async()=>({data:{status:'saved'}})},storage,api.list(context,storage)[0]),'saved');assert.equal(storage.getItem(key),null);
+ console.log('Conflict review: original and draft survive lost responses and renewed conflicts; confirmation clears the device copy.');
+}
+{
+ const map=new Map(), store={get length(){return map.size},key:i=>[...map.keys()][i],getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)};
+ const original={...p,state:'conflict'};store.setItem(key,JSON.stringify(original));let attached,online=true,sendCalls=[];
+ function element(tag){return {tag,textContent:'',value:'',children:[],setAttribute(){},append(...x){this.children.push(...x)},replaceChildren(){this.children=[]}};}
+ const win={localStorage:store,trackRightSupabase:{from:()=>({select:()=>({eq:()=>({eq:()=>({maybeSingle:async()=>({data:{technician_notes:'shop version',updated_at:'current-version'}})})})})}),rpc:async(_n,args)=>{sendCalls.push(args);return {data:{status:'saved'}}}},addEventListener(){},confirm:()=>true};
+ const input={value:'shop version',closest:()=>({after:e=>{attached=e}})};
+ vm.runInNewContext(src,{window:win,navigator:{get onLine(){return online}},document:{createElement:element},crypto:{randomUUID:()=> 'review-1'}});
+ const control=await win.shopOfflineNotes.mount({context,order:{recordId:'ro-a',id:'123',updatedAt:'current-version'},noteInput:input});
+ const queue=attached.children[5];await queue.children[0].children.find(x=>x.textContent==='Review conflict').onclick();
+ const row=queue.children[0], edit=row.children.find(x=>x.tag==='textarea'&&!x.readOnly);assert.equal(edit.value,'shop version');edit.value='shop version\noffline work note';
+ await row.children.find(x=>x.textContent==='Save reviewed note').onclick();
+ assert.equal(sendCalls[0].p_expected,'current-version');assert.equal(sendCalls[0].p_note,'shop version\noffline work note');assert.equal(map.size,0);assert.equal(control.blocksOrderSave(),true);
+ console.log('Conflict review UI: loads latest note, submits explicit reviewed text, and guards later saves.');
+}
