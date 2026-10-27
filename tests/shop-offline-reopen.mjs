@@ -12,3 +12,11 @@ let switched=build();switched.local.setItem('long-shift-shop-test-guvzuufdmnvurs
 let wrong=build({actor:'other'});assert.equal(wrong.by('editor').hidden,true);let expired=build({expires:Math.floor(stamp/1000)-1});assert.equal(expired.by('editor').hidden,true);let order=build({id:'1029'});assert.equal(order.by('editor').hidden,true);let stale=build({snap:{...snapshot,capturedAt:stamp-9*60*60*1000}});assert.equal(stale.by('editor').hidden,true);
 let pending=build({extra:{'longshift.offline.note.v1:shop-a:user-a:prior':JSON.stringify({ro:'ro-uuid',note:'pending note'})}});assert.equal(pending.by('note').value,'pending note');assert.equal(pending.by('save').disabled,true);
 console.log('Offline reopen: same-tab/session matching, expiration, order scope, queued-note preservation and device save passed.');
+// Offline reload saved a frozen request; a newer server order must retain it as conflict on reconnect.
+{
+ let offline=build();offline.by('note').value='work recorded during interruption';offline.by('save').onclick();
+ const key='longshift.offline.note.v1:shop-a:user-a:request-a';const queueCode=fs.readFileSync(new URL('../pages/Shop/shop-offline-notes.js',import.meta.url),'utf8');let window={};vm.runInNewContext(queueCode,{window});const item=window.shopOfflineNotes.list({shopId:'shop-a',user:{id:'user-a'}},offline.local)[0];
+ const result=await window.shopOfflineNotes.send({rpc:async()=>({data:{status:'conflict'}})},offline.local,item);assert.equal(result,'conflict');const preserved=JSON.parse(offline.local.getItem(key));assert.equal(preserved.note,'work recorded during interruption');assert.equal(preserved.state,'conflict');
+ const reopened=build({extra:{[key]:JSON.stringify(preserved)}});assert.equal(reopened.by('note').value,'work recorded during interruption');assert.equal(reopened.by('save').disabled,true);
+ console.log('Offline reopen conflict: device edit preserved after simulated newer server version and another reload.');
+}
