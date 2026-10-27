@@ -1,9 +1,9 @@
 {
-  "total": 55079,
-  "files": 317,
+  "total": 55150,
+  "files": 320,
   "application": 45914,
-  "database": 7041,
-  "tests": 2124,
+  "database": 7075,
+  "tests": 2161,
   "modules": {
     "Shop": 23770,
     "Mobile": 9364,
@@ -13,6 +13,6 @@
     "Shared": 5125
   },
   "branch": "test/shop-combined",
-  "updated_at": "2026-10-27T02:32:22.201458+00:00",
-  "commit": "f536d2159ddbbf81e9499be5e82f3b4bccd04c14"
+  "updated_at": "2026-10-27T02:37:36.466560+00:00",
+  "commit": "5d28018bf12b5da8fca8efcd89601df4d11c1946"
 }
