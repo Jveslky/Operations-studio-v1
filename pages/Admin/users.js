@@ -76,6 +76,9 @@
             assignmentSummary.textContent = member.effective_permissions?.["repair_orders.assign"] === true
                 ? "Technician assignment: allowed by saved access."
                 : "Technician assignment: denied by saved access.";
+            assignmentSummary.textContent += Object.hasOwn(member.permission_overrides || {}, "repair_orders.assign")
+                ? " Source: individual override."
+                : " Source: role preset.";
             row.append(assignmentSummary);
         }
 
