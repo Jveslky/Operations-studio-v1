@@ -13,7 +13,7 @@
         subtotal: byId("bill-subtotal"), tax: byId("bill-tax"), total: byId("bill-amount"), due_date: byId("bill-due-date"),
         category: byId("bill-category"), repair_order_id: byId("bill-repair-order"), notes: byId("bill-notes")
     };
-    let context, bills = [], scanMode = false, documentPath = null, ocrText = "", canWrite = false, scanBusy = false, saveBusy = false;
+    let context, bills = [], scanMode = false, documentPath = null, ocrText = "", canWrite = false, scanBusy = false, saveBusy = false, apFaultArmed = false;
 
     function setMessage(text, state) { message.textContent = text; message.className = `bill-review-message${state ? ` ${state}` : ""}`; }
     function money(value) { return Number(value || 0).toLocaleString("en-US", { style: "currency", currency: "USD" }); }
@@ -142,6 +142,10 @@
         event.preventDefault(); if(scanBusy||saveBusy){setMessage("Wait for the current scan or save to finish.", "error");return;} await checkDuplicates(); if(saveBusy)return; if (scanMode && !documentPath) { setMessage("Upload the original invoice before confirming.", "error"); return; }
         const record = { shop_id: context.shopId, vendor: fields.vendor.value.trim(), invoice_number: fields.invoice_number.value.trim() || null, invoice_date: fields.invoice_date.value || null, due_date: fields.due_date.value || null, subtotal: fields.subtotal.value ? Number(fields.subtotal.value) : null, tax: fields.tax.value ? Number(fields.tax.value) : null, total: Number(fields.total.value), category: fields.category.value.trim() || null, repair_order_id: fields.repair_order_id.value.trim() || null, notes: fields.notes.value.trim() || null, document_path: documentPath, ocr_text: ocrText || null, status: "open", created_by: context.user.id };
         saveBusy=true;setMessage("Creating confirmed AP record…", ""); let result;try {result = await client.from("shop_accounts_payable").insert(record);} catch(error){result={error};} finally{saveBusy=false;}
+        if (!result.error && apFaultArmed && window.location.hostname === 'test-shop-combined.long-shift-test.pages.dev' && new URLSearchParams(window.location.search).get('btest') === 'ap-response-loss' && ['owner','admin'].includes(context.role)) {
+            apFaultArmed = false;
+            result = {error:{message:'Btest: response lost after the server accepted the bill. Check the ledger before doing anything else.'}};
+        }
         if (result.error) { setMessage(`Bill could not be created: ${result.error.message}`, "error"); return; }
         form.dataset.saved = "true"; await closeForm(); await loadBills();
     });
@@ -171,6 +175,13 @@
 
     window.trackRightAuthReady.then(function (authContext) {
         context = authContext; canWrite = window.trackRightCan("expenses.write");
+        if (window.location?.hostname === 'test-shop-combined.long-shift-test.pages.dev' && new URLSearchParams(window.location.search).get('btest') === 'ap-response-loss' && ['owner','admin'].includes(context.role)) {
+            const panel = document.createElement('section');
+            const note = document.createElement('p'); note.textContent = 'Btest (Test only): discard one successful bill-save response. Creates a real Test bill; do not retry as a new bill.';
+            const arm = document.createElement('button'); arm.type='button'; arm.textContent='Arm next AP response loss';
+            arm.addEventListener('click',()=>{apFaultArmed=!apFaultArmed;arm.textContent=apFaultArmed?'AP response loss armed':'Arm next AP response loss';});
+            panel.append(note,arm); form.before(panel);
+        }
         byId("scan-bill-button").hidden = !canWrite; byId("add-bill-button").hidden = !canWrite;
         return loadBills();
     }).catch((error) => setMessage(`Accounts Payable could not load: ${error.message}`, "error"));
