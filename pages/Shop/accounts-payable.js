@@ -13,7 +13,7 @@
         subtotal: byId("bill-subtotal"), tax: byId("bill-tax"), total: byId("bill-amount"), due_date: byId("bill-due-date"),
         category: byId("bill-category"), repair_order_id: byId("bill-repair-order"), notes: byId("bill-notes")
     };
-    let context, bills = [], scanMode = false, documentPath = null, ocrText = "", canWrite = false, scanBusy = false, saveBusy = false, apFaultArmed = false;
+    let context, bills = [], scanMode = false, documentPath = null, ocrText = "", canWrite = false, scanBusy = false, saveBusy = false, apFaultArmed = false, pendingBill = null, recoveryUnavailable = false, recoveryPanel = null;
 
     function setMessage(text, state) { message.textContent = text; message.className = `bill-review-message${state ? ` ${state}` : ""}`; }
     function money(value) { return Number(value || 0).toLocaleString("en-US", { style: "currency", currency: "USD" }); }
@@ -50,8 +50,44 @@
         byId("open-bill-count").textContent = open; byId("due-soon-count").textContent = soon; byId("overdue-bill-count").textContent = overdue; byId("total-payable").textContent = money(payable);
     }
 
+    function pendingKey() { return `longshift.ap.bill.pending.v1:${context.shopId}:${context.user.id}`; }
+    function readPending() {
+        try { const raw=localStorage.getItem(pendingKey()); if(!raw)return null; const p=JSON.parse(raw);
+            if(!p || p.version!==1 || p.shop!==context.shopId || p.actor!==context.user.id || typeof p.request!=='string' || !p.record || p.record.shop_id!==context.shopId || p.record.created_by!==context.user.id) throw Error('Invalid recovery data');
+            return p;
+        } catch (_) { recoveryUnavailable=true; return null; }
+    }
+    function drawRecovery() {
+        if(!recoveryPanel){recoveryPanel=document.createElement('section');recoveryPanel.className='bill-duplicate-warning';form.before(recoveryPanel);}
+        recoveryPanel.replaceChildren(); recoveryPanel.hidden=!pendingBill&&!recoveryUnavailable;
+        const note=document.createElement('p');
+        if(recoveryUnavailable){note.textContent='Bill recovery storage is unavailable or unreadable. No new bill can be submitted from this browser. Review your ledger and restore browser storage.';recoveryPanel.append(note);return;}
+        if(!pendingBill)return;
+        note.textContent=`A bill may already have been created: ${pendingBill.record.vendor} · ${pendingBill.record.invoice_number || 'no reference'} · ${money(pendingBill.record.total)}. Review the bill list. This saved request is available only in this browser for this account.`;
+        const retry=document.createElement('button');retry.type='button';retry.textContent='Retry saved bill';retry.addEventListener('click',()=>sendPending());
+        const resolve=document.createElement('button');resolve.type='button';resolve.textContent='Resolve after checking bills';resolve.addEventListener('click',()=>{
+            if(saveBusy||!window.confirm('Only resolve after checking the bills and confirming the outcome. This clears the saved request on this browser. Continue?'))return;
+            try {localStorage.removeItem(pendingKey());pendingBill=null;drawRecovery();}catch(_){recoveryUnavailable=true;drawRecovery();}
+        });
+        recoveryPanel.append(note,retry,resolve);
+    }
+    async function sendPending() {
+        if(!pendingBill||saveBusy||recoveryUnavailable)return;
+        saveBusy=true;drawRecovery();setMessage('Checking the saved bill request…','');
+        let result;try {result=await client.rpc('create_shop_ap_bill_once',{p_shop:context.shopId,p_request:pendingBill.request,p_record:pendingBill.record});}
+        catch(error){result={error};}
+        if (!result.error && apFaultArmed && window.location.hostname === 'test-shop-combined.long-shift-test.pages.dev' && new URLSearchParams(window.location.search).get('btest') === 'ap-response-loss' && ['owner','admin'].includes(context.role)) {
+            apFaultArmed=false;result={error:{message:'Btest: response lost after the server accepted the bill.'}};
+        }
+        saveBusy=false;
+        if(result.error){setMessage(`Bill outcome is uncertain: ${result.error.message} Check the bill list and retry the saved request.`, 'error');drawRecovery();return;}
+        try {localStorage.removeItem(pendingKey());pendingBill=null;}catch(_){recoveryUnavailable=true;}
+        form.dataset.saved='true';await closeForm();drawRecovery();
+        try{await loadBills();setMessage('Bill saved.','success');}catch(_){setMessage('Bill saved, but the list could not refresh. Reload to see it.','error');}
+    }
     function openForm(scanning) {
         if(scanBusy||saveBusy)return;
+        if(recoveryUnavailable||pendingBill){drawRecovery();setMessage('Review the pending bill before starting another.','error');return;}
         scanMode = scanning; form.reset(); documentPath = null; ocrText = ""; warning.hidden = true; byId("bill-ocr-source").hidden=true;
         fileField.hidden = !scanning; fileInput.required = scanning; form.hidden = false;
         setMessage(scanning ? "Choose an invoice to upload privately and prepare OCR suggestions." : "Enter and confirm the bill details.", "");
@@ -60,7 +96,7 @@
 
     async function closeForm() {
         if(scanBusy||saveBusy)return;
-        if (documentPath && form.dataset.saved !== "true") await client.storage.from("shop-ap-documents").remove([documentPath]);
+        if (documentPath && !pendingBill && !recoveryUnavailable && form.dataset.saved !== "true") await client.storage.from("shop-ap-documents").remove([documentPath]);
         form.hidden = true; form.reset(); documentPath = null; ocrText = ""; delete form.dataset.saved;
     }
 
@@ -139,15 +175,14 @@
     [fields.vendor, fields.invoice_number, fields.total, fields.invoice_date].forEach((field) => field.addEventListener("blur", checkDuplicates));
 
     form.addEventListener("submit", async function (event) {
-        event.preventDefault(); if(scanBusy||saveBusy){setMessage("Wait for the current scan or save to finish.", "error");return;} await checkDuplicates(); if(saveBusy)return; if (scanMode && !documentPath) { setMessage("Upload the original invoice before confirming.", "error"); return; }
+        event.preventDefault(); if(scanBusy||saveBusy){setMessage("Wait for the current scan or save to finish.", "error");return;}
+        if(recoveryUnavailable||pendingBill){drawRecovery();setMessage('Review the pending bill before starting another.','error');return;}
+        pendingBill=readPending();if(recoveryUnavailable||pendingBill){drawRecovery();setMessage('Review the pending bill before starting another.','error');return;}
+        await checkDuplicates(); if(saveBusy||pendingBill||recoveryUnavailable)return; if(scanMode&&!documentPath){setMessage('Upload the original invoice before confirming.','error');return;}
         const record = { shop_id: context.shopId, vendor: fields.vendor.value.trim(), invoice_number: fields.invoice_number.value.trim() || null, invoice_date: fields.invoice_date.value || null, due_date: fields.due_date.value || null, subtotal: fields.subtotal.value ? Number(fields.subtotal.value) : null, tax: fields.tax.value ? Number(fields.tax.value) : null, total: Number(fields.total.value), category: fields.category.value.trim() || null, repair_order_id: fields.repair_order_id.value.trim() || null, notes: fields.notes.value.trim() || null, document_path: documentPath, ocr_text: ocrText || null, status: "open", created_by: context.user.id };
-        saveBusy=true;setMessage("Creating confirmed AP record…", ""); let result;try {result = await client.from("shop_accounts_payable").insert(record);} catch(error){result={error};} finally{saveBusy=false;}
-        if (!result.error && apFaultArmed && window.location.hostname === 'test-shop-combined.long-shift-test.pages.dev' && new URLSearchParams(window.location.search).get('btest') === 'ap-response-loss' && ['owner','admin'].includes(context.role)) {
-            apFaultArmed = false;
-            result = {error:{message:'Btest: response lost after the server accepted the bill. Check the ledger before doing anything else.'}};
-        }
-        if (result.error) { setMessage(`Bill could not be created: ${result.error.message}`, "error"); return; }
-        form.dataset.saved = "true"; await closeForm(); await loadBills();
+        const request={version:1,shop:context.shopId,actor:context.user.id,request:crypto.randomUUID(),record};
+        try {localStorage.setItem(pendingKey(),JSON.stringify(request));pendingBill=request;drawRecovery();}catch(_){recoveryUnavailable=true;drawRecovery();setMessage('Could not save bill recovery information. No bill request was sent.','error');return;}
+        await sendPending();
     });
 
     list.addEventListener("click", async function (event) {
@@ -175,6 +210,7 @@
 
     window.trackRightAuthReady.then(function (authContext) {
         context = authContext; canWrite = window.trackRightCan("expenses.write");
+        if(canWrite){pendingBill=readPending();drawRecovery();}
         if (window.location?.hostname === 'test-shop-combined.long-shift-test.pages.dev' && new URLSearchParams(window.location.search).get('btest') === 'ap-response-loss' && ['owner','admin'].includes(context.role)) {
             const panel = document.createElement('section');
             const note = document.createElement('p'); note.textContent = 'Btest (Test only): discard one successful bill-save response. Creates a real Test bill; do not retry as a new bill.';
