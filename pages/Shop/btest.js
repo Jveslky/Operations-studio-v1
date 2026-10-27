@@ -27,6 +27,35 @@ function script(src){return new Promise((resolve,reject)=>{const s=document.crea
  const context=await window.trackRightAuthReady;if(!['owner','admin'].includes(context.role)){gate.textContent='This Test desk requires a shop owner or admin.';return;}
  await script('../../js/shop-appearance.js');
  const shop=context.shopId,user=context.user.id,key=`longshift.btest.v1:${shop}:${user}`;
+ const apAudit=by('btest-ap-audit'),apRace=by('btest-ap-race'),apResult=by('btest-ap-result');
+ apAudit.addEventListener('click',async()=>{
+  apAudit.disabled=true;apResult.textContent='Checking Test override audit…';
+  try {
+   const billResult=await window.trackRightSupabase.from('shop_accounts_payable').select('id,vendor,invoice_number,notes').eq('shop_id',shop).eq('invoice_number','BTEST-AP-FIX-02');
+   if(billResult.error)throw billResult.error;
+   const bill=(billResult.data||[]).find(b=>String(b.notes||'').includes('BTEST duplicate override verification'));
+   if(!bill){apResult.textContent='Test override bill not found; audit check inconclusive.';return;}
+   const audit=await window.trackRightSupabase.from('shop_ap_duplicate_overrides').select('bill_id,actor,matched_bill_ids,created_at').eq('shop_id',shop).eq('bill_id',bill.id);
+   if(audit.error)throw audit.error;
+   const row=(audit.data||[])[0];const original=(billResult.data||[]).find(b=>b.id!==bill.id && (row?.matched_bill_ids||[]).includes(b.id));
+   apResult.textContent=row && row.actor===user && row.created_at && original ? `PASS: override audit recorded this account, timestamp ${row.created_at}, the new bill, and the matching original.` : 'FAIL: the expected actor, time, bill, or original match is missing from the audit.';
+  } catch(error){apResult.textContent=`Audit check inconclusive: ${error.message || 'could not read audit data'}`;}finally{apAudit.disabled=false;}
+ });
+ apRace.addEventListener('click',async()=>{
+  if(!window.confirm('Submit two simultaneous requests for the same new synthetic one-cent Test bill? One or more Test bills may remain open. No payment will be made.'))return;
+  apRace.disabled=true;apResult.textContent='Submitting concurrent Test requests; do not run again until the ledger is checked…';
+  const ref='BTEST-AP-RACE-'+crypto.randomUUID();
+  const record={shop_id:shop,vendor:'BTEST AP RACE SUPPLY',invoice_number:ref,invoice_date:null,due_date:null,subtotal:0.01,tax:0,total:0.01,category:null,repair_order_id:null,notes:'Synthetic Btest concurrent AP requests; no payment.',document_path:null,ocr_text:null,status:'open',created_by:user};
+  const send=()=>window.trackRightSupabase.rpc('create_shop_ap_bill_once',{p_shop:shop,p_request:crypto.randomUUID(),p_record:record});
+  try {
+   const responses=await Promise.allSettled([send(),send()]);
+   const accepted=responses.filter(r=>r.status==='fulfilled'&&!r.value.error).length;
+   const rejected=responses.filter(r=>r.status==='fulfilled'&&String(r.value.error?.message||'').includes('AP_DUPLICATE_REVIEW_REQUIRED')).length;
+   const found=await window.trackRightSupabase.from('shop_accounts_payable').select('id').eq('shop_id',shop).eq('invoice_number',ref);
+   if(found.error)throw found.error;
+   apResult.textContent=`${accepted===1&&rejected===1&&found.data.length===1?'PASS':'INCONCLUSIVE/FAIL'}: ${accepted} accepted, ${rejected} rejected for duplicate review, ${found.data.length} matching Test bill(s). Reference ${ref}. Same account, concurrent requests; not a two-user test.`;
+  }catch(error){apResult.textContent=`INCONCLUSIVE: ${error.message||'request failed'}. Check the ledger for ${ref} before retrying.`;}
+ });
  const privateCheck=by('btest-private-check'),privatePath=by('btest-private-path'),privateResult=by('btest-private-result');
  privateCheck.addEventListener('click',async()=>{
   const path=privatePath.value.trim(); if(!path){privateResult.textContent='Enter a Test document path.';return;}
