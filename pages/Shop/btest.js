@@ -27,6 +27,16 @@ function script(src){return new Promise((resolve,reject)=>{const s=document.crea
  const context=await window.trackRightAuthReady;if(!['owner','admin'].includes(context.role)){gate.textContent='This Test desk requires a shop owner or admin.';return;}
  await script('../../js/shop-appearance.js');
  const shop=context.shopId,user=context.user.id,key=`longshift.btest.v1:${shop}:${user}`;
+ const privateCheck=by('btest-private-check'),privatePath=by('btest-private-path'),privateResult=by('btest-private-result');
+ privateCheck.addEventListener('click',async()=>{
+  const path=privatePath.value.trim(); if(!path){privateResult.textContent='Enter a Test document path.';return;}
+  privateCheck.disabled=true;privateResult.textContent='Checking document access…';
+  try {const result=await window.trackRightSupabase.storage.from('shop-ap-documents').createSignedUrl(path,60);
+   if(result.error){const code=String(result.error.statusCode || result.error.status || '');privateResult.textContent=(code==='400'||code==='403'||code==='404') ? 'Storage did not grant a link. Confirm the same document succeeds in its own shop before treating this as a denial.' : 'Storage check failed; result inconclusive.';}
+   else privateResult.textContent=result.data?.signedUrl ? 'Storage granted a link for this document.' : 'Storage response was incomplete; result inconclusive.';
+  }catch(_){privateResult.textContent='Storage check failed; result inconclusive.';}finally{privateCheck.disabled=false;}
+ });
+
  let runs=[],run,storageFailed=false;
  const say=text=>by('btest-message').textContent=text;
  try{const raw=localStorage.getItem(key);if(raw){const data=JSON.parse(raw);if(!Array.isArray(data)||data.length>50||!data.every(r=>validRun(r,shop,user)))throw Error('Saved run data is invalid.');runs=data;}}
