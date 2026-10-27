@@ -126,3 +126,9 @@ Signed in as QA Shop C service writer. Added read-only saved-assignment status a
 ## Writer assignment live retest
 
 Jon reports applying the writer assignment preset SQL in Test. In QA Shop C, refreshed Users & Permissions shows assignment allowed by role preset for both service writers and denied by role preset for the technician. Signed-in Service Writer created RO1028 for QA C Cust / 2020 fisher price with tr.qa.tech+c@proton.me assigned and complaint BTEST writer assigned RO verification. Detail reopened after reload with that technician selected. Scoped PASS for writer assigned creation and persistence; no stock or invoice created. Technician assignment denial and cross-shop checks were not re-exercised live during this retest; local regression coverage and earlier live read-boundary evidence do not substitute for a new live role isolation retest. Original Btest failures retained.
+
+## Live assigned technician and cross-shop retest
+
+Signed into QA Shop C technician workspace. RO1028 appeared under assigned work and opened with both technician assignment controls disabled. Entered BTEST technician work-save verification in Technician Notes, saved and reopened; note persisted, status remained Open and the primary assignment remained unchanged. This confirms UI controls and the normal work-save path; no direct forged API assignment request was attempted.
+
+After confirming Long Shift Shop Test B workspace, opened the known Shop C RO1028 URL. The page returned Repair order not found and showed no Shop C record content. Evidence btest-shopb-ro1028-denied.jpg. This is a scoped cross-shop RO read check, not a live private-attachment or cross-shop write test. Test note remains on RO1028; no invoice or stock change.
