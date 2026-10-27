@@ -1,6 +1,6 @@
 /* Test-only offline note recovery: cache only the public, static recovery shell. */
-const CACHE='longshift-test-offline-note-shell-v2';
-const SHELL='./offline-note-recovery',SCRIPT='./offline-note-recovery.js?v=1';
+const CACHE='longshift-test-offline-note-shell-v3';
+const SHELL='./offline-note-recovery',SCRIPT='./offline-note-recovery.js?v=2';
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll([SHELL,SCRIPT])).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(self.clients.claim()));
 self.addEventListener('fetch',event=>{const r=event.request,u=new URL(r.url);if(u.origin!==self.location.origin)return;

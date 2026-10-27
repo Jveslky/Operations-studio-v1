@@ -10,6 +10,13 @@
   else{by('note').value=snap.note;status.textContent='Offline copy available. Changes are saved only to this device until sync.';}
   editor.hidden=false;
  }catch(error){status.textContent=error.message||'The offline copy could not be opened.';return;}
+ function sessionStillValid(){try{const session=JSON.parse(localStorage.getItem(sessionKey)||'null');return session?.user?.id===snap.actor && Number.isFinite(session.expires_at) && session.expires_at*1000>Date.now() && Number.isFinite(snap.capturedAt) && snap.capturedAt<=Date.now() && Date.now()-snap.capturedAt<=8*60*60*1000;}catch(_){return false;}}
+ function enforceSession(){if(sessionStillValid())return;by('note').value='';by('order').textContent='';by('saved-at').textContent='';editor.hidden=true;status.textContent='This offline session is no longer available. Reconnect and open the repair order again.';}
+ window.addEventListener('storage',event=>{if(event.key===sessionKey || event.key===null)enforceSession();});
+ document.addEventListener('visibilitychange',enforceSession);
+ const initialSession=JSON.parse(localStorage.getItem(sessionKey));
+ const expiry=Math.min(initialSession.expires_at*1000,snap.capturedAt+8*60*60*1000);
+ window.setTimeout(enforceSession,Math.max(0,expiry-Date.now()));
  by('save').onclick=()=>{try{
   const session=JSON.parse(localStorage.getItem(sessionKey)||'null');if(session?.user?.id!==snap.actor||session.expires_at*1000<=Date.now()||(!Number.isFinite(snap.capturedAt)||snap.capturedAt>Date.now()||Date.now()-snap.capturedAt>8*60*60*1000))throw Error('The offline session expired. Reconnect before saving.');
   const start=`${prefix}${snap.shop}:${snap.actor}:`;for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k?.startsWith(start)&&JSON.parse(localStorage.getItem(k))?.ro===snap.ro)throw Error('A note for this repair order is already saved on this device. Reconnect to review it.');}

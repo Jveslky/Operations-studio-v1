@@ -546,11 +546,11 @@ if (!repairOrder) {
         offlineReady.textContent = 'Preparing the same-tab offline note recovery view…'; technicianNotesInput.closest('label').after(offlineReady);
         try {
             sessionStorage.setItem('longshift.offline.ro.tab.v1', JSON.stringify({version:1,shop:billingContext.shopId,actor:billingContext.user.id,ro:repairOrder.recordId,label:String(repairOrder.id),expected:repairOrder.updatedAt,note:repairOrder.technicianNotes || '',capturedAt:Date.now()}));
-            const scope=new URL('./',location.href).href, worker=new URL('./offline-note-sw.js?v=2',location.href).href;
-            const shell=new URL('./offline-note-recovery',location.href).href, script=new URL('./offline-note-recovery.js?v=1',location.href).href;
+            const scope=new URL('./',location.href).href, worker=new URL('./offline-note-sw.js?v=3',location.href).href;
+            const shell=new URL('./offline-note-recovery',location.href).href, script=new URL('./offline-note-recovery.js?v=2',location.href).href;
             const checkReady=async()=>{
                 if(navigator.serviceWorker.controller?.scriptURL!==worker){offlineReady.textContent='Offline recovery is installing. Keep this tab online until it is ready.';return;}
-                const cache=await caches.open('longshift-test-offline-note-shell-v2');
+                const cache=await caches.open('longshift-test-offline-note-shell-v3');
                 if(!await cache.match(shell) || !await cache.match(script))throw Error('Recovery files are not cached');
                 offlineReady.textContent='Offline note recovery ready in this tab while the current session remains valid.';
             };
