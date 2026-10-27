@@ -1,11 +1,11 @@
 {
-  "total": 55262,
+  "total": 55269,
   "files": 326,
-  "application": 46005,
+  "application": 46012,
   "database": 7075,
   "tests": 2182,
   "modules": {
-    "Shop": 23859,
+    "Shop": 23866,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
@@ -13,6 +13,6 @@
     "Shared": 5127
   },
   "branch": "test/shop-combined",
-  "updated_at": "2026-10-27T02:53:29.659434+00:00",
-  "commit": "68bd721b26fe5a22c699f644c547cf59c3877cd1"
+  "updated_at": "2026-10-27T03:01:47.648533+00:00",
+  "commit": "83812fa48f2b8582e55f0048bbf6e5b326174b6c"
 }
