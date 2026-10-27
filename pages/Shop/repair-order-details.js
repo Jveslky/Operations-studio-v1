@@ -540,6 +540,22 @@ if (!repairOrder) {
 
     const canWriteRepairOrder = window.trackRightCan("repair_orders.write");
     const canUpdateWork = window.trackRightCan("repair_orders.update_work");
+    // Test-only, same-tab note recovery; the worker never caches authenticated responses.
+    if ((canWriteRepairOrder || canUpdateWork) && navigator.onLine && window.location.hostname === 'test-shop-combined.long-shift-test.pages.dev' && 'serviceWorker' in navigator) {
+        const offlineReady = document.createElement('p'); offlineReady.setAttribute('role','status');
+        offlineReady.textContent = 'Preparing the same-tab offline note recovery view…'; technicianNotesInput.closest('label').after(offlineReady);
+        try {
+            sessionStorage.setItem('longshift.offline.ro.tab.v1', JSON.stringify({version:1,shop:billingContext.shopId,actor:billingContext.user.id,ro:repairOrder.recordId,label:String(repairOrder.id),expected:repairOrder.updatedAt,note:repairOrder.technicianNotes || '',capturedAt:Date.now()}));
+            const scope=new URL('./',location.href).href, worker=new URL('./offline-note-sw.js',location.href).href;
+            navigator.serviceWorker.getRegistration(scope).then(reg=>{
+                if(reg && ![reg.active,reg.installing,reg.waiting].some(w=>w?.scriptURL===worker)) throw Error('Another offline worker already controls this scope');
+                return navigator.serviceWorker.register(worker,{scope});
+            }).then(()=>navigator.serviceWorker.ready).then(reg=>{
+                if(reg.active?.scriptURL!==worker)throw Error('Recovery worker is not active');
+                offlineReady.textContent='Offline note recovery ready in this tab while the current session remains valid.';
+            }).catch(error=>{offlineReady.textContent='Offline reopening is unavailable; keep this page open to save a device note.';console.warn('Offline note recovery is unavailable:',error);});
+        } catch(error) { offlineReady.textContent='Offline reopening is unavailable; keep this page open to save a device note.';console.warn('Offline note recovery is unavailable:',error); }
+    }
     const workFields = new Set([
         statusSelect,
         technicianNotesInput,
