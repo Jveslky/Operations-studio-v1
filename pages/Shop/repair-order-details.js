@@ -554,6 +554,9 @@ if (!repairOrder) {
             : !(canUpdateWork && workFields.has(field));
     });
 
+    const offlineNoteControl = (canWriteRepairOrder || canUpdateWork)
+        ? window.shopOfflineNotes.mount({context: billingContext, order: repairOrder, noteInput: technicianNotesInput}) : null;
+
     saveButton.hidden = !canWriteRepairOrder && !canUpdateWork;
     bottomSaveButton.hidden = saveButton.hidden;
     createInvoiceButton.hidden = !window.trackRightCan("invoices.write");
@@ -590,6 +593,11 @@ if (!repairOrder) {
 
     saveButton.addEventListener("click", async function () {
         if (saveButton.disabled) return;
+        if (!navigator.onLine) { alert("You are offline. The repair order has not been saved. You can save technician notes to this device using Technician note sync; other changes remain unsaved."); return; }
+        if (offlineNoteControl) {
+            let control; try { control = await offlineNoteControl; } catch (_) { alert('Device note storage could not be checked. Your repair-order changes have not been saved.'); return; }
+            if (control.blocksOrderSave()) { alert('A device note is pending, needs review, or has just synced. Review it and reopen this repair order before saving other changes.'); return; }
+        }
         saveButton.disabled = true;
         bottomSaveButton.disabled = true;
         repairOrder.customer =

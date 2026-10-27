@@ -5,6 +5,8 @@ function mount({context,header,rootPath}){
  if(!location.pathname.includes('/pages/Shop/')||document.getElementById('shop-utility-bar'))return {alertsHost:header};
  const sheet=document.createElement('link');sheet.rel='stylesheet';sheet.href=rootPath+'css/shop-workspace.css';document.head.append(sheet);
  document.body.classList.add('shop-workspace');header.classList.add('ls-header');
+ const networkBanner=document.createElement('div');networkBanner.setAttribute('role','status');networkBanner.setAttribute('aria-live','polite');networkBanner.textContent='Offline: changes have not been saved to the shop. Only explicitly supported device notes can be queued.';networkBanner.style.cssText='background:#fff1d6;color:#5d3b08;padding:10px 18px;font-weight:700;border-bottom:3px solid #d38a16';header.after(networkBanner);
+ function networkState(){networkBanner.hidden=navigator.onLine;}window.addEventListener('online',networkState);window.addEventListener('offline',networkState);networkState();window.addEventListener('pagehide',()=>{window.removeEventListener('online',networkState);window.removeEventListener('offline',networkState)},{once:true});
  const nav=header.querySelector('.app-nav');
  const page=p=>p.replace(/\/+$/,'').split('/').pop().replace(/\.html$/,'');
  const current=page(location.pathname),can=window.trackRightCan;
