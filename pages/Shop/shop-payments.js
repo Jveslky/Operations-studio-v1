@@ -11,7 +11,7 @@
     function setupFault(){
         if(!faultAllowed()||faultPanel)return;
         faultPanel=document.createElement('section');faultPanel.className='payment-warning';
-        const text=document.createElement('p');text.textContent='Btest (Test only): discard one successful payment/reversal response at the application boundary. Test ledger entries are real Test writes. Retry in the same open dialog; this does not verify recovery after reload.';
+        const text=document.createElement('p');text.textContent='Btest (Test only): discard one successful payment/reversal response at the application boundary. Test ledger entries are real Test writes. Reload and review the saved request to test recovery.';
         faultButton=document.createElement('button');faultButton.type='button';faultButton.textContent='Arm next payment response loss';
         faultStatus=document.createElement('p');faultStatus.textContent='Disarmed.';
         faultButton.addEventListener('click',()=>{if(busy||!faultAllowed())return;faultArmed=!faultArmed;faultStatus.textContent=faultArmed?'Armed for one payment or reversal response.':'Disarmed.';});
@@ -29,7 +29,7 @@
         recoveryPanel.replaceChildren();recoveryPanel.hidden=!pending&&!storageProblem;
         if(storageProblem){const text=document.createElement('p');text.textContent='Payment recovery storage is unavailable or unreadable. No new payment can be submitted from this browser. Review the ledger and restore browser storage.';recoveryPanel.append(text);return;}
         if(!pending)return;
-        const text=document.createElement('p');text.textContent=`A ${pending.name==='reverse_shop_invoice_payment'?'reversal':'payment'} may already have been recorded. Review the payment history, then retry the same request or resolve it after checking the ledger.`;
+        const text=document.createElement('p');text.textContent=`A ${pending.name==='reverse_shop_invoice_payment'?'reversal':'payment'} may already have been recorded. Review the payment history, then retry the same request or resolve it after checking the ledger. This recovery is saved only in this browser for this account.`;
         const retry=document.createElement('button');retry.type='button';retry.textContent='Review pending request';retry.addEventListener('click',()=>open(pending.name==='reverse_shop_invoice_payment'?pending.args.p_payment:null));
         const resolve=document.createElement('button');resolve.type='button';resolve.textContent='Resolve after checking ledger';resolve.addEventListener('click',async()=>{if(busy)return;const ok=window.confirm('Only resolve this after checking the payment history and confirming the outcome. This clears the saved retry request on this browser. Continue?');if(!ok)return;try{localStorage.removeItem(storageKey());pending=null;drawRecovery();}catch(_){storageProblem=true;drawRecovery();}});
         recoveryPanel.append(text,retry,resolve);
