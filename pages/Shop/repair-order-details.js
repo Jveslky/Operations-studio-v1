@@ -546,14 +546,19 @@ if (!repairOrder) {
         offlineReady.textContent = 'Preparing the same-tab offline note recovery view…'; technicianNotesInput.closest('label').after(offlineReady);
         try {
             sessionStorage.setItem('longshift.offline.ro.tab.v1', JSON.stringify({version:1,shop:billingContext.shopId,actor:billingContext.user.id,ro:repairOrder.recordId,label:String(repairOrder.id),expected:repairOrder.updatedAt,note:repairOrder.technicianNotes || '',capturedAt:Date.now()}));
-            const scope=new URL('./',location.href).href, worker=new URL('./offline-note-sw.js',location.href).href;
-            navigator.serviceWorker.getRegistration(scope).then(reg=>{
-                if(reg && ![reg.active,reg.installing,reg.waiting].some(w=>w?.scriptURL===worker)) throw Error('Another offline worker already controls this scope');
-                return navigator.serviceWorker.register(worker,{scope});
-            }).then(()=>navigator.serviceWorker.ready).then(reg=>{
-                if(reg.active?.scriptURL!==worker)throw Error('Recovery worker is not active');
+            const scope=new URL('./',location.href).href, worker=new URL('./offline-note-sw.js?v=2',location.href).href;
+            const shell=new URL('./offline-note-recovery',location.href).href, script=new URL('./offline-note-recovery.js?v=1',location.href).href;
+            const checkReady=async()=>{
+                if(navigator.serviceWorker.controller?.scriptURL!==worker){offlineReady.textContent='Offline recovery is installing. Keep this tab online until it is ready.';return;}
+                const cache=await caches.open('longshift-test-offline-note-shell-v2');
+                if(!await cache.match(shell) || !await cache.match(script))throw Error('Recovery files are not cached');
                 offlineReady.textContent='Offline note recovery ready in this tab while the current session remains valid.';
-            }).catch(error=>{offlineReady.textContent='Offline reopening is unavailable; keep this page open to save a device note.';console.warn('Offline note recovery is unavailable:',error);});
+            };
+            navigator.serviceWorker.addEventListener('controllerchange',()=>{checkReady().catch(error=>{offlineReady.textContent='Offline reopening is unavailable; keep this page open to save a device note.';console.warn('Offline note recovery is unavailable:',error);});});
+            navigator.serviceWorker.getRegistration(scope).then(reg=>{
+                if(reg && ![reg.active,reg.installing,reg.waiting].some(w=>w && new URL(w.scriptURL).pathname===new URL(worker).pathname)) throw Error('Another offline worker already controls this scope');
+                return navigator.serviceWorker.register(worker,{scope});
+            }).then(()=>navigator.serviceWorker.ready).then(checkReady).catch(error=>{offlineReady.textContent='Offline reopening is unavailable; keep this page open to save a device note.';console.warn('Offline note recovery is unavailable:',error);});
         } catch(error) { offlineReady.textContent='Offline reopening is unavailable; keep this page open to save a device note.';console.warn('Offline note recovery is unavailable:',error); }
     }
     const workFields = new Set([
