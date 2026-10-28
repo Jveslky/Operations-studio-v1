@@ -47,3 +47,28 @@ storage.setItem(key,'{');assert.throws(()=>api.list(context,storage));console.lo
  assert.equal(sendCalls[0].p_expected,'current-version');assert.equal(sendCalls[0].p_note,'shop version\noffline work note');assert.equal(map.size,0);assert.equal(control.blocksOrderSave(),true);
  console.log('Conflict review UI: loads latest note, submits explicit reviewed text, and guards later saves.');
 }
+// Denials, expired sessions and transport failures remain distinct across reloads.
+for(const [response,issue,wording] of [
+ [{status:400,error:{code:'P0001',message:'Repair order is unavailable'}},'access',/Access denied/],
+ [{status:403,error:{code:'42501',message:'denied'}},'access',/Access denied/],
+ [{status:401,error:{code:'PGRST301',message:'expired'}},'session',/Sign-in required/],
+ [{status:0,error:{message:'Failed to fetch'}},'connection',/could not confirm a response/],
+ [{status:500,error:{code:'XX000',message:'private server details'}},'server',/shop could not complete/]
+]){
+ const map=new Map(),store={get length(){return map.size},key:i=>[...map.keys()][i],getItem:k=>map.get(k)||null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)};
+ const original={...p,resolution:undefined};store.setItem(key,JSON.stringify(original));let attached,reply=response,calls=[];
+ function element(tag){return {tag,textContent:'',value:'',children:[],setAttribute(){},append(...x){this.children.push(...x)},replaceChildren(){this.children=[]}};}
+ const win={localStorage:store,trackRightSupabase:{rpc:async(_n,args)=>{calls.push(JSON.stringify(args));return reply;}},addEventListener(){},confirm:()=>true};
+ vm.runInNewContext(src,{window:win,navigator:{onLine:true},document:{createElement:element},crypto:{randomUUID:()=> 'unused'}});
+ await win.shopOfflineNotes.mount({context,order:{recordId:'ro-a',id:'123',updatedAt:p.expected},noteInput:{value:'',closest:()=>({after:e=>{attached=e}})}});
+ await new Promise(r=>setImmediate(r));const kept=win.shopOfflineNotes.list(context,store)[0];assert.equal(kept.note,p.note);assert.equal(kept.syncIssue,issue);assert.match(attached.children[5].children[0].children[0].textContent,wording);assert.doesNotMatch(store.getItem(key),/private server details/);
+ reply={data:{status:'saved'}};await attached.children.find(e=>e.textContent==='Sync saved notes').onclick();assert.equal(map.size,0);assert.equal(calls[0],calls[1],'restored access retries original operation');
+}
+{
+ const reviewed={...p,state:'conflict',resolution:{request:'review-denied',expected:'latest',note:'merged draft'}};
+ storage.setItem(key,JSON.stringify(reviewed));assert.equal(await api.send({rpc:async()=>({status:400,error:{code:'P0001',message:'Repair order is unavailable'}})},storage,api.list(context,storage)[0]),'pending');
+ const kept=api.list(context,storage)[0];assert.equal(kept.syncIssue,'access');assert.equal(kept.note,p.note);assert.equal(JSON.stringify(kept.resolution),JSON.stringify(reviewed.resolution));
+ assert.equal(await api.send({rpc:async()=>{throw Error('offline')}},storage,kept),'pending');assert.equal(api.list(context,storage)[0].syncIssue,'connection');
+ assert.equal(await api.send({rpc:async()=>({data:{status:'conflict'}})},storage,api.list(context,storage)[0]),'conflict');assert.equal(api.list(context,storage)[0].syncIssue,undefined);assert.equal(api.list(context,storage)[0].reviewDraft,'merged draft');
+}
+console.log('Sync failure UI: access/session/network/server distinction, persisted reasons, unchanged retries and reviewed-note preservation passed.');

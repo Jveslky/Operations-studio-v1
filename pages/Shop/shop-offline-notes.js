@@ -3,13 +3,31 @@
  const prefix='longshift.offline.note.v1:';
  function keyFor(context,id){return `${prefix}${context.shopId}:${context.user.id}:${id}`;}
  function list(context,storage){const start=`${prefix}${context.shopId}:${context.user.id}:`,items=[];for(let i=0;i<storage.length;i++){const key=storage.key(i);if(!key?.startsWith(start))continue;const p=JSON.parse(storage.getItem(key));if(!p||p.shop!==context.shopId||p.actor!==context.user.id||typeof p.request!=='string'||typeof p.note!=='string'||!p.ro||!p.expected||!['pending','conflict'].includes(p.state))throw Error('Saved note data is unreadable.');items.push({key,...p});}return items;}
+ // Keep failure details as a small, safe category; never persist raw server messages.
+ function issueFor(result){
+  const error=result?.error,code=error?.code;
+  if(result?.status===401 || ['PGRST301','PGRST302','PGRST303'].includes(code))return 'session';
+  if(result?.status===403 || code==='42501' || (code==='P0001'&&error?.message==='Repair order is unavailable'))return 'access';
+  if(!result?.status || result.status===0)return 'connection';
+  return 'server';
+ }
+ function issueMessage(item){
+  switch(item.syncIssue){
+   case 'access':return 'Access denied: the shop rejected this sync. Your note is still saved on this device. Ask the shop owner to check your membership, permissions and repair-order assignment, then retry.';
+   case 'session':return 'Sign-in required: your note is still saved on this device. Sign in again with the same account, then retry.';
+   case 'connection':return 'Save not confirmed: could not confirm a response from the shop. Your note is still saved on this device. Check your connection and retry.';
+   case 'server':return 'Save not confirmed: the shop could not complete this sync. Your note is still saved on this device. Retry; if this continues, contact the shop owner.';
+   default:return '';
+  }
+ }
+ function retainFailure(storage,item,issue){storage.setItem(item.key,JSON.stringify({...item,key:undefined,syncIssue:issue}));return 'pending';}
  async function send(client,storage,item){
   if(item.state==='conflict'&&!item.resolution)return 'conflict';
   const operation=item.resolution || item;
-  let result;try{result=await client.rpc('sync_shop_offline_note',{p_shop:item.shop,p_request:operation.request,p_ro:item.ro,p_expected:operation.expected,p_note:operation.note});}catch(_){return 'pending';}
-  if(result.error)return 'pending';
-  if(result.data?.status==='conflict'){storage.setItem(item.key,JSON.stringify({...item,key:undefined,state:'conflict',reviewDraft:item.resolution?.note ?? item.reviewDraft,resolution:undefined}));return 'conflict';}
-  if(result.data?.status!=='saved')return 'pending';
+  let result;try{result=await client.rpc('sync_shop_offline_note',{p_shop:item.shop,p_request:operation.request,p_ro:item.ro,p_expected:operation.expected,p_note:operation.note});}catch(_){return retainFailure(storage,item,'connection');}
+  if(result.error)return retainFailure(storage,item,issueFor(result));
+  if(result.data?.status==='conflict'){storage.setItem(item.key,JSON.stringify({...item,key:undefined,state:'conflict',reviewDraft:item.resolution?.note ?? item.reviewDraft,resolution:undefined,syncIssue:undefined}));return 'conflict';}
+  if(result.data?.status!=='saved')return retainFailure(storage,item,'server');
   storage.removeItem(item.key);return 'saved';
  }
  window.shopOfflineNotes={keyFor,list,send};
@@ -25,9 +43,9 @@
   let busy=false,storageError=false,lastResult='',requiresRefresh=false,review=null;
   function draw(){
    queue.replaceChildren();let items;try{items=list(context,storage);}catch(_){storageError=true;}if(storageError){status.textContent='Device storage is unavailable or unreadable. Notes cannot be safely queued or synced here.';save.disabled=true;retry.disabled=true;return;}
-   const offline=!navigator.onLine;status.textContent=`${offline?'Offline. ':'Browser reports a connection. '}${items.length} note(s) saved on this device${items.some(i=>i.state==='conflict')?' — review required':''}. A note is not saved to the shop until sync succeeds.${lastResult?' '+lastResult:''}`;
+   const offline=!navigator.onLine;status.textContent=`${offline?'Offline. ':'Browser reports a connection. '}${items.length} note(s) saved on this device${items.some(i=>i.syncIssue==='access'||i.syncIssue==='session')?' — access or sign-in required':items.some(i=>i.state==='conflict')?' — review required':''}. A note is not saved to the shop until sync succeeds.${lastResult?' '+lastResult:''}`;
    for(const item of items){
-    const row=document.createElement('div');const text=document.createElement('p');text.textContent=`RO ${item.label} · ${item.state==='conflict'?'Conflict: repair order changed. Review the shop and device notes before saving.':'Waiting to sync'}`;
+    const row=document.createElement('div');const text=document.createElement('p');text.textContent=`RO ${item.label} · ${issueMessage(item)||(item.state==='conflict'?'Conflict: repair order changed. Review the shop and device notes before saving.':'Waiting to sync')}`;
     const note=document.createElement('textarea');note.readOnly=true;note.value=item.note;note.setAttribute('aria-label',`Saved note for RO ${item.label}`);row.append(text,note);
     if(item.state==='conflict'){
      const button=document.createElement('button');button.type='button';button.className='secondary-btn';button.textContent=item.resolution?'Retry reviewed note':'Review conflict';button.disabled=busy||offline;
@@ -49,7 +67,7 @@
   }
   async function retryResolution(item){
    if(busy||!navigator.onLine)return;busy=true;lastResult='';draw();
-   try{const result=await send(client,storage,item);if(result==='saved'){review=null;requiresRefresh=true;lastResult='Reviewed note confirmed saved to the shop. Reopen this repair order before saving other changes.';}else if(result==='conflict'){review=null;lastResult='The shop note changed again. Your device note is still saved; review the latest version.';}else{lastResult='Save not confirmed. Your device note and reviewed version are still saved here; retry when connected.';}}catch(_){storageError=true;}finally{busy=false;draw();}
+   try{const result=await send(client,storage,item);if(result==='saved'){review=null;requiresRefresh=true;lastResult='Reviewed note confirmed saved to the shop. Reopen this repair order before saving other changes.';}else if(result==='conflict'){review=null;lastResult='The shop note changed again. Your device note is still saved; review the latest version.';}else{const retained=list(context,storage).find(x=>x.key===item.key);lastResult=issueMessage(retained||{})||'Save not confirmed. Your device note and reviewed version are still saved here; retry when connected.';}}catch(_){storageError=true;}finally{busy=false;draw();}
   }
   async function applyReview(item,note){
    if(busy||!review||review.key!==item.key)return;
