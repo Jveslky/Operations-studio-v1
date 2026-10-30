@@ -207,6 +207,10 @@ if (!repairOrder) {
             repairOrder.additionalTechnician
         );
 
+        // Select the saved values after adding historical options, before awaiting.
+        technicianSelect.value = repairOrder.technician || "Unassigned";
+        additionalTechnicianSelect.value = repairOrder.additionalTechnician || "";
+
         try {
             await window.trackRightAuthReady;
 
@@ -232,8 +236,7 @@ if (!repairOrder) {
                     technicianName
                 );
             });
-            technicianSelect.value = repairOrder.technician || "Unassigned";
-            additionalTechnicianSelect.value = repairOrder.additionalTechnician || "";
+            // Directory results must not overwrite a choice made while awaiting them.
         } catch (error) {
             console.error(
                 "Could not load active technicians:",
