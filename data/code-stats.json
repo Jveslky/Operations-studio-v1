@@ -1,9 +1,9 @@
 {
-  "total": 55415,
-  "files": 327,
+  "total": 55431,
+  "files": 328,
   "application": 46068,
   "database": 7075,
-  "tests": 2272,
+  "tests": 2288,
   "modules": {
     "Shop": 23922,
     "Mobile": 9364,
@@ -13,6 +13,6 @@
     "Shared": 5127
   },
   "branch": "fix/shop-assignment-directory-race",
-  "updated_at": "2026-10-30T02:11:15.811356+00:00",
-  "commit": "76d231ff34c1b4b511c3d442ee87ca173dfe5add"
+  "updated_at": "2026-10-30T02:11:40.628679+00:00",
+  "commit": "f22472f5a11d73925cf113d7f33c9510fed6926f"
 }
