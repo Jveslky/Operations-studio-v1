@@ -1,18 +1,18 @@
 {
-  "total": 55412,
+  "total": 55415,
   "files": 327,
-  "application": 46065,
+  "application": 46068,
   "database": 7075,
   "tests": 2272,
   "modules": {
-    "Shop": 23919,
+    "Shop": 23922,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
     "Shared": 5127
   },
-  "branch": "test/shop-combined",
-  "updated_at": "2026-10-28T00:43:37.471504+00:00",
-  "commit": "2eae25a34ba86b0df3da6943b814146e79e2d22a"
+  "branch": "fix/shop-assignment-directory-race",
+  "updated_at": "2026-10-30T02:11:15.811356+00:00",
+  "commit": "76d231ff34c1b4b511c3d442ee87ca173dfe5add"
 }
