@@ -1,9 +1,9 @@
 {
-  "total": 56297,
-  "files": 333,
+  "total": 56868,
+  "files": 335,
   "application": 46728,
   "database": 7214,
-  "tests": 2355,
+  "tests": 2926,
   "modules": {
     "Shop": 24582,
     "Mobile": 9364,
@@ -13,6 +13,6 @@
     "Shared": 5127
   },
   "branch": "feat/shop-offline-ro-database",
-  "updated_at": "2026-11-05T01:28:03.541689+00:00",
-  "commit": "d368fb7f95dfca8fde69ef314963b05cf6a6ee0a"
+  "updated_at": "2026-11-05T01:28:15.278543+00:00",
+  "commit": "9a410af4c73c3ffeceaac0d875b208495f8b82e8"
 }
