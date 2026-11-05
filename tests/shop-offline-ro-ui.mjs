@@ -41,6 +41,7 @@ function build({
   reply = { data: { status: "saved" } },
   otherChanges = false,
   owner = true,
+  confirmResult = true,
 } = {}) {
   const data = new Map(stored),
     events = {},
@@ -61,7 +62,10 @@ function build({
       if (fail) throw Error("Storage is full");
       data.set(k, v);
     },
-    removeItem: (k) => data.delete(k),
+    removeItem(k) {
+      if (fail) throw Error("Storage blocked");
+      data.delete(k);
+    },
   };
   const win = {
     localStorage: storage,
@@ -80,7 +84,7 @@ function build({
     clearTimeout(i) {
       timers.delete(i);
     },
-    confirm: () => true,
+    confirm: () => confirmResult,
     trackRightSupabase: {
       supabaseUrl: "https://project-a.supabase.co",
       auth: { getUser: async () => ({ data: { user: { id: actor } } }) },
@@ -149,7 +153,7 @@ function build({
     canSync: () => !otherChanges,
     tabId: "tab-a",
     host,
-    onSynced: () => {
+    onReload: () => {
       reloads++;
     },
   });
@@ -579,4 +583,75 @@ assert.equal(
 assert.equal(b.reloads, 1);
 console.log(
   "Combine notes: shared edges once, divergent text/repetitions preserved, idempotent UI, explicit confirmation and exact combined submission passed.",
+);
+
+// Discard only definitively unsent edits; never erase an uncertain committed request.
+b = build({ reply: { data: { status: "conflict" } } });
+b.note.value = "discard conflict";
+await b.control.queue();
+await b.setOnline(true);
+await tick();
+assert.equal(find(b, "Discard these changes").disabled, false);
+const conflictCalls = b.calls.length;
+await find(b, "Discard these changes").onclick();
+assert.equal(b.data.size, 0);
+assert.equal(
+  b.calls.length,
+  conflictCalls,
+  "discard must not write to the shop",
+);
+assert.equal(b.reloads, 1);
+assert.doesNotMatch(statusText(b), /Saved to the shop/);
+b = build({ confirmResult: false });
+b.note.value = "keep on cancel";
+await b.control.queue();
+await find(b, "Discard these changes").onclick();
+assert.equal(b.data.size, 1);
+assert.equal(b.reloads, 0);
+b = build();
+b.note.value = "unsent";
+await b.control.queue();
+b.status.value = "unsaved status";
+await find(b, "Discard these changes").onclick();
+assert.equal(b.data.size, 0);
+assert.equal(b.reloads, 0);
+assert.equal(b.control.blocksOrderSave(), true);
+assert.match(statusText(b), /discarded/);
+b = build({ reply: new Error("response lost") });
+b.note.value = "unknown outcome";
+await b.control.queue();
+await b.setOnline(true);
+await tick();
+assert.equal(find(b, "Discard these changes").disabled, true);
+await find(b, "Discard these changes").onclick();
+assert.equal(b.data.size, 1);
+assert.equal(b.reloads, 0);
+// Recheck inside the lock when another tab has changed a formerly discardable copy.
+b = build({ reply: { data: { status: "conflict" } } });
+b.note.value = "conflict";
+await b.control.queue();
+await b.setOnline(true);
+await tick();
+const oldDiscard = find(b, "Discard these changes"),
+  storedKey = [...b.data.keys()][0];
+const resolving = JSON.parse(b.data.get(storedKey));
+resolving.resolution = {
+  request: "reviewed",
+  expected: "later",
+  patch: { technician_notes: "possibly saved" },
+};
+b.data.set(storedKey, JSON.stringify(resolving));
+await oldDiscard.onclick();
+assert.equal(b.data.size, 1);
+assert.equal(b.reloads, 0);
+b = build();
+b.note.value = "storage failure";
+await b.control.queue();
+b.setFail(true);
+await find(b, "Discard these changes").onclick();
+assert.equal(b.data.size, 1);
+assert.match(statusText(b), /Could not discard/);
+assert.equal(b.reloads, 0);
+console.log(
+  "Discard: confirmed conflicts/unsent drafts removable, cancel/storage failure retained, unknown outcomes protected, shop untouched, other form edits retained.",
 );
