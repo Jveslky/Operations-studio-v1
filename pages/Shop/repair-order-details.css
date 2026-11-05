@@ -1335,3 +1335,15 @@ textarea {
 .ro-save-state button { margin: 8px 8px 8px 0; }
 .ro-save-state label { display: block; margin-top: 12px; overflow-wrap: anywhere; }
 .ro-save-state textarea { box-sizing: border-box; margin-top: 6px; }
+
+.ro-save-mode { display: block; margin-bottom: 6px; font-size: 1.05rem; }
+.ro-save-state[data-save-mode="offline"],
+.ro-save-state[data-save-mode="pending"],
+.ro-save-state[data-save-mode="attention"] {
+    background: #fff1d6;
+    border-color: #d2a050;
+    border-left: 6px solid #ac6000;
+    color: #49300b;
+}
+.ro-save-state[data-save-mode="offline"] .ro-save-mode { font-weight: 800; }
+.ro-save-mode[hidden] { display: none; }
