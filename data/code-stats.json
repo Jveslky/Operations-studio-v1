@@ -1,18 +1,18 @@
 {
-  "total": 57761,
+  "total": 57867,
   "files": 335,
-  "application": 47400,
+  "application": 47431,
   "database": 7214,
-  "tests": 3147,
+  "tests": 3222,
   "modules": {
-    "Shop": 25254,
+    "Shop": 25285,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
     "Shared": 5127
   },
-  "branch": "test/shop-combined",
-  "updated_at": "2026-11-05T02:32:08.483462+00:00",
-  "commit": "7b57b1d5dbcae23a1306cb898c86dd2949982ee2"
+  "branch": "fix/discard-offline-conflicts",
+  "updated_at": "2026-11-05T02:37:14.811196+00:00",
+  "commit": "ce211e698f2f768b4d07642265c8cf9b47c14597"
 }
