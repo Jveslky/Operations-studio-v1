@@ -213,7 +213,7 @@
     interactionOnlyInputs = [],
     canSync = () => true,
     tabId,
-    onSynced = () => {},
+    onReload = () => {},
     host = document.body,
   }) {
     // Some RO layouts omit actual labor hours. Optional missing controls must not
@@ -282,6 +282,7 @@
     let busy = false,
       broken = false,
       refresh = false,
+      reloadNotice = "",
       last = "",
       review = null,
       saveError = "",
@@ -312,6 +313,18 @@
             k === "labor_hours" ? Number(e.value) : e.value,
           ]),
       );
+    // A conflict response definitively says the edit was not applied. A frozen
+    // reviewed request may have an unknown result and must be reconciled first.
+    const canDiscard = (item) =>
+      item &&
+      ((item.state === "draft" && !item.attempted) ||
+        (item.state === "conflict" && !item.resolution));
+    function reloadIfSafe() {
+      if (refresh && !notified && !unsupportedChanged()) {
+        notified = true;
+        onReload();
+      }
+    }
     function button(label, action, disabled = false) {
       const b = document.createElement("button");
       b.type = "button";
@@ -336,7 +349,8 @@
           ? "Changes could not be saved on this computer. Keep this page open. " +
             last
           : refresh
-            ? "Saved to the shop. Reload this repair order before continuing."
+            ? reloadNotice ||
+              "Saved to the shop. Reload this repair order before continuing."
             : items.some((i) => i.state === "conflict" && !i.resolution)
               ? "Someone else changed a repair order. Review your saved changes below."
               : busy
@@ -555,35 +569,55 @@
           );
           updateGate();
         }
-        row.append(
-          button(
-            "Discard these changes",
-            async () => {
+        const discard = button(
+          "Discard these changes",
+          async () => {
+            if (busy) return;
+            try {
+              if (!canDiscard(read().find((x) => x.key === item.key))) {
+                saveError =
+                  "This save’s result is not confirmed. Try saving again to check it before discarding.";
+                draw();
+                return;
+              }
               if (
                 !window.confirm(
-                  "Discard this unsent device draft? This cannot be undone.",
+                  "Discard these changes saved on this computer and keep the shop version? This cannot be undone.",
                 )
               )
                 return;
-              try {
-                await lock(async () => {
-                  const p = read().find((x) => x.key === item.key);
-                  if (p?.attempted)
-                    throw Error(
-                      "A save was attempted. Confirm its result by syncing before discarding.",
-                    );
-                  storage.removeItem(item.key);
-                });
-                last = "Saved changes discarded.";
-                draw();
-              } catch (e) {
-                last = e.message;
-                draw();
+              await lock(async () => {
+                const latest = read().find((x) => x.key === item.key);
+                if (!canDiscard(latest))
+                  throw Error(
+                    "The saved changes have changed or their result is unconfirmed. Check them again before discarding.",
+                  );
+                storage.removeItem(item.key);
+              });
+              review = null;
+              saveError = "";
+              last = "Saved changes discarded. The shop version was kept.";
+              if (item.ro === order.recordId) {
+                refresh = true;
+                reloadNotice =
+                  "Saved changes discarded. Reload this repair order to see the shop version. Other unsaved form edits remain on this page.";
               }
-            },
-            busy || item.attempted,
-          ),
+              draw();
+              reloadIfSafe();
+            } catch (e) {
+              saveError = "Could not discard these changes: " + e.message;
+              draw();
+            }
+          },
+          busy || !canDiscard(item),
         );
+        row.append(discard);
+        if (!canDiscard(item)) {
+          const reason = document.createElement("p");
+          reason.textContent =
+            "This save’s result is not confirmed. Try saving again to check it before discarding.";
+          row.append(reason);
+        }
         rows.append(row);
       }
     }
@@ -688,10 +722,7 @@
         busy = false;
         draw();
         scheduleRetry();
-        if (refresh && !notified && !unsupportedChanged()) {
-          notified = true;
-          onSynced();
-        }
+        reloadIfSafe();
       }
     }
     function scheduleRetry() {
