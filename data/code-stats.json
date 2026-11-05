@@ -1,9 +1,9 @@
 {
-  "total": 55431,
-  "files": 328,
+  "total": 55574,
+  "files": 330,
   "application": 46068,
-  "database": 7075,
-  "tests": 2288,
+  "database": 7151,
+  "tests": 2355,
   "modules": {
     "Shop": 23922,
     "Mobile": 9364,
@@ -12,7 +12,7 @@
     "SnowDesk": 471,
     "Shared": 5127
   },
-  "branch": "test/shop-combined",
-  "updated_at": "2026-10-30T02:15:59.558492+00:00",
-  "commit": "68a90b6f3abf8e5dbf722868c057d077daf546e5"
+  "branch": "feat/shop-offline-ro-database",
+  "updated_at": "2026-11-05T01:10:45.284748+00:00",
+  "commit": "aa9117b82b8b5a453102fc072ff160e5af318713"
 }
