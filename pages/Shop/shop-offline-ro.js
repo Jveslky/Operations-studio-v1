@@ -44,6 +44,33 @@
       );
     return p;
   }
+  // Combine a review candidate without guessing which changed text is correct.
+  // Only identical leading/trailing lines are shared; differing blocks retain
+  // their order and repetitions, with shop text before device text.
+  function combineNotes(shop, saved) {
+    shop = String(shop ?? "").replace(/\r\n?/g, "\n");
+    saved = String(saved ?? "").replace(/\r\n?/g, "\n");
+    if (shop === saved || !saved) return shop;
+    if (!shop) return saved;
+    const a = shop.split("\n"),
+      b = saved.split("\n");
+    let start = 0,
+      end = 0;
+    while (start < a.length && start < b.length && a[start] === b[start])
+      start++;
+    while (
+      end < a.length - start &&
+      end < b.length - start &&
+      a[a.length - 1 - end] === b[b.length - 1 - end]
+    )
+      end++;
+    return [
+      ...a.slice(0, start),
+      ...a.slice(start, a.length - end),
+      ...b.slice(start, b.length - end),
+      ...(end ? a.slice(a.length - end) : []),
+    ].join("\n");
+  }
   function list(c, storage) {
     const items = [];
     for (let i = 0; i < storage.length; i++) {
@@ -174,6 +201,7 @@
     key,
     list,
     validate,
+    combineNotes,
     send,
     claimEditor,
   };
@@ -399,7 +427,7 @@
         if (review?.key === item.key) {
           const instruction = document.createElement("p");
           instruction.textContent =
-            "Compare both versions below. Choose a starting version for each field, then edit the final version to keep everything you need. Saving replaces the shop version with your final version; it does not combine the versions automatically.";
+            "Compare both versions below. For notes, Combine notes puts both versions into the final notes for you to review. You can also choose a starting version and edit it. Saving replaces the shop version with your final version.";
           row.append(instruction);
           const editors = {};
           let apply, acknowledge;
@@ -469,8 +497,20 @@
                 () => choose("device", review.saved[k]),
                 busy,
               ),
-              finalLabel,
             );
+            if (k.endsWith("_notes"))
+              section.append(
+                button(
+                  "Combine notes",
+                  () =>
+                    choose(
+                      "combined",
+                      combineNotes(review.current[k], review.saved[k]),
+                    ),
+                  busy,
+                ),
+              );
+            section.append(finalLabel);
             row.append(section);
           }
           const acknowledgement = document.createElement("label");
@@ -484,8 +524,11 @@
             updateGate();
           });
           const acknowledgementText = document.createElement("span");
-          acknowledgementText.textContent =
-            Object.keys(item.patch).every(k=>k.endsWith("_notes")) ? "I reviewed both versions. Save these notes to the shop." : "I reviewed both versions. Save these changes to the shop.";
+          acknowledgementText.textContent = Object.keys(item.patch).every((k) =>
+            k.endsWith("_notes"),
+          )
+            ? "I reviewed both versions. Save these notes to the shop."
+            : "I reviewed both versions. Save these changes to the shop.";
           acknowledgement.append(acknowledge, acknowledgementText);
           row.append(acknowledgement);
           apply = button("Save reviewed edits", () =>
