@@ -61,7 +61,9 @@ function build({
     hidden: true,
     children: [],
     events: {},
+    setAttribute() {},
     append(e) {
+      e.parentNode = this;
       this.children.push(e);
     },
     replaceChildren() {
@@ -75,6 +77,7 @@ function build({
     if (!nodes.has(id)) nodes.set(id, element(id));
     return nodes.get(id);
   };
+  by("editor").append(by("save"));
   const win = {
     localStorage: storage,
     addEventListener(k, f) {
@@ -143,6 +146,7 @@ const key = "longshift.offline.ro.v1:project-a:shop-a:user-a:ro-a",
   saved = b.storage.getItem(key);
 assert.equal(JSON.parse(saved).patch.technician_notes, "offline work");
 assert.match(b.by("status").textContent, /Saved on this computer/);
+assert.match(b.by("editor").children.at(-1).textContent, /Saved on this computer/);
 // Reload hydrates all changes without altering the original optimistic version.
 b = build({ extra: { [key]: saved } });
 assert.equal(b.inputs()[0].value, "offline work");

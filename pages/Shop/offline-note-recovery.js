@@ -299,7 +299,14 @@ if (!sessionStorage.getItem("longshift.offline.ro.tab.v2")) {
         return false;
       }
     }
-    by("save").onclick = save;
+    const saveFeedback = document.createElement("p");
+    saveFeedback.setAttribute("role", "status");
+    by("save").parentNode.append(saveFeedback);
+    by("save").onclick = async () => {
+      saveFeedback.textContent = "Saving on this computer…";
+      await save();
+      saveFeedback.textContent = status.textContent;
+    };
     window.addEventListener("pageshow", (e) => {
       if (e.persisted)
         editorReady = window.shopOfflineRO.claimEditor(context, snap.ro);
