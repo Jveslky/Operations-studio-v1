@@ -251,19 +251,60 @@ await tick();
 assert.equal(b.reloads, 0);
 assert.equal(b.timers.size, 0);
 await find(b, "Review changes").onclick();
-const reviewed = flatten(b.host).find(
-  (e) => e["aria-label"] === "Reviewed Technician notes",
+const byLabel = (b, label) =>
+  flatten(b.host).find((e) => e["aria-label"] === label);
+assert.equal(
+  byLabel(b, "Current shop version: Technician notes").value,
+  "shop version",
 );
+assert.equal(
+  byLabel(b, "Saved on this computer: Technician notes").value,
+  "device version",
+);
+assert.equal(byLabel(b, "Reviewed Technician notes").disabled, true);
+assert.equal(find(b, "Save reviewed edits").disabled, true);
+await find(b, "Save reviewed edits").onclick();
+assert.equal(
+  b.calls.length,
+  1,
+  "clicking save without choosing/confirming must not submit old device text",
+);
+await find(b, "Start with shop version").onclick();
+let reviewed = byLabel(b, "Reviewed Technician notes");
+assert.equal(reviewed.value, "shop version");
+assert.equal(find(b, "Save reviewed edits").disabled, true);
 reviewed.value = "shop version + device version";
 await reviewed.fire("input");
-b.setReply({ data: { status: "saved" } });
+let confirm = byLabel(b, "Confirm reviewed changes");
+confirm.checked = true;
+await confirm.fire("change");
+assert.equal(find(b, "Save reviewed edits").disabled, false);
+reviewed.value += " + final edit";
+await reviewed.fire("input");
+assert.equal(
+  confirm.checked,
+  false,
+  "editing after confirmation must invalidate it",
+);
+assert.equal(find(b, "Save reviewed edits").disabled, true);
+confirm.checked = true;
+await confirm.fire("change");
+b.setReply(new Error("reviewed response lost"));
 await find(b, "Save reviewed edits").onclick();
 assert.equal(b.calls[1].args.p_expected, "new-version");
 assert.equal(
   b.calls[1].args.p_patch.technician_notes,
-  "shop version + device version",
+  "shop version + device version + final edit",
 );
 assert.notEqual(b.calls[0].args.p_request, b.calls[1].args.p_request);
+assert.equal(b.data.size, 1, "reviewed payload survives an uncertain response");
+b.setReply({ data: { status: "saved" } });
+await b.control.sync();
+assert.deepEqual(
+  b.calls[1].args,
+  b.calls[2].args,
+  "reviewed retry reuses the exact chosen text and request",
+);
 assert.equal(b.reloads, 1);
 // Storage failures must never show a successful new save, including after an earlier save.
 b = build();
@@ -431,4 +472,49 @@ assert.equal(b.reloads, 0, "actual approval input must retain the form");
 assert.equal(b.control.unsupportedChanged(), true);
 console.log(
   "Reload guard: late calculated approval setup ignored, actual approval edits retained; offline mode visibly marked.",
+);
+
+// A second shop change invalidates a reviewed save and requires a fresh choice.
+b = build({ reply: { data: { status: "conflict" } } });
+b.note.value = "retained device text";
+await b.control.queue();
+await b.setOnline(true);
+await tick();
+await find(b, "Review changes").onclick();
+await find(b, "Start with my saved version").onclick();
+assert.equal(
+  byLabel(b, "Reviewed Technician notes").value,
+  "retained device text",
+);
+assert.equal(
+  find(b, "Save reviewed edits").disabled,
+  true,
+  "choosing the device version alone cannot replace the shop text",
+);
+let acknowledgement = byLabel(b, "Confirm reviewed changes");
+acknowledgement.checked = true;
+await acknowledgement.fire("change");
+byLabel(b, "Reviewed Technician notes").value = "both versions reviewed";
+await byLabel(b, "Reviewed Technician notes").fire("input");
+acknowledgement.checked = true;
+await acknowledgement.fire("change");
+await find(b, "Save reviewed edits").onclick();
+assert.equal(b.reloads, 0);
+assert.equal(
+  JSON.parse([...b.data.values()][0]).reviewDraft.technician_notes,
+  "both versions reviewed",
+);
+await find(b, "Review changes").onclick();
+assert.equal(
+  byLabel(b, "Saved on this computer: Technician notes").value,
+  "both versions reviewed",
+);
+assert.equal(byLabel(b, "Reviewed Technician notes").value, "");
+assert.equal(
+  find(b, "Save reviewed edits").disabled,
+  true,
+  "a renewed conflict must require a new review",
+);
+console.log(
+  "Explicit review: both versions visible, no default replacement, confirmation reset, exact lost-response retry and renewed conflict preservation passed.",
 );
