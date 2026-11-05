@@ -121,6 +121,8 @@ function build({
   };
   const context = { shopId: "shop-a", user: { id: "user-a" } },
     order = { recordId: "ro-a", id: "1001", updatedAt: "original-version" };
+  const approval = element();
+  approval.value = "";
   const host = element("main"),
     note = element(),
     status = element("select"),
@@ -143,6 +145,7 @@ function build({
     order,
     inputs: { technician_notes: note, complaint: disabled, labor_hours: null },
     onlineOnlyInputs: [status],
+    interactionOnlyInputs: [approval],
     canSync: () => !otherChanges,
     tabId: "tab-a",
     host,
@@ -155,6 +158,7 @@ function build({
     context: control.context,
     control,
     note,
+    approval,
     status,
     disabled,
     data,
@@ -185,7 +189,7 @@ function build({
 }
 const flatten = (e) => [e, ...e.children.flatMap(flatten)];
 const find = (b, text) => flatten(b.host).find((e) => e.textContent === text);
-const statusText = (b) => b.host.children[0].children[0].textContent;
+const statusText = (b) => b.host.children[0].children[1].textContent;
 let b = build();
 assert.equal(b.host.children[0].hidden, false);
 b.note.value = "offline work";
@@ -340,22 +344,91 @@ console.log(
 
 // Exercise the actual controller's Save handler, not a duplicated implementation.
 {
-  const controller = fs.readFileSync(new URL('../pages/Shop/repair-order-details.js', import.meta.url), 'utf8');
-  const handler = controller.slice(controller.indexOf('    saveButton.addEventListener("click", async function () {'), controller.indexOf('    /* =========================\n       CLOSE REPAIR ORDER'));
+  const controller = fs.readFileSync(
+    new URL("../pages/Shop/repair-order-details.js", import.meta.url),
+    "utf8",
+  );
+  const handler = controller.slice(
+    controller.indexOf(
+      '    saveButton.addEventListener("click", async function () {',
+    ),
+    controller.indexOf(
+      "    /* =========================\n       CLOSE REPAIR ORDER",
+    ),
+  );
   for (const scenario of [
-    {online:false,retained:true,unsupported:true,wording:/Work details are saved/},
-    {online:false,retained:false,unsupported:true,wording:null},
-    {online:false,missing:true,wording:/Offline saving is unavailable/},
-    {online:true,blocked:true,wording:/Check the save message/}
+    {
+      online: false,
+      retained: true,
+      unsupported: true,
+      wording: /Work details are saved/,
+    },
+    { online: false, retained: false, unsupported: true, wording: null },
+    { online: false, missing: true, wording: /Offline saving is unavailable/ },
+    { online: true, blocked: true, wording: /Check the save message/ },
   ]) {
-    let save,queues=0;const messages=[];
-    vm.runInNewContext(handler,{
-      saveButton:{addEventListener(_name,f){save=f;}},navigator:{onLine:scenario.online},alert:m=>messages.push(m),
-      offlineROControl:scenario.missing?null:{queue:async()=>{queues++;return scenario.retained;},unsupportedChanged:()=>scenario.unsupported,blocksOrderSave:()=>scenario.blocked}
+    let save,
+      queues = 0;
+    const messages = [];
+    vm.runInNewContext(handler, {
+      saveButton: {
+        addEventListener(_name, f) {
+          save = f;
+        },
+      },
+      navigator: { onLine: scenario.online },
+      alert: (m) => messages.push(m),
+      offlineROControl: scenario.missing
+        ? null
+        : {
+            queue: async () => {
+              queues++;
+              return scenario.retained;
+            },
+            unsupportedChanged: () => scenario.unsupported,
+            blocksOrderSave: () => scenario.blocked,
+          },
     });
     await save();
-    assert.equal(queues,scenario.online||scenario.missing?0:1);
-    if(scenario.wording)assert.match(messages[0],scenario.wording);else assert.equal(messages.length,0,'a failed local save must never claim the work was retained');
+    assert.equal(queues, scenario.online || scenario.missing ? 0 : 1);
+    if (scenario.wording) assert.match(messages[0], scenario.wording);
+    else
+      assert.equal(
+        messages.length,
+        0,
+        "a failed local save must never claim the work was retained",
+      );
   }
-  console.log('RO Save button: offline routing, storage-failure wording, missing module fallback and pending-save guard passed.');
+  console.log(
+    "RO Save button: offline routing, storage-failure wording, missing module fallback and pending-save guard passed.",
+  );
 }
+
+// Late approval/tax setup reproduces the note-only reload blocker observed on Test.
+b = build();
+b.approval.readOnly = true;
+b.approval.value = "125.00";
+b.note.value = "note-only after tax loaded";
+await b.control.queue();
+assert.equal(b.control.unsupportedChanged(), false);
+assert.equal(b.host.children[0]["data-save-mode"], "offline");
+assert.equal(b.host.children[0].children[0].textContent, "Offline mode");
+await b.setOnline(true);
+await tick();
+assert.equal(
+  b.reloads,
+  1,
+  "untouched calculated approval amount must not hold note-only reload",
+);
+b = build();
+b.approval.value = "125.00";
+await b.approval.fire("input");
+b.note.value = "note with an approval draft";
+await b.control.queue();
+await b.setOnline(true);
+await tick();
+assert.equal(b.reloads, 0, "actual approval input must retain the form");
+assert.equal(b.control.unsupportedChanged(), true);
+console.log(
+  "Reload guard: late calculated approval setup ignored, actual approval edits retained; offline mode visibly marked.",
+);

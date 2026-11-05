@@ -182,6 +182,7 @@
     order,
     inputs,
     onlineOnlyInputs = [],
+    interactionOnlyInputs = [],
     canSync = () => true,
     tabId,
     onSynced = () => {},
@@ -193,8 +194,17 @@
       Object.entries(inputs).filter(([k, e]) => e && Object.hasOwn(fields, k)),
     );
     let storage;
-    try { storage = window.localStorage; }
-    catch (_) { storage = {get length(){throw Error('Browser storage is blocked. Keep this page open and reconnect before saving.');}}; }
+    try {
+      storage = window.localStorage;
+    } catch (_) {
+      storage = {
+        get length() {
+          throw Error(
+            "Browser storage is blocked. Keep this page open and reconnect before saving.",
+          );
+        },
+      };
+    }
     const client = window.trackRightSupabase;
     const c = {
       ...context,
@@ -214,6 +224,8 @@
     const box = document.createElement("section");
     box.className = "detail-card ro-save-state";
     box.setAttribute("aria-label", "Offline repair-order edits");
+    const mode = document.createElement("strong");
+    mode.className = "ro-save-mode";
     const status = document.createElement("p");
     status.setAttribute("role", "status");
     status.setAttribute("aria-live", "polite");
@@ -237,7 +249,7 @@
     reopen.onclick = () => window.location.reload();
     const rows = document.createElement("div");
     details.append(summary, explanation, retry, reopen, rows);
-    box.append(status, details);
+    box.append(mode, status, details);
     host.prepend(box);
     let busy = false,
       broken = false,
@@ -309,6 +321,34 @@
                     (!navigator.onLine
                       ? "You’re offline. Work details save on this computer as you type."
                       : ""));
+      const offline = !navigator.onLine;
+      const needsAttention =
+        broken ||
+        !!saveError ||
+        items.some(
+          (i) =>
+            i.state === "conflict" ||
+            i.issue === "access" ||
+            i.issue === "session",
+        );
+      box.setAttribute(
+        "data-save-mode",
+        offline
+          ? "offline"
+          : needsAttention
+            ? "attention"
+            : items.length
+              ? "pending"
+              : "saved",
+      );
+      mode.textContent = offline
+        ? "Offline mode"
+        : needsAttention
+          ? "Check your saved changes"
+          : items.length
+            ? "Waiting to save to the shop"
+            : "";
+      mode.hidden = !mode.textContent;
       box.hidden = !status.textContent;
       summary.textContent = items.length
         ? `Saved changes (${items.length})`
@@ -434,7 +474,10 @@
       let stored = false;
       saveError = "";
       try {
-        if(!navigator.locks)throw Error('Offline saving is unavailable in this browser. Keep this page open and reconnect before saving.');
+        if (!navigator.locks)
+          throw Error(
+            "Offline saving is unavailable in this browser. Keep this page open and reconnect before saving.",
+          );
         if (!(await editorReady))
           throw Error(
             "This repair order is already open for offline editing in another tab. Use that tab, or close it and reopen this repair order.",
@@ -614,7 +657,17 @@
         .filter(Boolean)
         .map((e) => [e, e.type === "checkbox" ? e.checked : e.value]),
     );
+    // Approval dialogs populate calculated amounts and history asynchronously.
+    // Their setup is not a user edit. Any input/change in those controls must
+    // still prevent a reload, even if later UI calculations alter the value.
+    let interactionChanged = false;
+    for (const e of new Set(interactionOnlyInputs.filter(Boolean)))
+      for (const event of ["input", "change"])
+        e.addEventListener(event, () => {
+          interactionChanged = true;
+        });
     const unsupportedChanged = () =>
+      interactionChanged ||
       [...onlineBaseline].some(
         ([e, v]) => (e.type === "checkbox" ? e.checked : e.value) !== v,
       );

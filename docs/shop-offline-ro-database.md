@@ -41,3 +41,11 @@ Automated verification: the default suite includes the new SQL, device-queue and
 The full default suite passed (44 programs). These tests use local SQL and browser mocks; they do not replace a signed-in browser check. A local Playwright browser could not be installed because its browser download returned a truncated archive. No visual browser result is claimed.
 
 Before promoting the UI: open a synthetic RO on Test as writer and assigned technician; save offline, reconnect, verify the persisted fields, simulate a changed server version and review it, reload offline in the same tab, and confirm status/billing edits remain online-only. Verify an existing legacy note draft is recoverable. Live remains unchanged.
+
+## Test browser observations and notice follow-up
+
+Jon exercised RO1031 in Chrome on November 4, 2026 (local time). Screenshots showed the local-save confirmation while offline, shop-save confirmation after reconnect, the first test note after reload, both test lines in the static recovery page after an offline reload, and both lines on the regular RO after reconnect. These observations cover the owner note path; technician, stale-edit review and the other supported fields still need browser acceptance.
+
+The note-only runs held automatic reload. The controller included transient approval controls in its value baseline before async tax/history setup finished. The approval renderer populates a read-only calculated authorization amount later, so an untouched control could look edited. Persisted online-only fields still use value comparisons. Transient approval controls now block reload on input/change events, which preserves actual approval work while excluding automatic setup. Regression checks cover both cases and retain the status/financial-change guard.
+
+The save notice now uses an amber background and bold “Offline mode” heading while disconnected. A pending reconnect save remains amber with “Waiting to save to the shop.” Normal connected work remains quiet. Shared queue, page and static-worker versions are advanced together. This follow-up is verified locally; repeat the note-only browser path after deployment to verify automatic reload and the stronger visual state.
