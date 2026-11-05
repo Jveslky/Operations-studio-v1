@@ -31,7 +31,7 @@
   storage.removeItem(item.key);return 'saved';
  }
  window.shopOfflineNotes={keyFor,list,send};
- window.shopOfflineNotes.mount=async function({context,order,noteInput}){
+ window.shopOfflineNotes.mount=async function({context,order,noteInput,legacyOnly=false}){
   const storage=window.localStorage,client=window.trackRightSupabase;
   const box=document.createElement('section');box.className='detail-card';box.setAttribute('aria-label','Offline technician notes');
   const heading=document.createElement('h3');heading.textContent='Technician note sync';
@@ -40,9 +40,11 @@
   const queue=document.createElement('div');const save=document.createElement('button');save.type='button';save.textContent='Save technician note to device';save.className='secondary-btn';
   const retry=document.createElement('button');retry.type='button';retry.textContent='Sync saved notes';retry.className='secondary-btn';
   box.append(heading,explanation,status,save,retry,queue);noteInput.closest('label').after(box);
+  save.hidden=legacyOnly;explanation.hidden=legacyOnly;
   let busy=false,storageError=false,lastResult='',requiresRefresh=false,review=null;
   function draw(){
    queue.replaceChildren();let items;try{items=list(context,storage);}catch(_){storageError=true;}if(storageError){status.textContent='Device storage is unavailable or unreadable. Notes cannot be safely queued or synced here.';save.disabled=true;retry.disabled=true;return;}
+   box.hidden=legacyOnly&&!items.length&&!requiresRefresh;
    const offline=!navigator.onLine;status.textContent=`${offline?'Offline. ':'Browser reports a connection. '}${items.length} note(s) saved on this device${items.some(i=>i.syncIssue==='access'||i.syncIssue==='session')?' — access or sign-in required':items.some(i=>i.state==='conflict')?' — review required':''}. A note is not saved to the shop until sync succeeds.${lastResult?' '+lastResult:''}`;
    for(const item of items){
     const row=document.createElement('div');const text=document.createElement('p');text.textContent=`RO ${item.label} · ${issueMessage(item)||(item.state==='conflict'?'Conflict: repair order changed. Review the shop and device notes before saving.':'Waiting to sync')}`;
