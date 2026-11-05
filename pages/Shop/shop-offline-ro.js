@@ -397,37 +397,110 @@
             ),
           );
         if (review?.key === item.key) {
+          const instruction = document.createElement("p");
+          instruction.textContent =
+            "Compare both versions below. Choose a starting version for each field, then edit the final value to keep everything you need. Saving replaces the shop value with the final value; it does not combine the versions automatically.";
+          row.append(instruction);
           const editors = {};
+          let apply, acknowledge;
+          const canApply = () =>
+            !busy &&
+            navigator.onLine &&
+            review?.key === item.key &&
+            review.confirmed &&
+            Object.keys(item.patch).every((k) => review.choices[k]);
+          const updateGate = () => {
+            acknowledge.checked = !!review.confirmed;
+            apply.disabled = !canApply();
+          };
           for (const k of Object.keys(item.patch)) {
-            const l = document.createElement("label");
-            l.textContent = `${fields[k]} — shop: ${review.current[k] ?? ""}`;
-            const e = document.createElement("textarea");
-            e.value = String(review.patch[k] ?? review.current[k] ?? "");
-            e.addEventListener("input", () => {
-              review.patch[k] = k === "labor_hours" ? Number(e.value) : e.value;
+            const section = document.createElement("section");
+            section.className = "ro-review-field";
+            const heading = document.createElement("h4");
+            heading.textContent = fields[k];
+            section.append(heading);
+            const versions = document.createElement("div");
+            versions.className = "ro-conflict-versions";
+            for (const [name, value] of [
+              ["Current shop version", review.current[k]],
+              ["Saved on this computer", review.saved[k]],
+            ]) {
+              const label = document.createElement("label");
+              label.textContent = name;
+              const copy = document.createElement("textarea");
+              copy.readOnly = true;
+              copy.value = String(value ?? "");
+              copy.setAttribute("aria-label", `${name}: ${fields[k]}`);
+              label.append(copy);
+              versions.append(label);
+            }
+            section.append(versions);
+            const finalLabel = document.createElement("label");
+            finalLabel.textContent = "Final value to save to the shop";
+            const editor = document.createElement("textarea");
+            editor.value = Object.hasOwn(review.patch, k)
+              ? String(review.patch[k])
+              : "";
+            editor.disabled = busy || !review.choices[k];
+            editor.setAttribute("aria-label", `Reviewed ${fields[k]}`);
+            editor.addEventListener("input", () => {
+              review.patch[k] =
+                k === "labor_hours" ? Number(editor.value) : editor.value;
+              review.confirmed = false;
+              updateGate();
             });
-            e.setAttribute("aria-label", `Reviewed ${fields[k]}`);
-            editors[k] = e;
-            l.append(e);
-            row.append(l);
+            editors[k] = editor;
+            finalLabel.append(editor);
+            const choose = (choice, value) => {
+              review.choices[k] = choice;
+              review.patch[k] =
+                k === "labor_hours" ? Number(value ?? 0) : String(value ?? "");
+              review.confirmed = false;
+              draw();
+            };
+            section.append(
+              button(
+                "Start with shop version",
+                () => choose("shop", review.current[k]),
+                busy,
+              ),
+              button(
+                "Start with my saved version",
+                () => choose("device", review.saved[k]),
+                busy,
+              ),
+              finalLabel,
+            );
+            row.append(section);
           }
-          row.append(
-            button(
-              "Save reviewed edits",
-              () =>
-                applyReview(
-                  item,
-                  Object.fromEntries(
-                    Object.entries(editors).map(([k, e]) => [
-                      k,
-                      k === "labor_hours" ? Number(e.value) : e.value,
-                    ]),
-                  ),
-                ),
-              busy || !navigator.onLine,
+          const acknowledgement = document.createElement("label");
+          acknowledgement.className = "ro-review-confirm";
+          acknowledge = document.createElement("input");
+          acknowledge.type = "checkbox";
+          acknowledge.setAttribute("aria-label", "Confirm reviewed changes");
+          acknowledge.disabled = busy;
+          acknowledge.addEventListener("change", () => {
+            review.confirmed = acknowledge.checked;
+            updateGate();
+          });
+          const acknowledgementText = document.createElement("span");
+          acknowledgementText.textContent =
+            "I compared both versions. Replace the shop values with the final values shown above.";
+          acknowledgement.append(acknowledge, acknowledgementText);
+          row.append(acknowledgement);
+          apply = button("Save reviewed edits", () =>
+            applyReview(
+              item,
+              Object.fromEntries(
+                Object.entries(editors).map(([k, e]) => [
+                  k,
+                  k === "labor_hours" ? Number(e.value) : e.value,
+                ]),
+              ),
             ),
           );
           row.append(
+            apply,
             button(
               "Cancel review",
               () => {
@@ -437,6 +510,7 @@
               busy,
             ),
           );
+          updateGate();
         }
         row.append(
           button(
@@ -614,7 +688,10 @@
           key: item.key,
           current: result.data,
           expected: result.data.updated_at,
-          patch: item.reviewDraft || item.patch,
+          saved: { ...(item.reviewDraft || item.patch) },
+          patch: {},
+          choices: {},
+          confirmed: false,
         };
       } catch (e) {
         saveError = e.message;
@@ -625,8 +702,20 @@
     }
     async function applyReview(item, patch) {
       try {
+        const activeReview = review;
+        if (
+          !activeReview ||
+          activeReview.key !== item.key ||
+          !activeReview.confirmed ||
+          !Object.keys(item.patch).every((k) => activeReview.choices[k])
+        )
+          throw Error(
+            "Choose a starting version for each field and confirm the final values before saving.",
+          );
         validate(patch);
         await lock(async () => {
+          if (review !== activeReview)
+            throw Error("The review changed. Open it again before saving.");
           const latest = read().find((x) => x.key === item.key);
           if (!latest || latest.state !== "conflict" || latest.resolution)
             throw Error("Device edits changed. Reopen the review.");
@@ -634,7 +723,7 @@
             ...latest,
             resolution: {
               request: crypto.randomUUID(),
-              expected: review.expected,
+              expected: activeReview.expected,
               patch,
             },
           });

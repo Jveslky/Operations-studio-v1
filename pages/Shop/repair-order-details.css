@@ -1347,3 +1347,10 @@ textarea {
 }
 .ro-save-state[data-save-mode="offline"] .ro-save-mode { font-weight: 800; }
 .ro-save-mode[hidden] { display: none; }
+
+.ro-review-field { margin-top: 18px; padding-top: 12px; border-top: 1px solid #d2a050; }
+.ro-review-field h4 { margin: 0; }
+.ro-conflict-versions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ro-review-confirm { display: flex !important; align-items: flex-start; gap: 8px; margin: 16px 0; }
+.ro-review-confirm input { width: auto; flex: 0 0 auto; margin-top: 4px; }
+@media (max-width: 700px) { .ro-conflict-versions { grid-template-columns: minmax(0, 1fr); } }
