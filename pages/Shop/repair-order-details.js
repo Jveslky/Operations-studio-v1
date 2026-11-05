@@ -579,11 +579,11 @@ if (!repairOrder) {
             const sessionKey=window.trackRightSupabase.auth.storageKey;
             if(!sessionKey)throw Error('Session key unavailable');
             sessionStorage.setItem('longshift.offline.ro.tab.v2',JSON.stringify({version:2,project,sessionKey,shop:billingContext.shopId,actor:billingContext.user.id,ro:repairOrder.recordId,label:String(repairOrder.id),expected:repairOrder.updatedAt,base:offlineROControl.base,tab:offlineROControl.tab,capturedAt:Date.now()}));
-            const worker=new URL('./offline-note-sw.js?v=11',location.href).href;
+            const worker=new URL('./offline-note-sw.js?v=12',location.href).href;
             const verify=async()=>{
                 if(navigator.serviceWorker.controller?.scriptURL!==worker){ready.textContent='Offline recovery is installing. Keep this tab online until ready.';return;}
-                const cache=await caches.open('longshift-offline-ro-shell-v11');
-                for(const file of ['./offline-note-recovery','./offline-note-recovery.js?v=4','./shop-offline-ro.js?v=20261105-6'])if(!await cache.match(new URL(file,location.href).href))throw Error('Recovery file missing');
+                const cache=await caches.open('longshift-offline-ro-shell-v12');
+                for(const file of ['./offline-note-recovery','./offline-note-recovery.js?v=5','./shop-offline-ro.js?v=20261105-6'])if(!await cache.match(new URL(file,location.href).href))throw Error('Recovery file missing');
                 ready.hidden=true;
             };
             const failed=()=>{ready.textContent='Offline reopening unavailable. Keep this page open while disconnected.';};
