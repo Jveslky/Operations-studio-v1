@@ -399,7 +399,7 @@
         if (review?.key === item.key) {
           const instruction = document.createElement("p");
           instruction.textContent =
-            "Compare both versions below. Choose a starting version for each field, then edit the final value to keep everything you need. Saving replaces the shop value with the final value; it does not combine the versions automatically.";
+            "Compare both versions below. Choose a starting version for each field, then edit the final version to keep everything you need. Saving replaces the shop version with your final version; it does not combine the versions automatically.";
           row.append(instruction);
           const editors = {};
           let apply, acknowledge;
@@ -436,7 +436,7 @@
             }
             section.append(versions);
             const finalLabel = document.createElement("label");
-            finalLabel.textContent = "Final value to save to the shop";
+            finalLabel.textContent = `${k.endsWith("_notes") ? "Final notes" : "Final " + fields[k].toLowerCase()} to save to the shop`;
             const editor = document.createElement("textarea");
             editor.value = Object.hasOwn(review.patch, k)
               ? String(review.patch[k])
@@ -485,7 +485,7 @@
           });
           const acknowledgementText = document.createElement("span");
           acknowledgementText.textContent =
-            "I compared both versions. Replace the shop values with the final values shown above.";
+            Object.keys(item.patch).every(k=>k.endsWith("_notes")) ? "I reviewed both versions. Save these notes to the shop." : "I reviewed both versions. Save these changes to the shop.";
           acknowledgement.append(acknowledge, acknowledgementText);
           row.append(acknowledgement);
           apply = button("Save reviewed edits", () =>
@@ -710,7 +710,7 @@
           !Object.keys(item.patch).every((k) => activeReview.choices[k])
         )
           throw Error(
-            "Choose a starting version for each field and confirm the final values before saving.",
+            "Choose a starting version for each field and confirm the final version before saving.",
           );
         validate(patch);
         await lock(async () => {
