@@ -518,3 +518,65 @@ assert.equal(
 console.log(
   "Explicit review: both versions visible, no default replacement, confirmation reset, exact lost-response retry and renewed conflict preservation passed.",
 );
+
+// One-click combination preserves both divergent additions without duplicating the shared note history.
+b = build();
+const combine = b.api.combineNotes;
+assert.equal(
+  combine("base\nshop addition", "base\ndevice addition"),
+  "base\nshop addition\ndevice addition",
+);
+assert.equal(
+  combine("base\nshop edit\nend", "base\ndevice edit\nend"),
+  "base\nshop edit\ndevice edit\nend",
+);
+assert.equal(combine("same\nnote", "same\nnote"), "same\nnote");
+assert.equal(combine("", "device"), "device");
+assert.equal(combine("shop", ""), "shop");
+assert.equal(combine("base", "base\nnew"), "base\nnew");
+assert.equal(
+  combine("base\na\na\nend", "base\nb\na\nend"),
+  "base\na\nb\na\nend",
+  "repeated lines in divergent blocks must not be globally removed",
+);
+assert.equal(combine("base\r\nshop", "base\ndevice"), "base\nshop\ndevice");
+b = build({ reply: { data: { status: "conflict" } } });
+b.note.value = "device version";
+await b.control.queue();
+await b.setOnline(true);
+await tick();
+await find(b, "Review changes").onclick();
+await find(b, "Combine notes").onclick();
+assert.equal(
+  byLabel(b, "Reviewed Technician notes").value,
+  "shop version\ndevice version",
+);
+assert.equal(
+  find(b, "Save reviewed edits").disabled,
+  true,
+  "combining must not save or skip confirmation",
+);
+assert.equal(b.calls.length, 1);
+let combineAck = byLabel(b, "Confirm reviewed changes");
+combineAck.checked = true;
+await combineAck.fire("change");
+await find(b, "Combine notes").onclick();
+assert.equal(
+  byLabel(b, "Reviewed Technician notes").value,
+  "shop version\ndevice version",
+  "repeated combine uses source copies, not the previous result",
+);
+assert.equal(byLabel(b, "Confirm reviewed changes").checked, false);
+combineAck = byLabel(b, "Confirm reviewed changes");
+combineAck.checked = true;
+await combineAck.fire("change");
+b.setReply({ data: { status: "saved" } });
+await find(b, "Save reviewed edits").onclick();
+assert.equal(
+  b.calls[1].args.p_patch.technician_notes,
+  "shop version\ndevice version",
+);
+assert.equal(b.reloads, 1);
+console.log(
+  "Combine notes: shared edges once, divergent text/repetitions preserved, idempotent UI, explicit confirmation and exact combined submission passed.",
+);

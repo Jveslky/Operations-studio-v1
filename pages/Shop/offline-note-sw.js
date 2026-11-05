@@ -1,9 +1,9 @@
 /* Cache public static recovery files only; never cache authenticated API responses. */
-const CACHE = "longshift-offline-ro-shell-v9";
+const CACHE = "longshift-offline-ro-shell-v10";
 const FILES = [
   "./offline-note-recovery",
   "./offline-note-recovery.js?v=4",
-  "./shop-offline-ro.js?v=20261105-4",
+  "./shop-offline-ro.js?v=20261105-5",
 ];
 self.addEventListener("install", (event) =>
   event.waitUntil(
