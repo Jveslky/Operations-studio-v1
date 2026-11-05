@@ -1,11 +1,11 @@
 {
-  "total": 55637,
-  "files": 332,
-  "application": 46068,
+  "total": 56297,
+  "files": 333,
+  "application": 46728,
   "database": 7214,
   "tests": 2355,
   "modules": {
-    "Shop": 23922,
+    "Shop": 24582,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
@@ -13,6 +13,6 @@
     "Shared": 5127
   },
   "branch": "feat/shop-offline-ro-database",
-  "updated_at": "2026-11-05T01:15:00.302968+00:00",
-  "commit": "81a0aa3ef2a85485ad6acf3136444e055969353b"
+  "updated_at": "2026-11-05T01:28:03.541689+00:00",
+  "commit": "d368fb7f95dfca8fde69ef314963b05cf6a6ee0a"
 }
