@@ -1328,3 +1328,10 @@ textarea {
 .ro-stock-line input { width: 110px; flex: 0 1 110px; }
 .ro-stock-editor > input { width: min(100%, 360px); margin-right: 8px; }
 @media (max-width: 600px) { .ro-stock-line > span { flex-basis: 100%; } }
+
+/* Quiet save state; expand only when a saved edit needs attention. */
+.ro-save-state > p { margin: 0; overflow-wrap: anywhere; }
+.ro-save-state summary { cursor: pointer; margin-top: 10px; font-weight: 600; }
+.ro-save-state button { margin: 8px 8px 8px 0; }
+.ro-save-state label { display: block; margin-top: 12px; overflow-wrap: anywhere; }
+.ro-save-state textarea { box-sizing: border-box; margin-top: 6px; }
