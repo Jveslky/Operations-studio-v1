@@ -20,6 +20,7 @@
     const $ = (id) => document.getElementById(id);
     let context = null;
     let validated = null;
+    const canUseSignedBackup = () => ["owner", "admin"].includes(context?.role);
 
     function status(id, message, state) {
         const element = $(id);
@@ -138,19 +139,29 @@
         try {
             this.disabled = true;
             status("data-export-message", "Building shop data backup…", "");
-            const cloud = {};
-            for (const key of Object.keys(configs)) cloud[key] = await fetchSet(key, false);
-            const backup = {
-                format: "track-right-shop-backup",
-                version: 2,
-                source_shop_id: context.shopId,
-                exported_at: new Date().toISOString(),
-                excludes: ["private storage documents", "photos", "videos"],
-                cloud,
-                legacy: collectLegacy()
-            };
-            download(`track-right-shop-backup-${new Date().toISOString().slice(0, 10)}.json`,
-                "application/json", JSON.stringify(backup, null, 2));
+            if (canUseSignedBackup()) {
+                const { data, error } = await client.rpc("download_shop_data_backup_v3", {
+                    p_shop: context.shopId
+                });
+                if (error) throw error;
+                if (typeof data !== "string") throw new Error("Shop backup was not returned.");
+                download(`long-shift-shop-backup-v3-${new Date().toISOString().slice(0, 10)}.json`,
+                    "application/json", data);
+            } else {
+                const cloud = {};
+                for (const key of Object.keys(configs)) cloud[key] = await fetchSet(key, false);
+                const backup = {
+                    format: "track-right-shop-backup",
+                    version: 2,
+                    source_shop_id: context.shopId,
+                    exported_at: new Date().toISOString(),
+                    excludes: ["private storage documents", "photos", "videos"],
+                    cloud,
+                    legacy: collectLegacy()
+                };
+                download(`track-right-shop-backup-${new Date().toISOString().slice(0, 10)}.json`,
+                    "application/json", JSON.stringify(backup, null, 2));
+            }
             status("data-export-message", "Shop data backup downloaded.", "success");
         } catch (error) {
             status("data-export-message", `Backup failed: ${error.message}`, "error");
@@ -168,16 +179,21 @@
         const file = this.files[0];
         if (!file) return;
         try {
-            const data = JSON.parse(await file.text());
-            if (data.format !== "track-right-shop-backup" || data.version !== 2 || !data.cloud) {
-                throw new Error("This is not a supported version 2 Long Shift Shop backup.");
+            const raw = await file.text();
+            const data = JSON.parse(raw);
+            if (data.format !== "track-right-shop-backup" || ![2, 3].includes(data.version) ||
+                !data.cloud || typeof data.cloud !== "object" || Array.isArray(data.cloud)) {
+                throw new Error("Choose a version 2 or version 3 Long Shift Shop backup.");
             }
             if (data.source_shop_id !== context.shopId) {
                 throw new Error("This backup belongs to a different shop and cannot be imported here.");
             }
+            if (data.version === 3 && (!canUseSignedBackup() || typeof data.signature !== "string")) {
+                throw new Error("A signed version 3 backup requires owner or admin access.");
+            }
             for (const [key, records] of Object.entries(data.cloud)) {
-                if (!configs[key] || !Array.isArray(records)) throw new Error(`Invalid backup dataset: ${key}`);
-                if (records.some((record) => record.shop_id !== context.shopId)) {
+                if (!Array.isArray(records) || (data.version === 2 && !Object.hasOwn(configs, key))) throw new Error(`Invalid backup dataset: ${key}`);
+                if (data.version === 2 && records.some((record) => record?.shop_id !== context.shopId)) {
                     throw new Error(`Tenant validation failed in ${key}.`);
                 }
             }
@@ -190,11 +206,22 @@
                     throw new Error("Legacy browser records lack matching shop ownership and cannot be imported.");
                 }
             }
-            validated = data;
+            validated = { data, raw };
             const review = $("shop-backup-review");
-            review.innerHTML = `<h3>Backup validated</h3><ul>${Object.entries(data.cloud)
-                .map(([key, records]) => `<li>${key.replaceAll("_", " ")}: ${records.length}</li>`)
-                .join("")}<li>Legacy browser records: ${Object.keys(data.legacy || {}).length}</li></ul>`;
+            const title = document.createElement("h3");
+            title.textContent = "Backup contents";
+            const list = document.createElement("ul");
+            for (const [key, records] of Object.entries(data.cloud)) {
+                const entry = document.createElement("li");
+                entry.textContent = `${key.replaceAll("_", " ")}: ${records.length}`;
+                list.append(entry);
+            }
+            if (data.version === 2) {
+                const entry = document.createElement("li");
+                entry.textContent = `Legacy browser records: ${Object.keys(data.legacy || {}).length}`;
+                list.append(entry);
+            }
+            review.replaceChildren(title, list);
             review.hidden = false;
             $("shop-backup-confirm-label").hidden = false;
             status("data-import-message", "Review the counts and confirm before importing.", "success");
@@ -212,9 +239,12 @@
         try {
             this.disabled = true;
             status("data-import-message", "Importing missing records…", "");
-            const result = await client.rpc("restore_shop_data_backup", { backup: validated });
+            const { data, raw } = validated;
+            const result = data.version === 3
+                ? await client.rpc("upload_shop_data_backup_v3", { p_shop: context.shopId, p_backup_text: raw })
+                : await client.rpc("restore_shop_data_backup", { backup: data });
             if (result.error) throw result.error;
-            Object.entries(validated.legacy || {}).forEach(([key, value]) => {
+            Object.entries(data.version === 2 ? data.legacy || {} : {}).forEach(([key, value]) => {
                 if ((key.startsWith("repair-order-") || legacyKeys.includes(key)) &&
                     localStorage.getItem(key) === null) {
                     localStorage.setItem(key, JSON.stringify(value));
