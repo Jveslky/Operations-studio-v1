@@ -45,6 +45,55 @@ begin
     end loop;
 end $install$;
 
+-- Allow only the original status and revision of a signed historical order.
+-- The permit is private and exists only during the verified restore.
+do $install$
+declare
+    original text := pg_get_functiondef('public.audit_shop_estimate_approval()'::regprocedure);
+    modified text;
+begin
+    if strpos(original, 'backup_estimate_revision') = 0 then
+        modified := regexp_replace(original, '(?i)(^|\n)begin[[:space:]]*', E'\\1begin\n' || $hook$
+    if new.approval_request is null and exists (
+        select 1 from private.shop_backup_v3_stock_inserts permit
+        where permit.transaction_id = pg_catalog.txid_current()
+          and permit.relation_name = 'backup_estimate_revision'
+          and permit.shop_id = new.shop_id and permit.row_id = new.id
+          and permit.lines->'status' = to_jsonb(new.estimate_approval_status)
+          and permit.lines->'version' = to_jsonb(new.estimate_version)
+          and (tg_op = 'INSERT' or permit.lines->'stock' = new.estimate_stock_lines)
+    ) then return new; end if;
+$hook$);
+        if modified is not distinct from original then
+            raise exception 'Could not install historical approval hook';
+        end if;
+        execute modified;
+    end if;
+end $install$;
+
+-- Historical approvals retain their original dates and must not send a fresh alert.
+do $install$
+declare
+    original text := pg_get_functiondef('public.notify_shop_estimate_approval()'::regprocedure);
+    modified text;
+begin
+    if strpos(original, 'backup_estimate_alert') = 0 then
+        modified := regexp_replace(original, '(?i)(^|\n)begin[[:space:]]*', E'\\1begin\n' || $hook$
+    if exists (
+        select 1 from private.shop_backup_v3_stock_inserts permit
+        where permit.transaction_id = pg_catalog.txid_current()
+          and permit.relation_name = 'backup_estimate_alert'
+          and permit.shop_id = new.shop_id and permit.row_id = new.id
+          and permit.lines = to_jsonb(new)
+    ) then return new; end if;
+$hook$);
+        if modified is not distinct from original then
+            raise exception 'Could not install historical approval alert hook';
+        end if;
+        execute modified;
+    end if;
+end $install$;
+
 create or replace function public.restore_shop_data_backup_v3(p_shop uuid, p_backup jsonb)
 returns jsonb
 language plpgsql
@@ -74,6 +123,9 @@ begin
         raise exception 'Shop backup import permission is required' using errcode = '42501';
     end if;
     perform private.verify_shop_backup_v3(p_backup, p_shop);
+    -- Concurrent imports must observe the preceding import before testing IDs.
+    perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(
+        'shop-backup-v3:' || p_shop::text, 0));
 
     -- Offline operations use a single-column RO foreign key. Check tenant
     -- ownership against the signed repair order dataset as well.
@@ -109,7 +161,7 @@ begin
     );
 
     select coalesce(jsonb_agg(
-        case when existing.id is null and not exists (
+        case when not exists (
                  select 1 from private.shop_backup_v3_stock_inserts permit
                  where permit.transaction_id = txid_current()
                    and permit.relation_name = 'shop_repair_orders'
@@ -117,10 +169,35 @@ begin
              ) then ro || '{"estimate_stock_lines":[],"stock_lines_expected":[]}'::jsonb
              else ro end
     ), '[]'::jsonb),
-    coalesce(array_agg((ro->>'id')::uuid) filter (where existing.id is null), array[]::uuid[])
+    coalesce(array_agg((ro->>'id')::uuid), array[]::uuid[])
     into base_orders, inserted_orders
     from jsonb_array_elements(cloud->'repair_orders') as orders(ro)
-    left join public.shop_repair_orders existing on existing.id = (ro->>'id')::uuid;
+    where not exists (
+        select 1 from public.shop_repair_orders existing
+        where existing.id = (ro->>'id')::uuid and existing.shop_id = p_shop
+    );
+
+    if exists (
+        select 1 from jsonb_array_elements(base_orders) as orders(ro)
+        where ro->>'estimate_approval_status' = 'Approved'
+          and not exists (
+              select 1 from jsonb_array_elements(cloud->'estimate_approvals') as approvals(approval)
+              where approval->>'repair_order_id' = ro->>'id'
+          )
+    ) then
+        raise exception 'Backup is missing approval history for a repair order';
+    end if;
+
+    if cloud ? 'estimate_approvals' then
+        insert into private.shop_backup_v3_stock_inserts
+        select txid_current(), p_shop, (ro->>'id')::uuid, 'backup_estimate_revision',
+               jsonb_build_object('status', ro->'estimate_approval_status',
+                                  'version', ro->'estimate_version',
+                                  'stock', ro->'estimate_stock_lines')
+        from jsonb_array_elements(cloud->'repair_orders') as orders(ro)
+        where (ro->>'id')::uuid = any(inserted_orders)
+          and ro->>'approval_request' is null;
+    end if;
 
     legacy_result := public.restore_shop_data_backup(
         jsonb_build_object('format', 'track-right-shop-backup', 'version', 2,
@@ -128,6 +205,32 @@ begin
                            jsonb_set(cloud - array['invoices','payments','payment_ro_events'],
                                      '{repair_orders}', base_orders))
     );
+
+    -- Insert as one statement so linked approvals can reference other
+    -- approval rows from the same backup regardless of array order.
+    if exists (
+        select 1 from jsonb_populate_recordset(null::public.shop_estimate_approvals,
+                                              cloud->'estimate_approvals') incoming
+        join public.shop_estimate_approvals existing on existing.id = incoming.id
+        where to_jsonb(existing) is distinct from to_jsonb(incoming)
+    ) then
+        raise exception 'Existing record differs in backup dataset: estimate_approvals';
+    end if;
+    insert into private.shop_backup_v3_stock_inserts
+    select txid_current(), p_shop, incoming.id, 'backup_estimate_alert', to_jsonb(incoming)
+    from jsonb_populate_recordset(null::public.shop_estimate_approvals,
+                                 cloud->'estimate_approvals') incoming
+    where not exists (
+        select 1 from public.shop_estimate_approvals existing where existing.id = incoming.id
+    );
+    insert into public.shop_estimate_approvals
+    select incoming.*
+    from jsonb_populate_recordset(null::public.shop_estimate_approvals,
+                                 cloud->'estimate_approvals') incoming
+    where not exists (
+        select 1 from public.shop_estimate_approvals existing where existing.id = incoming.id
+    );
+    get diagnostics added = row_count;
 
     -- Parents precede dependent rows. Existing matching rows are safe to
     -- retain. A mismatched row or a conflicting unique key aborts the import.

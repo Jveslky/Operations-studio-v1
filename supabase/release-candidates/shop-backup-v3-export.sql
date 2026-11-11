@@ -28,6 +28,7 @@ as $$
             ('ro_stock_events', 'shop_ro_stock_events'),
             ('ro_stock_settlements', 'shop_ro_stock_settlements'),
             ('supplemental_estimates', 'shop_supplemental_estimates'),
+            ('estimate_approvals', 'shop_estimate_approvals'),
             ('supplement_authorizations', 'shop_supplement_authorizations'),
             ('ap_stock_receipts', 'shop_ap_stock_receipts'),
             ('ap_bill_operations', 'shop_ap_bill_operations'),
@@ -58,6 +59,10 @@ begin
 
     for dataset in select * from private.shop_backup_v3_datasets()
     loop
+        -- Earlier signed v3 files predate base estimate approvals.
+        if dataset.key = 'estimate_approvals' and not (cloud ? dataset.key) then
+            continue;
+        end if;
         if jsonb_typeof(cloud->dataset.key) is distinct from 'array' then
             raise exception 'Missing or invalid backup dataset: %', dataset.key;
         end if;
@@ -75,6 +80,22 @@ begin
         where not exists (select 1 from private.shop_backup_v3_datasets() d where d.key = keys.key)
     ) then
         raise exception 'Unknown version 3 backup dataset';
+    end if;
+
+    if exists (
+        select 1 from jsonb_array_elements(cloud->'estimate_approvals') as approvals(approval)
+        where not exists (
+            select 1 from jsonb_array_elements(cloud->'repair_orders') as orders(ro)
+            where ro->>'id' = approval->>'repair_order_id'
+        ) or (
+            approval->>'related_authorization_id' is not null and not exists (
+                select 1 from jsonb_array_elements(cloud->'estimate_approvals') as prior(related)
+                where related->>'id' = approval->>'related_authorization_id'
+                  and related->>'repair_order_id' = approval->>'repair_order_id'
+            )
+        )
+    ) then
+        raise exception 'Estimate approval is missing its repair order or related authorization';
     end if;
 
     if exists (
