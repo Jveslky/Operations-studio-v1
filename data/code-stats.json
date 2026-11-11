@@ -12,7 +12,7 @@
     "SnowDesk": 471,
     "Shared": 5250
   },
-  "branch": "test/stripe-sandbox-checkout",
-  "updated_at": "2026-11-11T03:10:47.689077+00:00",
-  "commit": "3fbf3f3c32d68f8d3ae4939944c3dc7dd6df06bd"
+  "branch": "test/shop-combined",
+  "updated_at": "2026-11-11T03:14:22.831914+00:00",
+  "commit": "79d87684ec02aea30c428058dad4b30a561409c6"
 }
