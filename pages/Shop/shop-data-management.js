@@ -180,6 +180,7 @@
         if (!file) return;
         try {
             const raw = await file.text();
+            if (this.files[0] !== file) return;
             const data = JSON.parse(raw);
             if (data.format !== "track-right-shop-backup" || ![2, 3].includes(data.version) ||
                 !data.cloud || typeof data.cloud !== "object" || Array.isArray(data.cloud)) {
@@ -226,7 +227,9 @@
             $("shop-backup-confirm-label").hidden = false;
             status("data-import-message", "Review the counts and confirm before importing.", "success");
         } catch (error) {
-            status("data-import-message", error.message, "error");
+            if (this.files[0] === file) {
+                status("data-import-message", error.message, "error");
+            }
         }
     });
 
