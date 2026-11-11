@@ -1,18 +1,18 @@
 {
-  "total": 58622,
-  "files": 338,
-  "application": 47471,
-  "database": 7787,
-  "tests": 3364,
+  "total": 59059,
+  "files": 342,
+  "application": 47664,
+  "database": 7926,
+  "tests": 3469,
   "modules": {
-    "Shop": 25325,
+    "Shop": 25395,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
-    "Shared": 5127
+    "Shared": 5250
   },
-  "branch": "test/shop-combined",
-  "updated_at": "2026-11-11T02:12:09.449710+00:00",
-  "commit": "7a56b1bc86541fbeba66ed3092a38c31c7c8b96c"
+  "branch": "test/stripe-sandbox-checkout",
+  "updated_at": "2026-11-11T03:10:47.689077+00:00",
+  "commit": "3fbf3f3c32d68f8d3ae4939944c3dc7dd6df06bd"
 }
