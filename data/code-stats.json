@@ -1,9 +1,9 @@
 {
-  "total": 58357,
-  "files": 337,
+  "total": 58619,
+  "files": 338,
   "application": 47468,
-  "database": 7663,
-  "tests": 3226,
+  "database": 7787,
+  "tests": 3364,
   "modules": {
     "Shop": 25322,
     "Mobile": 9364,
@@ -12,7 +12,7 @@
     "SnowDesk": 471,
     "Shared": 5127
   },
-  "branch": "test/shop-combined",
-  "updated_at": "2026-11-10T02:31:16.032422+00:00",
-  "commit": "e8e5d56fb33901aed23a1039d1e8026415cfbeac"
+  "branch": "test/backup-approval-recovery",
+  "updated_at": "2026-11-11T01:47:30.224820+00:00",
+  "commit": "d9339fe754cbb935813a0da5c6c47796d7de8647"
 }
