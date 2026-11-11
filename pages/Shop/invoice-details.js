@@ -489,6 +489,9 @@ function renderInvoice() {
     sendInvoiceButton.hidden =
         displayStatus === "Paid";
 
+    sendInvoiceButton.textContent =
+        displayStatus === "Draft" ? "Share Invoice" : "Send Reminder";
+
     markPaidButton.hidden =
         displayStatus === "Paid";
 }
@@ -546,6 +549,33 @@ async function updateCurrentInvoiceStatus(
     }
 }
 
+const checkoutLinkButton = document.getElementById("invoice-checkout-link");
+const checkoutStatus = document.getElementById("invoice-checkout-status");
+let invoiceShareVersion = 0;
+
+checkoutLinkButton.addEventListener("click", async function () {
+    const version = invoiceShareVersion;
+    this.disabled = true;
+    checkoutStatus.textContent = "Creating a Stripe test payment link…";
+    try {
+        const { data, error } = await window.trackRightSupabase.functions.invoke("shop-online-payments", {
+            body: { invoiceId: currentInvoice.recordId }
+        });
+        if (error || typeof data?.url !== "string" || new URL(data.url).origin !== "https://checkout.stripe.com") {
+            throw new Error("Could not create a Stripe test payment link. Check the shop’s test setup and invoice balance.");
+        }
+        if (version !== invoiceShareVersion) return;
+        if (!sendInvoiceMessage.value.includes(data.url)) {
+            sendInvoiceMessage.value += `\n\nPay this invoice (Stripe test mode): ${data.url}`;
+        }
+        checkoutStatus.textContent = "Stripe test payment link added to the message.";
+    } catch (error) {
+        if (version === invoiceShareVersion) checkoutStatus.textContent = error.message;
+    } finally {
+        if (version === invoiceShareVersion) this.disabled = false;
+    }
+});
+
 sendInvoiceButton.addEventListener(
     "click",
     function () {
@@ -559,10 +589,13 @@ sendInvoiceButton.addEventListener(
         sendInvoiceCustomer.textContent =
             currentInvoice.customer || "—";
 
-        sendInvoiceTotal.textContent =
-            formatCurrency(
-                currentInvoice.total
-            );
+        const isDraft = currentInvoice.status === "Draft";
+        const amount = formatCurrency(isDraft ? currentInvoice.total : currentInvoice.balanceDue);
+        document.getElementById("send-invoice-purpose").textContent =
+            isDraft ? "Share Invoice" : "Payment Reminder";
+        document.getElementById("send-invoice-amount-label").textContent =
+            isDraft ? "Invoice Total" : "Balance Due";
+        sendInvoiceTotal.textContent = amount;
 
         const customer =
             getInvoiceCustomer();
@@ -573,21 +606,37 @@ sendInvoiceButton.addEventListener(
         sendInvoicePhone.textContent =
             customer?.phone || "No phone on file";
 
-        if (currentInvoice.status === "Draft") {
+        emailInvoiceButton.disabled = !customer?.email;
+        textInvoiceButton.disabled = !customer?.phone;
+
+        if (isDraft) {
             sendInvoiceMessage.value =
-                `Invoice #${currentInvoice.id} is ready. Total due: ${formatCurrency(currentInvoice.total)}.`;
+                `Invoice #${currentInvoice.id} is ready. Total due: ${amount}.`;
         } else {
+            const due = currentInvoice.dueDate
+                ? ` The due date is ${formatDate(currentInvoice.dueDate)}.`
+                : "";
             sendInvoiceMessage.value =
-                `Just a reminder that invoice #${currentInvoice.id} has an outstanding balance of ${formatCurrency(currentInvoice.balanceDue)}. Please let us know if you have any questions.`;
+                `A reminder that invoice #${currentInvoice.id} has a remaining balance of ${amount}.${due} Please contact us if you have any questions.`;
         }
 
-        confirmInvoiceSentButton.hidden = currentInvoice.status === "Sent";
+        confirmInvoiceSentButton.hidden = !isDraft;
+        document.getElementById("send-invoice-help").textContent = isDraft
+            ? "Email and text open your messaging app. Attach the invoice if needed, send it there, then mark it sent here."
+            : "Review the message, then open your email or text app to send it.";
 
+        invoiceShareVersion += 1;
+        checkoutStatus.textContent = "";
+        checkoutLinkButton.disabled = false;
+        checkoutLinkButton.hidden =
+            window.location.hostname !== "test-shop-combined.long-shift-test.pages.dev" ||
+            currentInvoice.status !== "Sent" || currentInvoice.balanceDue <= 0 || !currentInvoice.recordId;
         sendInvoiceModal.hidden = false;
     }
 );
 
 function closeSendInvoiceModal() {
+    invoiceShareVersion += 1;
     sendInvoiceModal.hidden = true;
 }
 
