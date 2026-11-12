@@ -1,18 +1,18 @@
 {
-  "total": 59129,
-  "files": 343,
-  "application": 47718,
-  "database": 7942,
-  "tests": 3469,
+  "total": 59210,
+  "files": 345,
+  "application": 47757,
+  "database": 7983,
+  "tests": 3470,
   "modules": {
-    "Shop": 25449,
+    "Shop": 25459,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
     "SnowDesk": 471,
-    "Shared": 5250
+    "Shared": 5279
   },
-  "branch": "test/shop-combined",
-  "updated_at": "2026-11-12T02:10:42.707459+00:00",
-  "commit": "259447523b0cc2e930d250e357bb07074501572f"
+  "branch": "test/private-shop-documents",
+  "updated_at": "2026-11-12T03:02:54.345601+00:00",
+  "commit": "3a3bd11e3f46f06a1e5cd16269d97624e617553b"
 }

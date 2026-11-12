@@ -45,11 +45,11 @@
     }
 
     async function openDocument(path) {
-        const preview = window.open("", "_blank");
-        const result = await client.storage.from("shop-team-documents").createSignedUrl(path, 300);
-        if (result.error) { preview?.close(); status(`Document could not be opened: ${result.error.message}`, "error"); return; }
-        if (preview) { preview.opener = null; preview.location = result.data.signedUrl; }
-        else window.location.assign(result.data.signedUrl);
+        try {
+            await window.downloadPrivateShopDocument("shop-team-documents", path);
+        } catch (error) {
+            status(`Document could not be downloaded: ${error.message}`, "error");
+        }
     }
 
     function render() {

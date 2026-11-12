@@ -60,9 +60,9 @@ function script(src){return new Promise((resolve,reject)=>{const s=document.crea
  privateCheck.addEventListener('click',async()=>{
   const path=privatePath.value.trim(); if(!path){privateResult.textContent='Enter a Test document path.';return;}
   privateCheck.disabled=true;privateResult.textContent='Checking document access…';
-  try {const result=await window.trackRightSupabase.storage.from('shop-ap-documents').createSignedUrl(path,60);
-   if(result.error){const code=String(result.error.statusCode || result.error.status || '');privateResult.textContent=(code==='400'||code==='403'||code==='404') ? 'Storage did not grant a link. Confirm the same document succeeds in its own shop before treating this as a denial.' : 'Storage check failed; result inconclusive.';}
-   else privateResult.textContent=result.data?.signedUrl ? 'Storage granted a link for this document.' : 'Storage response was incomplete; result inconclusive.';
+  try {const result=await window.trackRightSupabase.storage.from('shop-ap-documents').download(path);
+   if(result.error){const code=String(result.error.statusCode || result.error.status || '');privateResult.textContent=(code==='400'||code==='403'||code==='404') ? 'Storage did not return the document. Confirm the same document succeeds in its own shop before treating this as a denial.' : 'Storage check failed; result inconclusive.';}
+   else privateResult.textContent=result.data?.size > 0 ? 'Storage returned this document.' : 'Storage response was incomplete; result inconclusive.';
   }catch(_){privateResult.textContent='Storage check failed; result inconclusive.';}finally{privateCheck.disabled=false;}
  });
 

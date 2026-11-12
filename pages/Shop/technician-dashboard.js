@@ -71,12 +71,18 @@
         return{label:`Expires ${formatDate(documentRecord.expires_on)}`,className:"current",alert:false};
     }
     async function openDocument(record, button) {
-        button.disabled=true;const result=await client.storage.from("shop-team-documents").createSignedUrl(record.object_path,300);button.disabled=false;
-        if(result.error){requestMessage.textContent=`Document could not open: ${result.error.message}`;return;} window.open(result.data.signedUrl,"_blank","noopener");
+        button.disabled = true;
+        try {
+            await window.downloadPrivateShopDocument("shop-team-documents", record.object_path);
+        } catch (error) {
+            requestMessage.textContent = `Document could not be downloaded: ${error.message}`;
+        } finally {
+            button.disabled = false;
+        }
     }
     function renderDocuments(documents) {
         documentList.replaceChildren();let alerts=0;
-        (documents||[]).filter((item)=>!item.archived_at).forEach((item)=>{const state=expiry(item);if(state.alert)alerts+=1;const entry=row(item.title,`${item.document_type.replaceAll("_"," ")}${item.issuer?` · ${item.issuer}`:""}`,state.label,state.className);const button=document.createElement("button");button.type="button";button.textContent="View document";button.addEventListener("click",()=>openDocument(item,button));entry.append(button);documentList.append(entry);});
+        (documents||[]).filter((item)=>!item.archived_at).forEach((item)=>{const state=expiry(item);if(state.alert)alerts+=1;const entry=row(item.title,`${item.document_type.replaceAll("_"," ")}${item.issuer?` · ${item.issuer}`:""}`,state.label,state.className);const button=document.createElement("button");button.type="button";button.textContent="Download document";button.addEventListener("click",()=>openDocument(item,button));entry.append(button);documentList.append(entry);});
         document.getElementById("tech-cert-alerts").textContent=alerts;if(!documentList.children.length)empty(documentList,"No certifications or documents have been shared with your account.");
     }
     function updateRequestDates(){const required=requestType.value!=="general";document.querySelector(".request-date-fields").hidden=!required;requestStart.required=required;requestEnd.required=required;if(!required){requestStart.value="";requestEnd.value="";}}

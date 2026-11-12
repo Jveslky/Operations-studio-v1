@@ -35,9 +35,7 @@
       try{
        const doc=await client.from('shop_team_documents').select('object_path').eq('shop_id',context.shopId).eq('id',a.source_record_id).is('archived_at',null).single();
        if(doc.error)throw doc.error;
-       const signed=await client.storage.from('shop-team-documents').createSignedUrl(doc.data.object_path,300);
-       if(signed.error)throw signed.error;
-       window.location.href=signed.data.signedUrl;
+       await window.downloadPrivateShopDocument('shop-team-documents',doc.data.object_path);
       }catch(e){error(e);}
      });
      if(a.invoice_id)link.href=`${rootPath}pages/Shop/invoice-details.html?id=${encodeURIComponent(a.invoice_id)}`;

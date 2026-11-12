@@ -37,7 +37,8 @@ const createCheckout = () => new Request(origin, {
 assert.equal((await handler(createCheckout())).status, 200);
 assert.equal(calls[0].options.headers.Authorization, 'Bearer office-session');
 assert.equal(calls[1].options.headers['Stripe-Account'], 'acct_test');
-assert.equal(calls[1].options.headers['Idempotency-Key'], checkoutId);
+assert.equal(calls[1].options.headers['Idempotency-Key'], checkoutId + ':card-filter-v1');
+assert.equal(calls[1].options.body.get('allowed_payment_method_types[0]'), 'card');
 assert.equal(calls[1].options.body.get('line_items[0][price_data][unit_amount]'), '15000');
 
 const event = {
