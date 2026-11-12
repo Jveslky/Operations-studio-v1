@@ -35,16 +35,28 @@
         const email = context.user.email.toLowerCase();
         return [order.technician, order.additionalTechnician].some((value) => String(value || "").toLowerCase() === email);
     }
-    function renderOrders(orders) {
-        const active = orders.filter((order) => !order.archived && isAssigned(order) && !["Closed", "Complete"].includes(order.status));
+    function renderOrders(orders, showAll = false) {
+        const active = orders.filter((order) => !order.archived && isAssigned(order) && !["Closed", "Complete", "Ready for Payment"].includes(order.status));
         document.getElementById("tech-open-orders").textContent = active.length;
         document.getElementById("tech-waiting-approval").textContent = active.filter((order) => ["Sent", "Pending", "Waiting Approval"].includes(order.estimateApprovalStatus) || order.status === "Waiting Approval").length;
         roList.replaceChildren();
-        active.forEach((order) => {
+        const visible = showAll ? active : active.slice(0, 10);
+        visible.forEach((order) => {
             const item = row(`RO #${order.id} · ${order.unit || "Unit not listed"}`, `${order.customer || "Customer"} · Authorization: ${order.estimateApprovalStatus || "Draft"}`, order.status, "");
             const link = document.createElement("a"); link.href=`repair-order-details.html?id=${encodeURIComponent(order.id)}`; link.textContent="Open repair order"; item.append(link); roList.append(item);
         });
         if (!active.length) empty(roList, "No open repair orders are assigned to your email.");
+        if (active.length > 10) {
+            const toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.textContent = showAll ? "Show fewer" : `Show all ${active.length} assigned repair orders`;
+            toggle.setAttribute("aria-expanded", String(showAll));
+            toggle.addEventListener("click", () => {
+                renderOrders(orders, !showAll);
+                roList.lastElementChild.focus();
+            });
+            roList.append(toggle);
+        }
     }
     function renderSchedule(appointments) {
         const email=context.user.email.toLowerCase(), today=dateOnly(new Date().toISOString());
