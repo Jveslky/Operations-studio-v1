@@ -21,7 +21,7 @@
         if (!privateRead) return nativeFetch(input, options);
         requestUrl.searchParams.set("ls_private_request", crypto.randomUUID());
         const nextInput = input instanceof Request ? new Request(requestUrl.href, input) : requestUrl.href;
-        return nativeFetch(nextInput, {...options, cache: "no-store"});
+        return nativeFetch(nextInput, {...options, cache: "no-store", redirect: "error"});
     }
 
     window.trackRightSupabase = window.supabase.createClient(
