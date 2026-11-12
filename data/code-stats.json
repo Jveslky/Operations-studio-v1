@@ -12,7 +12,7 @@
     "SnowDesk": 471,
     "Shared": 5279
   },
-  "branch": "test/private-shop-documents",
-  "updated_at": "2026-11-12T03:02:54.345601+00:00",
-  "commit": "3a3bd11e3f46f06a1e5cd16269d97624e617553b"
+  "branch": "test/shop-combined",
+  "updated_at": "2026-11-12T03:04:53.881207+00:00",
+  "commit": "595dd62b75f968bbcc97ea0fddfd733334b9c212"
 }
