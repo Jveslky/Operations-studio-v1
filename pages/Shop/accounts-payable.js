@@ -212,9 +212,12 @@
     list.addEventListener("click", async function (event) {
         const documentButton = event.target.closest("button[data-document-path]");
         if (documentButton) {
-            const signed = await client.storage.from("shop-ap-documents").createSignedUrl(documentButton.dataset.documentPath, 60);
-            if (signed.error) { setMessage(`Document could not be opened: ${signed.error.message}`, "error"); return; }
-            window.open(signed.data.signedUrl, "_blank", "noopener,noreferrer"); return;
+            try {
+                await window.downloadPrivateShopDocument("shop-ap-documents", documentButton.dataset.documentPath);
+            } catch (error) {
+                setMessage(`Document could not be downloaded: ${error.message}`, "error");
+            }
+            return;
         }
         const button = event.target.closest("button[data-bill-id]"); if (!button || !canWrite) return;
         const result = await client.from("shop_accounts_payable").update({ status: "paid", paid_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", button.dataset.billId).eq("shop_id", context.shopId);

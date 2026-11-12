@@ -17,7 +17,7 @@
         by('ap-stock-add').addEventListener('click',()=>{rows.push({source:'Manual review',description:'',action:'',received:'',pack:'',supplier_cost:''});draw();});
         button(by('ap-stock-actions'),'Confirm reviewed receipt',submit).id='ap-stock-save';
         button(by('ap-stock-actions'),'Retry same receipt',transmit).id='ap-stock-retry';
-        button(by('ap-stock-actions'),'View original document',async()=>{if(!bill.document_path)throw Error('No original document attached to this bill.');const r=await client.storage.from('shop-ap-documents').createSignedUrl(bill.document_path,60);if(r.error)throw r.error;window.open(r.data.signedUrl,'_blank','noopener,noreferrer');});
+        button(by('ap-stock-actions'),'Download original document',async()=>{if(!bill.document_path)throw Error('No original document attached to this bill.');await window.downloadPrivateShopDocument('shop-ap-documents',bill.document_path);});
         button(by('ap-stock-actions'),'Close',()=>{if(busy)return;if(!pending&&rows.length&&!window.confirm('Close this unsaved receiving review?'))return;generation++;dialog.close();});
         dialog.addEventListener('cancel',event=>{event.preventDefault();if(!busy&&(pending||!rows.length||window.confirm('Close this unsaved receiving review?'))){generation++;dialog.close();}});
     }

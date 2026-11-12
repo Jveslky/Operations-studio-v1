@@ -95,7 +95,7 @@ Deno.serve(async request => {
             headers: {
                 Authorization: `Bearer ${stripeKey}`,
                 "Stripe-Account": checkout.merchant_account,
-                "Idempotency-Key": checkout.id,
+                "Idempotency-Key": `${checkout.id}:card-filter-v1`,
                 "Content-Type": "application/x-www-form-urlencoded"
             },
             body: new URLSearchParams({
@@ -103,7 +103,7 @@ Deno.serve(async request => {
                 success_url: `${browserOrigin}/pages/Shop/payment-return.html`,
                 cancel_url: `${browserOrigin}/pages/Shop/payment-return.html?cancelled=1`,
                 expires_at: String(checkout.expires_at),
-                "payment_method_types[0]": "card",
+                "allowed_payment_method_types[0]": "card",
                 "metadata[long_shift_checkout]": checkout.id,
                 "line_items[0][quantity]": "1",
                 "line_items[0][price_data][currency]": checkout.currency,
@@ -112,6 +112,14 @@ Deno.serve(async request => {
             })
         });
         const data = await session.json();
+        if (!session.ok) {
+            const code = data.error?.code;
+            console.warn("Stripe checkout rejected", JSON.stringify({
+                status: session.status,
+                code: typeof code === "string" && /^[a-z_]{1,80}$/.test(code) ? code : null,
+                requestId: session.headers.get("request-id")
+            }));
+        }
         if (!session.ok || data.livemode !== false || typeof data.url !== "string"
             || new URL(data.url).origin !== "https://checkout.stripe.com") {
             return reply({ error: "Stripe could not create a test checkout" }, 502, browserOrigin);

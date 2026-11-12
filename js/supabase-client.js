@@ -24,7 +24,7 @@
         return nativeFetch(nextInput, {...options, cache: "no-store", redirect: "error"});
     }
 
-    window.trackRightSupabase = window.supabase.createClient(
+    const client = window.supabase.createClient(
         SUPABASE_URL,
         SUPABASE_KEY,
         {
@@ -37,4 +37,27 @@
             global: { fetch: privateStorageFetch }
         }
     );
+    window.trackRightSupabase = client;
+    let documentSession = 0;
+    let documentUser = null;
+    client.auth.onAuthStateChange(function (event, session) {
+        const user = session?.user.id ?? null;
+        if (event === "SIGNED_OUT" || user !== documentUser) documentSession++;
+        documentUser = user;
+    });
+    window.addEventListener("pagehide", function () { documentSession++; });
+
+    window.downloadPrivateShopDocument = async function (bucket, path) {
+        const generation = documentSession;
+        const { data, error } = await client.storage.from(bucket).download(path);
+        if (generation !== documentSession) throw new Error("Your session changed. Try again.");
+        if (error) throw error;
+
+        const url = URL.createObjectURL(data);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = path.split("/").pop() || "document";
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+    };
 })();
