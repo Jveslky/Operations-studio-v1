@@ -420,6 +420,7 @@ function renderInvoice() {
 
     invoiceStatus.textContent =
         displayStatus;
+    invoiceStatus.dataset.status = displayStatus;
 
     invoiceCustomer.textContent =
         currentInvoice.customer || "—";
