@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="../../css/base.css">
     <link rel="stylesheet" href="../../css/layout.css">
     <link rel="stylesheet"
-          href="./repair-orders.css?v=20261114-7">
+          href="./repair-orders.css?v=20261114-8">
 
 <link rel="manifest" href="./manifest.webmanifest?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/shop-v2-32.png">
@@ -187,9 +187,16 @@
                     </button>
                 </div>
             </form>
-            <div class="ro-search" role="search" aria-label="Repair orders">
+            <div class="ro-search" role="search" aria-label="Find repair orders">
                 <input id="ro-list-search" type="search" aria-label="Search repair orders"
                        placeholder="Search RO number, customer, vehicle, or technician">
+                <select id="ro-list-sort" aria-label="Sort repair orders">
+                    <option value="">Sort by</option>
+                    <option value="date-newest">Date (newest first)</option>
+                    <option value="date-oldest">Date (oldest first)</option>
+                    <option value="number">RO number</option>
+                    <option value="customer">Customer (A–Z)</option>
+                </select>
             </div>
             <div class="repair-order-board">
 
@@ -230,7 +237,7 @@
     <script src="../../js/shop-behavior.js"></script>
     <script src="./shop-repair-orders-data.js"></script>
     <script src="./shop-workflow.js"></script>
-    <script src="./repair-orders.js?v=20261114-3"></script>
+    <script src="./repair-orders.js?v=20261114-4"></script>
     <script src="./repair-order-intake.js"></script>
 </body>
 </html>

@@ -1265,9 +1265,12 @@ textarea.new-ro-input {
 }
 .repair-order-page-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
 .repair-order-page-header h1 { margin: 0; font-size: 30px; }
-.ro-search { max-width: 460px; margin: 12px 0 16px; padding: 7px; border: 1px solid #a6bec2; border-radius: 10px; background: #dce7f0; }
-.ro-search input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 10px 12px; background: #fff; color: #27313b; border: 1px solid #9cb5ba; border-radius: 7px; font: inherit; }
-.ro-search input:focus { outline: 3px solid rgba(233, 101, 37, .17); border-color: #e96525; }
+.ro-search { display: flex; flex-wrap: wrap; gap: 7px; max-width: 660px; margin: 12px 0 16px; padding: 7px; border: 1px solid #a6bec2; border-radius: 10px; background: #dce7f0; }
+.ro-search input { flex: 1 1 260px; min-width: 0; }
+.ro-search input,
+.ro-search select { box-sizing: border-box; min-width: 0; max-width: 100%; min-height: 44px; padding: 10px 12px; background: #fff; color: #27313b; border: 1px solid #9cb5ba; border-radius: 7px; font: inherit; }
+.ro-search input:focus,
+.ro-search select:focus { outline: 3px solid rgba(233, 101, 37, .17); border-color: #e96525; }
 .repair-order-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; border-left: 3px solid var(--lane-card-edge); overflow-wrap: anywhere; }
 .ro-identity h3 { margin: 0; font-size: 16px; }
 .ro-row-secondary {

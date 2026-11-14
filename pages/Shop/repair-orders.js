@@ -349,7 +349,19 @@ function showEmptyMessage(section, message) {
 }
 
 const roListSearch = document.getElementById("ro-list-search");
+const roListSort = document.getElementById("ro-list-sort");
 roListSearch?.addEventListener("input", renderRepairOrders);
+roListSort?.addEventListener("change", renderRepairOrders);
+
+const roSortCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
+const compareOrderNumber = (a, b) => roSortCollator.compare(String(a.id), String(b.id));
+const compareOrderDate = (a, b) => (Date.parse(a.createdAt) || 0) - (Date.parse(b.createdAt) || 0);
+const roSortOptions = {
+    "date-newest": (a, b) => compareOrderDate(b, a) || compareOrderNumber(b, a),
+    "date-oldest": (a, b) => compareOrderDate(a, b) || compareOrderNumber(a, b),
+    number: compareOrderNumber,
+    customer: (a, b) => roSortCollator.compare(a.customer || "", b.customer || "") || compareOrderNumber(a, b)
+};
 
 function renderRepairOrders() {
     const query = roListSearch?.value.trim().toLowerCase().replace(/^(?:ro\s*)?#\s*/, "");
@@ -361,7 +373,10 @@ function renderRepairOrders() {
     const allRepairOrders =
         getAllRepairOrders();
 
-    allRepairOrders.forEach(function (order) {
+    const compareOrders = roSortOptions[roListSort?.value];
+    const orderedRepairOrders = compareOrders ? allRepairOrders.toSorted(compareOrders) : allRepairOrders;
+
+    orderedRepairOrders.forEach(function (order) {
         if (!window.shopWorkflow.matchesOrder(order, new URLSearchParams(window.location.search).get('scope'))) {
             return;
         }
