@@ -1221,15 +1221,42 @@ textarea.new-ro-input {
 
 /* Keep the workflow lanes together on desktop and split-screen widths. */
 .repair-order-board { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
-.repair-order-section { min-height: 0; padding: 0; background: none; border: 0; }
-.repair-order-section > h2 { color: #db6128; font-size: 16px; text-transform: uppercase; }
-.ro-page-label { display: block; margin-bottom: 6px; color: #db6128; font-size: 12px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; }
+.repair-order-section {
+    --lane-accent: #657889;
+    min-width: 0;
+    min-height: 0;
+    padding: 12px;
+    background: #e8edf0;
+    border: 1px solid #cbd4da;
+    border-top: 3px solid var(--lane-accent);
+}
+.repair-order-section:nth-child(2) { --lane-accent: #397990; }
+.repair-order-section:nth-child(3) { --lane-accent: #a47527; }
+.repair-order-section:nth-child(4) { --lane-accent: #56816a; }
+.repair-order-section > h2 {
+    display: flex;
+    align-items: center;
+    min-height: 2.5em;
+    margin: 0 0 10px;
+    color: #27313b;
+    font-size: 16px;
+}
+.repair-order-list { gap: 10px; }
+.repair-order-card .repair-order-customer { color: #27313b; }
+.repair-order-card .repair-order-complaint {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    color: #4b5862;
+    font-size: 13px;
+}
 .repair-order-page-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
 .repair-order-page-header h1 { margin: 0; font-size: 30px; }
-.ro-search { margin: 20px 0; padding: 16px; border: 1px solid #a6bec2; border-radius: 10px; background: #dce7f0; }
+.ro-search { max-width: 460px; margin: 12px 0 16px; }
 .ro-search input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 10px 12px; background: #fff; color: #27313b; border: 1px solid #9cb5ba; border-radius: 7px; font: inherit; }
 .ro-search input:focus { outline: 3px solid rgba(233, 101, 37, .17); border-color: #e96525; }
-.repair-order-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; border-left: 3px solid #a6b6c2; overflow-wrap: anywhere; }
+.repair-order-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; border-left: 3px solid #a6b6c2; overflow-wrap: anywhere; }
 .ro-identity h3 { margin: 0; font-size: 16px; }
 .ro-row-label { display: block; margin-bottom: 4px; color: #68757a; font-size: 12px; font-weight: 700; }
 .ro-row-secondary { display: grid; justify-items: start; gap: 5px; font-size: 12px; }
