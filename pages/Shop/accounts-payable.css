@@ -171,14 +171,6 @@ body {
    BILL DIRECTORY
 ========================= */
 
-.ap-directory {
-    padding: 20px;
-    background: #ffffff;
-    border: 1px solid #cbd4d7;
-    border-radius: 10px;
-    box-shadow: 0 3px 9px rgba(37, 42, 48, 0.06);
-}
-
 .ap-directory-header {
     display: flex;
     align-items: center;
