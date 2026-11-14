@@ -1219,8 +1219,8 @@ textarea.new-ro-input {
 .quick-intake button[id$="-save"] { background: #56816a; border-color: #4c735e; color: #fff; }
 .quick-intake button[id$="-save"]:hover:not(:disabled) { background: #486e59; }
 
-/* Four workflow stages; narrower screens retain readable card widths. */
-.repair-order-board { grid-template-columns: minmax(0, 1fr); gap: 20px; }
+/* Keep the workflow lanes together on desktop and split-screen widths. */
+.repair-order-board { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 .repair-order-section { min-height: 0; padding: 0; background: none; border: 0; }
 .repair-order-section > h2 { color: #db6128; font-size: 16px; text-transform: uppercase; }
 .ro-page-label { display: block; margin-bottom: 6px; color: #db6128; font-size: 12px; font-weight: 800; letter-spacing: .7px; text-transform: uppercase; }
@@ -1229,16 +1229,14 @@ textarea.new-ro-input {
 .ro-search { margin: 20px 0; padding: 16px; border: 1px solid #a6bec2; border-radius: 10px; background: #dce7f0; }
 .ro-search input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 10px 12px; background: #fff; color: #27313b; border: 1px solid #9cb5ba; border-radius: 7px; font: inherit; }
 .ro-search input:focus { outline: 3px solid rgba(233, 101, 37, .17); border-color: #e96525; }
-.repair-order-card { display: grid; grid-template-columns: minmax(0, 2fr) minmax(110px, 1fr) minmax(100px, 1fr) minmax(105px, .8fr); align-items: center; gap: 16px; border-left: 3px solid #a6b6c2; overflow-wrap: anywhere; }
+.repair-order-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; border-left: 3px solid #a6b6c2; overflow-wrap: anywhere; }
 .ro-identity h3 { margin: 0; font-size: 16px; }
 .ro-row-label { display: block; margin-bottom: 4px; color: #68757a; font-size: 12px; font-weight: 700; }
-.ro-row-secondary { display: grid; justify-items: end; gap: 5px; font-size: 12px; }
+.ro-row-secondary { display: grid; justify-items: start; gap: 5px; font-size: 12px; }
 .ro-status { display: inline-block; padding: 4px 9px; border-radius: 999px; background: #f4f6f8; color: #475467; font-size: 13px; font-weight: 700; }
 .ro-status.status-dot-blue { background: #eff4ff; color: #175cd3; }
 .ro-status.status-dot-yellow { background: #fff4d7; color: #79550e; }
 .ro-status.status-dot-green { background: #ecfdf3; color: #067647; }
-@media (max-width: 680px) {
-    .repair-order-card { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .ro-identity, .ro-row-secondary { grid-column: 1 / -1; }
-    .ro-row-secondary { justify-items: start; }
+@media (max-width: 760px) {
+    .repair-order-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
