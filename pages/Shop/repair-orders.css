@@ -1230,15 +1230,16 @@ textarea.new-ro-input {
 .repair-order-board { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 .repair-order-section {
     --lane-header: #e4ebf1;
+    --lane-card-edge: #b8c7d3;
     min-width: 0;
     min-height: 0;
     padding: 0;
-    background: #f3f4f5;
-    border: 1px solid #cbd4da;
+    background: transparent;
+    border: 0;
 }
-.repair-order-section:nth-child(2) { --lane-header: #dceef1; }
-.repair-order-section:nth-child(3) { --lane-header: #f4ead6; }
-.repair-order-section:nth-child(4) { --lane-header: #e1ede4; }
+.repair-order-section:nth-child(2) { --lane-header: #dceef1; --lane-card-edge: #aecbd1; }
+.repair-order-section:nth-child(3) { --lane-header: #f4ead6; --lane-card-edge: #d8c6a2; }
+.repair-order-section:nth-child(4) { --lane-header: #e1ede4; --lane-card-edge: #b8cdbd; }
 .repair-order-section > h2 {
     display: flex;
     align-items: center;
@@ -1246,13 +1247,13 @@ textarea.new-ro-input {
     min-height: 56px;
     margin: 0;
     padding: 9px 12px;
-    border-radius: 11px 11px 0 0;
-    border-bottom: 1px solid #cbd4da;
+    border-radius: 9px;
+    border: 1px solid var(--lane-card-edge);
     background: var(--lane-header);
     color: #27313b;
     font-size: 16px;
 }
-.repair-order-list { gap: 10px; padding: 10px; }
+.repair-order-list { gap: 10px; padding-top: 8px; }
 .repair-order-card .repair-order-customer { color: #27313b; }
 .repair-order-card .repair-order-complaint {
     display: -webkit-box;
@@ -1267,7 +1268,7 @@ textarea.new-ro-input {
 .ro-search { max-width: 460px; margin: 12px 0 16px; padding: 7px; border: 1px solid #a6bec2; border-radius: 10px; background: #dce7f0; }
 .ro-search input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 10px 12px; background: #fff; color: #27313b; border: 1px solid #9cb5ba; border-radius: 7px; font: inherit; }
 .ro-search input:focus { outline: 3px solid rgba(233, 101, 37, .17); border-color: #e96525; }
-.repair-order-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; border-left: 3px solid #a6b6c2; overflow-wrap: anywhere; }
+.repair-order-card { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 12px; border-left: 3px solid var(--lane-card-edge); overflow-wrap: anywhere; }
 .ro-identity h3 { margin: 0; font-size: 16px; }
 .ro-row-secondary {
     display: flex;
