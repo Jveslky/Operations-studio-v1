@@ -65,6 +65,14 @@
 .shop-workspace .ls-header .app-brand,
 .shop-workspace .ls-header .app-brand:hover { text-decoration:none; }
 @media (min-width:701px) {
- .shop-workspace #shop-utility-bar .ls-utility-preferences,
- .shop-workspace .account-menu .ls-phone-customize { display:none; }
+ .shop-workspace .account-menu .ls-phone-customize,
+ .shop-workspace .ls-phone-utility-option { display:none; }
+ .shop-workspace.ls-utility-floating { padding-bottom: 108px; }
+ .shop-workspace #shop-utility-bar.ls-utility-docked {
+  position: relative; inset: auto; transform: none; margin: 16px auto;
+ }
+}
+
+@media (max-width:700px) {
+ .shop-workspace .ls-desktop-dock-option { display:none; }
 }

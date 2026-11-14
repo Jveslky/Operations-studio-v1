@@ -359,7 +359,7 @@
             personalAlerts.src = rootPath + "js/alerts.js";
             personalAlerts.onload = () => {
                 const workspaceScript = document.createElement("script");
-                workspaceScript.src = rootPath + "js/shop-workspace.js?v=20261105-1";
+                workspaceScript.src = rootPath + "js/shop-workspace.js?v=20261113-1";
                 const mountAlerts = (layout = {}) => {
                     window.LongShiftAlerts.mount({ client, context, header: layout.alertsHost || header, rootPath });
                     if (layout.afterAlerts) layout.afterAlerts();

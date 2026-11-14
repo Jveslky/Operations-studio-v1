@@ -3,7 +3,7 @@
 'use strict';
 function mount({context,header,rootPath}){
  if(!location.pathname.includes('/pages/Shop/')||document.getElementById('shop-utility-bar'))return {alertsHost:header};
- const sheet=document.createElement('link');sheet.rel='stylesheet';sheet.href=rootPath+'css/shop-workspace.css';document.head.append(sheet);
+ const sheet=document.createElement('link');sheet.rel='stylesheet';sheet.href=rootPath+'css/shop-workspace.css?v=20261113-1';document.head.append(sheet);
  document.body.classList.add('shop-workspace');header.classList.add('ls-header');
  const networkBanner=document.createElement('div');networkBanner.setAttribute('role','status');networkBanner.setAttribute('aria-live','polite');networkBanner.textContent='You’re offline. Check this page’s save message before leaving. Status, billing, stock and uploads need a connection.';networkBanner.style.cssText='background:#fff1d6;color:#5d3b08;padding:10px 18px;font-weight:700;border-bottom:3px solid #d38a16';header.after(networkBanner);
  function networkState(){networkBanner.hidden=navigator.onLine;}window.addEventListener('online',networkState);window.addEventListener('offline',networkState);networkState();window.addEventListener('pagehide',()=>{window.removeEventListener('online',networkState);window.removeEventListener('offline',networkState)},{once:true});
@@ -61,7 +61,30 @@ function mount({context,header,rootPath}){
  const phoneAlert=document.createElement('button');phoneAlert.type='button';phoneAlert.className='ls-bell-button';phoneAlert.setAttribute('aria-label','Open alerts');phoneAlert.setAttribute('aria-expanded','false');phoneAlert.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 17h14l-2-3V9l-3-3h-4L7 9v5zM10 20h4M12 3v3"/></svg>';fallback.append(phoneAlert);
  phoneAlert.onclick=()=>document.getElementById('personal-shop-alerts')?.click();
  const key='longshift.utilities.mobile.'+context.user.id;let enabled=false;try{enabled=localStorage.getItem(key)==='true'}catch{}input.checked=enabled;
- const media=matchMedia('(max-width:700px)');function place(){const phone=media.matches;dock.hidden=phone&&!enabled;const b=document.getElementById('personal-shop-alerts');if(b)host.append(b);fallback.hidden=!phone}
+ const dockLabel=document.createElement('label');
+ dockLabel.className='ls-desktop-dock-option';
+ const dockInput=document.createElement('input');dockInput.type='checkbox';
+ dockLabel.append(dockInput,document.createTextNode(' Dock utility bar at the bottom'));
+ label.className='ls-phone-utility-option';label.after(dockLabel);
+ const desktopKey='longshift.utilities.desktop.'+context.user.id;
+ try{dockInput.checked=localStorage.getItem(desktopKey)==='docked'}catch{}
+ function setDesktopPlacement(){
+  const desktop=!media.matches;
+  dock.classList.toggle('ls-utility-docked',desktop&&dockInput.checked);
+  document.body.classList.toggle('ls-utility-floating',desktop&&!dockInput.checked);
+ }
+ dockInput.onchange=()=>{
+  try{localStorage.setItem(desktopKey,dockInput.checked?'docked':'floating')}catch{}
+  setDesktopPlacement();
+ };
+ document.addEventListener('focusin',event=>{
+  if(media.matches||dockInput.checked||dock.contains(event.target)||event.target.closest('dialog')||!event.target.matches(':focus-visible'))return;
+  const control=event.target.getBoundingClientRect(),bar=dock.getBoundingClientRect();
+  if(control.bottom>bar.top&&control.top<bar.bottom&&control.right>bar.left&&control.left<bar.right){
+   window.scrollBy(0,control.bottom-bar.top+12);
+  }
+ });
+ const media=matchMedia('(max-width:700px)');function place(){const phone=media.matches;dock.hidden=phone&&!enabled;const b=document.getElementById('personal-shop-alerts');if(b)host.append(b);fallback.hidden=!phone;setDesktopPlacement()}
  input.onchange=()=>{enabled=input.checked;try{localStorage.setItem(key,String(enabled))}catch{}place()};settings.onclick=()=>panel.showModal();media.addEventListener('change',place);place();
  // Settings stay reachable while the phone bar is disabled.
  const customize=document.createElement('button');customize.type='button';customize.className='ls-phone-customize';customize.textContent='Utilities';customize.setAttribute('role','menuitem');customize.tabIndex=-1;

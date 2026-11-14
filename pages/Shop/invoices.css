@@ -669,3 +669,27 @@ body {
 @media (max-width: 650px) {
     .invoice-summary { grid-template-columns: 1fr; }
 }
+
+@media (min-width: 901px) {
+    .invoice-card {
+        grid-template-columns: 116px minmax(100px, 1fr) minmax(120px, 1.6fr)
+            minmax(130px, 1fr) minmax(90px, .8fr);
+        grid-template-areas: "status number customer amount due";
+        border-left-width: 1px;
+    }
+
+    .invoice-card > :nth-child(1) { grid-area: number; }
+    .invoice-card > :nth-child(2) { grid-area: customer; }
+    .invoice-card > :nth-child(3) { grid-area: amount; }
+    .invoice-card > :nth-child(4) { grid-area: due; }
+    .invoice-card > div { overflow-wrap: anywhere; }
+    .invoice-card-status { grid-area: status; justify-items: start; }
+    .invoice-card-actions:empty { display: none; }
+    .invoice-card-actions button { white-space: normal; }
+}
+
+.invoice-card[data-status="Partially Paid"] .invoice-status {
+    border-color: #c8dce1;
+    background: #eaf4f5;
+    color: #245b66;
+}

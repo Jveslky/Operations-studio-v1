@@ -791,6 +791,7 @@ function createInvoiceCard(invoice) {
 
     card.className = "invoice-card";
     card.dataset.invoiceId = invoice.id;
+    card.dataset.status = displayStatus;
     card.tabIndex = 0;
     card.setAttribute("role", "link");
 
