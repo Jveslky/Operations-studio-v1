@@ -1,11 +1,11 @@
 {
-  "total": 59548,
+  "total": 59546,
   "files": 346,
-  "application": 48091,
+  "application": 48089,
   "database": 7983,
   "tests": 3474,
   "modules": {
-    "Shop": 25743,
+    "Shop": 25741,
     "Mobile": 9364,
     "PersonalFleet": 6689,
     "CommercialFleet": 495,
@@ -13,6 +13,6 @@
     "Shared": 5329
   },
   "branch": "test/pilot-offline-candidate",
-  "updated_at": "2026-11-14T05:09:17.631961+00:00",
-  "commit": "100c140189b7d4570268395bfb01ff200bb574b2"
+  "updated_at": "2026-11-14T05:11:21.987758+00:00",
+  "commit": "1fd8ad8a864b6218d727d707432003d2073f659f"
 }
