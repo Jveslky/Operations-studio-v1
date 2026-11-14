@@ -1319,3 +1319,24 @@ textarea.new-ro-input {
     font-size: 11px;
     font-weight: 400;
 }
+
+.ro-lane-pager {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 10px;
+    color: #4b5862;
+    font-size: 12px;
+}
+.ro-lane-pager[hidden] { display: none; }
+.ro-lane-pager button {
+    padding: 5px 8px;
+    border: 1px solid #bdc9d1;
+    border-radius: 6px;
+    background: #fff;
+    color: #27313b;
+    font: inherit;
+}
+.ro-lane-pager button:disabled { opacity: .55; }

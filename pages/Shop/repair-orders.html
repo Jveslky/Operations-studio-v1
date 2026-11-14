@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="../../css/base.css">
     <link rel="stylesheet" href="../../css/layout.css">
     <link rel="stylesheet"
-          href="./repair-orders.css?v=20261114-8">
+          href="./repair-orders.css?v=20261114-9">
 
 <link rel="manifest" href="./manifest.webmanifest?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/shop-v2-32.png">
@@ -197,6 +197,14 @@
                     <option value="number">RO number</option>
                     <option value="customer">Customer (A–Z)</option>
                 </select>
+                <select id="ro-page-size" aria-label="Repair orders per lane per page">
+                    <option value="10">10 per lane</option>
+                    <option value="20">20 per lane</option>
+                    <option value="25" selected>25 per lane</option>
+                    <option value="30">30 per lane</option>
+                    <option value="40">40 per lane</option>
+                    <option value="50">50 per lane</option>
+                </select>
             </div>
             <div class="repair-order-board">
 
@@ -237,7 +245,7 @@
     <script src="../../js/shop-behavior.js"></script>
     <script src="./shop-repair-orders-data.js"></script>
     <script src="./shop-workflow.js"></script>
-    <script src="./repair-orders.js?v=20261114-4"></script>
+    <script src="./repair-orders.js?v=20261114-5"></script>
     <script src="./repair-order-intake.js"></script>
 </body>
 </html>

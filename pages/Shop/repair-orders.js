@@ -350,8 +350,15 @@ function showEmptyMessage(section, message) {
 
 const roListSearch = document.getElementById("ro-list-search");
 const roListSort = document.getElementById("ro-list-sort");
-roListSearch?.addEventListener("input", renderRepairOrders);
-roListSort?.addEventListener("change", renderRepairOrders);
+const roPageSize = document.getElementById("ro-page-size");
+const roLanePages = new Map();
+function resetRepairOrderPages() {
+    roLanePages.clear();
+    renderRepairOrders();
+}
+roListSearch?.addEventListener("input", resetRepairOrderPages);
+roListSort?.addEventListener("change", resetRepairOrderPages);
+roPageSize?.addEventListener("change", resetRepairOrderPages);
 
 const roSortCollator = new Intl.Collator(undefined, { numeric: true, sensitivity: "base" });
 const compareOrderNumber = (a, b) => roSortCollator.compare(String(a.id), String(b.id));
@@ -365,10 +372,8 @@ const roSortOptions = {
 
 function renderRepairOrders() {
     const query = roListSearch?.value.trim().toLowerCase().replace(/^(?:ro\s*)?#\s*/, "");
-    attentionOrders.innerHTML = "";
-    inProgressOrders.innerHTML = "";
-    completeOrders.innerHTML = "";
-    paymentOrders.innerHTML = "";
+    const ordersByLane = new Map([attentionOrders, inProgressOrders, paymentOrders, completeOrders].map(lane => [lane, []]));
+    const pageSize = Number(roPageSize?.value) || 25;
 
     const allRepairOrders =
         getAllRepairOrders();
@@ -388,15 +393,47 @@ function renderRepairOrders() {
         const destinationSection =
             getOrderSection(order.status);
 
-        destinationSection.appendChild(
-            createRepairOrderCard(order)
-        );
+        ordersByLane.get(destinationSection).push(order);
     });
 
-    for (const lane of [attentionOrders, inProgressOrders, paymentOrders, completeOrders]) {
+    for (const [lane, orders] of ordersByLane) {
+        const total = orders.length;
+        const lastPage = Math.max(0, Math.ceil(total / pageSize) - 1);
+        const page = Math.min(roLanePages.get(lane) ?? 0, lastPage);
+        roLanePages.set(lane, page);
+        const offset = page * pageSize;
+        lane.replaceChildren(...orders.slice(offset, offset + pageSize).map(createRepairOrderCard));
+
+        let pager = lane.parentElement.querySelector(".ro-lane-pager");
+        if (!pager) {
+            pager = document.createElement("nav");
+            pager.className = "ro-lane-pager";
+            pager.setAttribute("aria-label", lane.parentElement.querySelector("h2").firstChild.textContent.trim() + " pages");
+            lane.after(pager);
+        }
+        const focusedStep = pager.contains(document.activeElement) ? document.activeElement.dataset.step : undefined;
+        pager.replaceChildren();
+        pager.hidden = lastPage === 0;
+        if (!pager.hidden) {
+            const range = document.createElement("span");
+            range.textContent = `${offset + 1}–${Math.min(offset + pageSize, total)} of ${total}`;
+            for (const [step, label] of [[-1, "Previous"], [1, "Next"]]) {
+                const button = document.createElement("button");
+                button.type = "button";
+                button.textContent = label;
+                button.dataset.step = step;
+                button.disabled = page + step < 0 || page + step > lastPage;
+                button.addEventListener("click", () => {
+                    roLanePages.set(lane, page + step);
+                    renderRepairOrders();
+                });
+                if (step === 1) pager.append(range);
+                pager.append(button);
+            }
+            if (focusedStep) (pager.querySelector(`[data-step="${focusedStep}"]:enabled`) || pager.querySelector("button:enabled"))?.focus({ preventScroll: true });
+        }
         const count = lane.parentElement.querySelector(".ro-lane-count");
         if (!count) continue;
-        const total = lane.children.length;
         count.textContent = total;
         count.setAttribute("aria-label", total === 1 ? "1 repair order" : `${total} repair orders`);
     }
