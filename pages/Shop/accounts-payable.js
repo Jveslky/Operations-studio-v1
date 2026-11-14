@@ -4,6 +4,10 @@
     const byId = (id) => document.getElementById(id);
     const form = byId("bill-form");
     const list = byId("bill-list");
+    const search = byId("bill-search");
+    const statusFilter = byId("bill-status-filter");
+    search?.addEventListener("input", renderBills);
+    statusFilter?.addEventListener("change", renderBills);
     const message = byId("bill-review-message");
     const warning = byId("bill-duplicate-warning");
     const fileField = byId("bill-document-field");
@@ -28,6 +32,8 @@
     function renderBills() {
         const today = new Date(); today.setHours(0, 0, 0, 0);
         let open = 0, soon = 0, overdue = 0, payable = 0;
+        const query = search?.value.trim().toLowerCase();
+        const status = statusFilter?.value;
         list.replaceChildren();
         bills.forEach(function (bill) {
             const paid = bill.status === "paid"; let display = paid ? "Paid" : "Open";
@@ -36,6 +42,9 @@
                 const days = Math.ceil((new Date(`${bill.due_date}T00:00:00`) - today) / 86400000);
                 if (days < 0) { display = "Overdue"; overdue += 1; } else if (days <= 7) { display = "Due Soon"; soon += 1; }
             }
+            if (status && status !== display) return;
+            if (query && ![bill.vendor, bill.invoice_number].some(value => String(value ?? "").toLowerCase().includes(query))) return;
+
             const card = document.createElement("article"); card.className = "bill-card"; card.dataset.billId = bill.id;
             const identity = document.createElement("div"); const vendor = document.createElement("strong"); vendor.textContent = bill.vendor; const reference = document.createElement("span"); reference.textContent = bill.invoice_number || "No reference"; identity.append(vendor, reference);
             const amount = document.createElement("div"); const amountLabel = document.createElement("span"); amountLabel.textContent = "Amount"; const amountValue = document.createElement("strong"); amountValue.textContent = money(bill.total); amount.append(amountLabel, amountValue);
@@ -46,7 +55,12 @@
             if (!paid && canWrite) { const pay = document.createElement("button"); pay.type = "button"; pay.dataset.billId = bill.id; pay.textContent = "Mark Paid"; state.appendChild(pay); }
             card.append(identity, amount, due, state); list.appendChild(card);
         });
-        if (!bills.length) list.innerHTML = '<p class="bill-list-empty">No vendor bills.</p>';
+        if (!list.childElementCount) {
+            const empty = document.createElement("p");
+            empty.className = "bill-list-empty";
+            empty.textContent = bills.length ? "No vendor bills match your filters." : "No vendor bills.";
+            list.appendChild(empty);
+        }
         byId("open-bill-count").textContent = open; byId("due-soon-count").textContent = soon; byId("overdue-bill-count").textContent = overdue; byId("total-payable").textContent = money(payable);
     }
 

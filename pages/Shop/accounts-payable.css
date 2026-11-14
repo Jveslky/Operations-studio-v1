@@ -572,3 +572,36 @@ body {
 .ap-stock-dialog label { font-size:13px; color:#465158; }
 .ap-stock-dialog #ap-stock-save { background:#d96326; border-color:#d96326; color:#fff; }
 @media(max-width:600px) { .ap-stock-dialog { padding:18px; width:calc(100vw - 24px); max-height:calc(100dvh - 24px); } }
+
+.bill-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+    padding: 16px;
+    border: 1px solid #a6bec2;
+    border-radius: 10px;
+    background: #dce7f0;
+}
+
+.bill-filters input,
+.bill-filters select {
+    box-sizing: border-box;
+    min-height: 43px;
+    min-width: 0;
+    padding: 10px 12px;
+    border: 1px solid #9cb5ba;
+    border-radius: 7px;
+    background: #fff;
+    color: #27313b;
+    font: inherit;
+}
+
+.bill-filters input { flex: 1 1 280px; }
+.bill-filters select { flex: 0 1 220px; }
+
+.bill-filters input:focus,
+.bill-filters select:focus {
+    outline: 3px solid rgba(233, 101, 37, .17);
+    border-color: #e96525;
+}
