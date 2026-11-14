@@ -1229,26 +1229,30 @@ textarea.new-ro-input {
 /* Keep the workflow lanes together on desktop and split-screen widths. */
 .repair-order-board { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
 .repair-order-section {
-    --lane-accent: #657889;
+    --lane-header: #e4ebf1;
     min-width: 0;
     min-height: 0;
-    padding: 12px;
-    background: #e8edf0;
+    padding: 0;
+    background: #f3f4f5;
     border: 1px solid #cbd4da;
-    border-top: 3px solid var(--lane-accent);
 }
-.repair-order-section:nth-child(2) { --lane-accent: #397990; }
-.repair-order-section:nth-child(3) { --lane-accent: #a47527; }
-.repair-order-section:nth-child(4) { --lane-accent: #56816a; }
+.repair-order-section:nth-child(2) { --lane-header: #dceef1; }
+.repair-order-section:nth-child(3) { --lane-header: #f4ead6; }
+.repair-order-section:nth-child(4) { --lane-header: #e1ede4; }
 .repair-order-section > h2 {
     display: flex;
     align-items: center;
-    min-height: 2.5em;
-    margin: 0 0 10px;
+    box-sizing: border-box;
+    min-height: 56px;
+    margin: 0;
+    padding: 9px 12px;
+    border-radius: 11px 11px 0 0;
+    border-bottom: 1px solid #cbd4da;
+    background: var(--lane-header);
     color: #27313b;
     font-size: 16px;
 }
-.repair-order-list { gap: 10px; }
+.repair-order-list { gap: 10px; padding: 10px; }
 .repair-order-card .repair-order-customer { color: #27313b; }
 .repair-order-card .repair-order-complaint {
     display: -webkit-box;
