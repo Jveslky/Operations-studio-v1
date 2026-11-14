@@ -352,6 +352,7 @@ const roListSearch = document.getElementById("ro-list-search");
 const roListSort = document.getElementById("ro-list-sort");
 const roPageSize = document.getElementById("ro-page-size");
 const roLanePages = new Map();
+let settledRepairOrderIds = new Set();
 function resetRepairOrderPages() {
     roLanePages.clear();
     renderRepairOrders();
@@ -385,6 +386,8 @@ function renderRepairOrders() {
         if (!window.shopWorkflow.matchesOrder(order, new URLSearchParams(window.location.search).get('scope'))) {
             return;
         }
+
+        if (settledRepairOrderIds.has(order.recordId)) return;
 
         if (query && ![order.id, order.customer, order.unit, order.technician || "Unassigned"].some(
             value => String(value ?? "").toLowerCase().includes(query)
@@ -1677,10 +1680,51 @@ startCustomerRepairOrderButton?.addEventListener(
 ========================= */
 
 
+async function findSettledRepairOrders(orders) {
+    const finishedIds = orders.filter(order => !order.archived &&
+        ["Ready for Payment", "Awaiting Payment", "Ready for Pickup", "Paid", "Complete", "Closed"].includes(order.status))
+        .map(order => order.recordId).filter(Boolean);
+    const settled = new Set();
+    if (!finishedIds.length) return settled;
+
+    const { shopId } = await window.trackRightAuthReady;
+    for (let start = 0; start < finishedIds.length; start += 100) {
+        const ids = finishedIds.slice(start, start + 100);
+        const paid = new Set();
+        const unpaid = new Set();
+        const pageSize = 200;
+        for (let offset = 0; ; offset += pageSize) {
+            const { data, error } = await supabaseClient.from("shop_invoices")
+                .select("id, repair_order_id, status, balance_due")
+                .eq("shop_id", shopId)
+                .in("repair_order_id", ids)
+                .order("id")
+                .range(offset, offset + pageSize - 1);
+            if (error) throw error;
+            for (const invoice of data) {
+                if (invoice.status === "Paid" && invoice.balance_due != null && Number(invoice.balance_due) === 0) {
+                    paid.add(invoice.repair_order_id);
+                } else {
+                    unpaid.add(invoice.repair_order_id);
+                }
+            }
+            if (data.length < pageSize) break;
+        }
+        for (const id of paid) {
+            if (!unpaid.has(id)) settled.add(id);
+        }
+    }
+    return settled;
+}
+
 async function initializeRepairOrders() {
     try {
         await window.trackRightRepairOrders.migrateBrowserOrders();
         const cloudOrders = await window.trackRightRepairOrders.list();
+        settledRepairOrderIds = await findSettledRepairOrders(cloudOrders).catch(error => {
+            console.warn("Could not verify paid repair orders:", error);
+            return new Set();
+        });
         repairOrders.splice(0, repairOrders.length, ...cloudOrders);
         renderRepairOrders();
     } catch (error) {
