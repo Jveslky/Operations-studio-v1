@@ -634,6 +634,10 @@ body {
 /* QA: make the finance summaries readable at a glance. */
 .invoice-summary {
     grid-template-columns: repeat(5, minmax(0, 1fr));
+    padding: 12px;
+    border: 1px solid #ccdbdc;
+    border-radius: 12px;
+    background: #e7efef;
 }
 .invoice-summary > article {
     min-width: 0;
