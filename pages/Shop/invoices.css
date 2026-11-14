@@ -83,12 +83,18 @@ body {
 
 .invoice-directory-label {
     display: block;
-    margin: 0 0 16px;
+    margin: 0;
     color: #db6128;
     font-size: 16px;
     font-weight: 800;
     letter-spacing: 0.6px;
     text-transform: uppercase;
+}
+
+.invoice-directory-description {
+    margin: 4px 0 16px;
+    color: #68757a;
+    font-size: 13px;
 }
 
 .invoices-header,
