@@ -1264,7 +1264,28 @@ textarea.new-ro-input {
     font-size: 13px;
 }
 .repair-order-page-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; }
-.repair-order-page-header h1 { margin: 0; font-size: 30px; }
+.ro-page-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #db6128;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+}
+
+.repair-order-page-header h1 {
+        margin: 0;
+        color: #252a30;
+        font-size: 30px;
+    }
+
+.repair-order-page-header p {
+        max-width: 720px;
+        margin: 8px 0 0;
+        color: #68757a;
+        font-size: 14px;
+    }
 .ro-search { display: flex; flex-wrap: wrap; gap: 7px; max-width: 660px; margin: 12px 0 16px; padding: 7px; border: 1px solid #a6bec2; border-radius: 10px; background: #dce7f0; }
 .ro-search input { flex: 1 1 260px; min-width: 0; }
 .ro-search input,
