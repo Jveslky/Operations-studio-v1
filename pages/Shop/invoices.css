@@ -82,14 +82,16 @@ body {
 
     .invoices-header h1,
     .invoice-page-header h1 {
-        margin: 0 0 6px;
-        font-size: clamp(2rem, 4vw, 2.7rem);
+        margin: 0;
+        color: #252a30;
+        font-size: 30px;
     }
 
     .invoices-header p,
     .invoice-page-header p {
-        margin: 0;
-        color: #667085;
+        margin: 8px 0 0;
+        color: #68757a;
+        font-size: 14px;
     }
 
 

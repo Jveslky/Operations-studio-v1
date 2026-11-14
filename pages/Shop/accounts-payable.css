@@ -76,6 +76,7 @@ body {
 
 .ap-page-header {
     display: flex;
+    flex-wrap: wrap;
     align-items: flex-start;
     justify-content: space-between;
     gap: 24px;
@@ -139,13 +140,16 @@ body {
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 14px;
     margin-bottom: 24px;
+    padding: 12px;
+    border: 1px solid #ccdbdc;
+    border-radius: 12px;
+    background: #e7efef;
 }
 
 .ap-summary-card {
     padding: 18px 20px;
     background: #ffffff;
     border: 1px solid #cbd4d7;
-    border-top: 4px solid #69b2bd;
     border-radius: 10px;
     box-shadow: 0 3px 9px rgba(37, 42, 48, 0.06);
 }
@@ -517,25 +521,34 @@ body {
     margin-bottom: 18px;
 }
 
+.ap-title-actions,
+.ap-export-tools,
+.ap-header-actions,
+.ap-custom-range {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.ap-title-actions {
+    gap: 12px;
+    max-width: 100%;
+}
+
 .ap-export-tools {
     display: flex;
     align-items: center;
     gap: 8px;
-    padding: 10px 12px;
-    background: #252a30;
-    border: 1px solid #3a4149;
-    border-radius: 8px;
 }
 
     .ap-export-tools select,
     .ap-export-tools input {
-        height: 36px;
+        height: 40px;
         padding: 0 10px;
         font-family: inherit;
         font-size: 0.9rem;
-        color: #f4f7f9;
-        background: #30363d;
-        border: 1px solid #4a535d;
+        color: #27313b;
+        background: #fff;
+        border: 1px solid #9cb5ba;
         border-radius: 6px;
     }
 
@@ -551,20 +564,20 @@ body {
     }
 
 .ap-export-tools button {
-    height: 36px;
+    height: 40px;
     padding: 0 16px;
     font-family: inherit;
     font-size: 0.9rem;
     font-weight: 600;
-    color: white;
-    background: #ea5b1b;
-    border: none;
+    color: #27313b;
+    background: #fff;
+    border: 1px solid #9cb5ba;
     border-radius: 6px;
     cursor: pointer;
 }
 
     .ap-export-tools button:hover {
-        background: #ff7a32;
+        background: #e7efef;
     }
 
 .ap-export-tools select:focus,

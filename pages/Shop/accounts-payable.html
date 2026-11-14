@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../../css/base.css">
     <link rel="stylesheet" href="../../css/layout.css">
     <link rel="stylesheet"
-          href="./accounts-payable.css?v=20261114-3">
+          href="./accounts-payable.css?v=20261114-4">
 
 <link rel="manifest" href="./manifest.webmanifest?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/shop-v2-32.png">
@@ -65,54 +65,6 @@
 
     <main class="ap-page">
 
-        <div class="ap-page-tools">
-
-            <div class="ap-export-tools">
-
-                <select id="ap-export-range">
-                    <option value="week">
-                        This Week
-                    </option>
-
-                    <option value="month"
-                            selected>
-                        This Month
-                    </option>
-
-                    <option value="year">
-                        This Year
-                    </option>
-
-                    <option value="all">
-                        All Time
-                    </option>
-
-                    <option value="custom">
-                        Custom Range
-                    </option>
-                </select>
-
-                <div id="ap-custom-range"
-                     class="ap-custom-range"
-                     hidden>
-
-                    <input id="ap-export-start"
-                           type="date">
-
-                    <input id="ap-export-end"
-                           type="date">
-
-                </div>
-
-                <button id="export-ap-button"
-                        type="button">
-                    Export
-                </button>
-
-            </div>
-
-        </div>
-
         <section class="ap-page-header">
             <div>
                 <span class="ap-page-label">
@@ -129,7 +81,52 @@
                 </p>
             </div>
 
-            <div class="ap-header-actions"><button id="scan-bill-button" type="button">Upload Invoice</button><button id="add-bill-button" type="button">Add Bill Manually</button></div>
+            <div class="ap-title-actions">
+                <div class="ap-export-tools">
+
+                    <select id="ap-export-range" aria-label="Export date range">
+                        <option value="week">
+                            This Week
+                        </option>
+
+                        <option value="month"
+                                selected>
+                            This Month
+                        </option>
+
+                        <option value="year">
+                            This Year
+                        </option>
+
+                        <option value="all">
+                            All Time
+                        </option>
+
+                        <option value="custom">
+                            Custom Range
+                        </option>
+                    </select>
+
+                    <div id="ap-custom-range"
+                         class="ap-custom-range"
+                         hidden>
+
+                        <input id="ap-export-start" aria-label="Export start date"
+                               type="date">
+
+                        <input id="ap-export-end" aria-label="Export end date"
+                               type="date">
+
+                    </div>
+
+                    <button id="export-ap-button"
+                            type="button">
+                        Export
+                    </button>
+
+                </div>
+                <div class="ap-header-actions"><button id="scan-bill-button" type="button">Upload Invoice</button><button id="add-bill-button" type="button">Add Bill Manually</button></div>
+            </div>
         </section>
 
 
