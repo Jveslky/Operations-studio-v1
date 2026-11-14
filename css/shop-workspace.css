@@ -69,7 +69,25 @@
  .shop-workspace .ls-phone-utility-option { display:none; }
  .shop-workspace.ls-utility-floating { padding-bottom: 108px; }
  .shop-workspace #shop-utility-bar.ls-utility-docked {
-  position: relative; inset: auto; transform: none; margin: 16px auto;
+  bottom: 0;
+  left: 0;
+  transform: none;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  height: 64px;
+  border-radius: 0;
+  box-shadow: none;
+ }
+
+ html:has(body.ls-utility-is-docked) { overflow: hidden; }
+ .shop-workspace.ls-utility-is-docked {
+  box-sizing: border-box;
+  height: calc(100dvh - 64px);
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 24px;
  }
 }
 

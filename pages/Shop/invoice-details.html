@@ -16,7 +16,7 @@
           href="../../css/layout.css">
 
     <link rel="stylesheet"
-          href="invoice-details.css">
+          href="invoice-details.css?v=20261114-1">
 
 <link rel="manifest" href="./manifest.webmanifest?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/shop-v2-32.png">
@@ -231,7 +231,7 @@
                     <textarea id="send-invoice-message"></textarea>
                 </label>
 
-                <p id="send-invoice-help" class="invoice-delivery-help">Email and text open your device's messaging app with this message. No invoice document is attached automatically. Finish sending there, then mark the invoice Sent here. Long Shift cannot confirm delivery.</p>
+                <p id="send-invoice-help" class="invoice-delivery-help">Attach the invoice in your email or text app if needed. After sending, mark it Sent here. Long Shift cannot confirm delivery.</p>
 
                 <p id="invoice-checkout-status" role="status"></p>
 
@@ -251,16 +251,18 @@
                         Open Text App
                     </button>
 
-                    <button id="confirm-invoice-sent"
-                            type="button">
-                        I Sent It — Mark Sent
-                    </button>
+                </div>
 
+                <div class="send-invoice-footer">
                     <button id="cancel-send-invoice"
                             type="button">
                         Cancel
                     </button>
 
+                    <button id="confirm-invoice-sent"
+                            type="button">
+                        I Sent It — Mark Sent
+                    </button>
                 </div>
             </div>
         </div>

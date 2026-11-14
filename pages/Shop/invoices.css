@@ -675,7 +675,12 @@ body {
         grid-template-columns: 116px minmax(100px, 1fr) minmax(120px, 1.6fr)
             minmax(130px, 1fr) minmax(90px, .8fr);
         grid-template-areas: "status number customer amount due";
-        border-left-width: 1px;
+        border-left: 3px solid #a6b6c2;
+    }
+
+    .invoice-card:hover,
+    .invoice-card:focus-visible {
+        border-left-color: #778e9e;
     }
 
     .invoice-card > :nth-child(1) { grid-area: number; }

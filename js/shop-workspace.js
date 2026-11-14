@@ -3,7 +3,7 @@
 'use strict';
 function mount({context,header,rootPath}){
  if(!location.pathname.includes('/pages/Shop/')||document.getElementById('shop-utility-bar'))return {alertsHost:header};
- const sheet=document.createElement('link');sheet.rel='stylesheet';sheet.href=rootPath+'css/shop-workspace.css?v=20261113-1';document.head.append(sheet);
+ const sheet=document.createElement('link');sheet.rel='stylesheet';sheet.href=rootPath+'css/shop-workspace.css?v=20261114-1';document.head.append(sheet);
  document.body.classList.add('shop-workspace');header.classList.add('ls-header');
  const networkBanner=document.createElement('div');networkBanner.setAttribute('role','status');networkBanner.setAttribute('aria-live','polite');networkBanner.textContent='You’re offline. Check this page’s save message before leaving. Status, billing, stock and uploads need a connection.';networkBanner.style.cssText='background:#fff1d6;color:#5d3b08;padding:10px 18px;font-weight:700;border-bottom:3px solid #d38a16';header.after(networkBanner);
  function networkState(){networkBanner.hidden=navigator.onLine;}window.addEventListener('online',networkState);window.addEventListener('offline',networkState);networkState();window.addEventListener('pagehide',()=>{window.removeEventListener('online',networkState);window.removeEventListener('offline',networkState)},{once:true});
@@ -71,6 +71,7 @@ function mount({context,header,rootPath}){
  function setDesktopPlacement(){
   const desktop=!media.matches;
   dock.classList.toggle('ls-utility-docked',desktop&&dockInput.checked);
+  document.body.classList.toggle('ls-utility-is-docked',desktop&&dockInput.checked);
   document.body.classList.toggle('ls-utility-floating',desktop&&!dockInput.checked);
  }
  dockInput.onchange=()=>{
