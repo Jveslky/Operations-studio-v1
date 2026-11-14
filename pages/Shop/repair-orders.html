@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="../../css/base.css">
     <link rel="stylesheet" href="../../css/layout.css">
     <link rel="stylesheet"
-          href="./repair-orders.css">
+          href="./repair-orders.css?v=20261114-1">
 
 <link rel="manifest" href="./manifest.webmanifest?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/shop-v2-32.png">
@@ -65,26 +65,19 @@
     <main class="page">
         <div class="repair-order-page-header">
             <div>
+                <span class="ro-page-label">Shop Workflow</span>
                 <h1>Repair Orders</h1>
 
                 <p>
                     Manage maintenance and repair work.
                 </p>
             </div>
-        </div>
-
-        <div class="repair-order-tools">
-            <div class="repair-order-tools-left">
-
-                <button id="new-repair-order-button"
+            <button id="new-repair-order-button"
                         class="new-ro-button"
                         type="button">
                     New Repair Order
                 </button>
-
-            </div>
         </div>
-
 
             <form id="new-repair-order-form"
                   class="new-repair-order-form"
@@ -195,6 +188,10 @@
                     </button>
                 </div>
             </form>
+            <div class="ro-search" role="search" aria-label="Repair orders">
+                <input id="ro-list-search" type="search" aria-label="Search repair orders"
+                       placeholder="Search RO number, customer, vehicle, or technician">
+            </div>
             <div class="repair-order-board">
 
                 <section class="repair-order-section">
@@ -234,7 +231,7 @@
     <script src="../../js/shop-behavior.js"></script>
     <script src="./shop-repair-orders-data.js"></script>
     <script src="./shop-workflow.js"></script>
-    <script src="./repair-orders.js"></script>
+    <script src="./repair-orders.js?v=20261114-1"></script>
     <script src="./repair-order-intake.js"></script>
 </body>
 </html>

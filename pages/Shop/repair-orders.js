@@ -308,51 +308,23 @@ function createRepairOrderCard(order) {
         `./repair-order-details.html?id=${order.id}`;
 
     card.innerHTML = `
-    <div class="repair-order-heading">
-        <div class="repair-order-heading-left">
-            <span
-                class="status-dot ${getStatusDotClass(order.status)}"
-            ></span>
-
-            <h3>
-                RO #${escapeHtml(order.id)}
-            </h3>
-        </div>
-
-        <span class="estimate-card-status estimate-${estimateStatusClass}">
-            ${escapeHtml(estimateStatus)}
-        </span>
+    <div class="ro-identity">
+        <h3>RO #${escapeHtml(order.id)}</h3>
+        <p class="repair-order-customer">${escapeHtml(order.customer || "No customer entered")} &bull; ${escapeHtml(order.unit || "No unit entered")}</p>
+        ${engineSize ? `<p class="repair-order-engine">Engine Size: ${escapeHtml(engineSize)}</p>` : ""}
+        <p class="repair-order-complaint">${escapeHtml(order.complaint || "No work entered")}</p>
     </div>
-
-    <p class="repair-order-customer">
-        ${escapeHtml(order.customer || "No owner entered")}
-        &bull;
-        ${escapeHtml(order.unit || "No unit entered")}
-    </p>
-
-    ${engineSize
-            ? `
-                <p class="repair-order-engine">
-                    Engine Size:
-                    ${escapeHtml(engineSize)}
-                </p>
-            `
-            : ""
-        }
-
-    <p class="repair-order-complaint">
-        ${escapeHtml(order.complaint || "No work entered")}
-    </p>
-
-    <div class="repair-order-footer">
-        <p class="repair-order-meta">
-            ${escapeHtml(order.status === "Complete" ? "Collected / Closed" : order.status || "Open")}
-            &bull;
-            ${escapeHtml(order.technician || "Unassigned")}
-            &bull;
-            ${escapeHtml(order.priority || "Medium")}
-            Priority
-        </p>
+    <div class="ro-row-status">
+        <span class="ro-row-label">Status</span>
+        <span class="ro-status ${getStatusDotClass(order.status)}">${escapeHtml(order.status === "Complete" ? "Collected / Closed" : order.status || "Open")}</span>
+    </div>
+    <div>
+        <span class="ro-row-label">Assigned To</span>
+        <strong>${escapeHtml(order.technician || "Unassigned")}</strong>
+    </div>
+    <div class="ro-row-secondary">
+        <span class="estimate-card-status estimate-${escapeHtml(estimateStatusClass)}">${escapeHtml(estimateStatus)}</span>
+        <span>${escapeHtml(order.priority || "Medium")} Priority</span>
     </div>
 `;
 
@@ -375,7 +347,11 @@ function showEmptyMessage(section, message) {
     section.appendChild(emptyMessage);
 }
 
+const roListSearch = document.getElementById("ro-list-search");
+roListSearch?.addEventListener("input", renderRepairOrders);
+
 function renderRepairOrders() {
+    const query = roListSearch?.value.trim().toLowerCase().replace(/^(?:ro\s*)?#\s*/, "");
     attentionOrders.innerHTML = "";
     inProgressOrders.innerHTML = "";
     completeOrders.innerHTML = "";
@@ -388,6 +364,10 @@ function renderRepairOrders() {
         if (!window.shopWorkflow.matchesOrder(order, new URLSearchParams(window.location.search).get('scope'))) {
             return;
         }
+
+        if (query && ![order.id, order.customer, order.unit, order.technician || "Unassigned"].some(
+            value => String(value ?? "").toLowerCase().includes(query)
+        )) return;
 
         const destinationSection =
             getOrderSection(order.status);
