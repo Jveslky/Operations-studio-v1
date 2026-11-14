@@ -158,7 +158,7 @@ body {
     gap: 12px;
     margin-bottom: 20px;
     padding: 16px;
-    border: 1px solid #d2d8de;
+    border: 1px solid #a6bec2;
     border-radius: 10px;
     background: #ffffff;
     box-shadow: 0 5px 16px rgba(31, 41, 51, 0.05);
@@ -176,6 +176,11 @@ body {
         color: #27313b;
         font: inherit;
         font-weight: 400;
+    }
+
+    .invoice-filters input,
+    .invoice-filters select {
+        border-color: #9cb5ba;
     }
 
 #invoice-search-input {
