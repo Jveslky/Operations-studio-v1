@@ -376,7 +376,7 @@ function renderRepairOrders() {
     const pageSize = Number(roPageSize?.value) || 25;
 
     const allRepairOrders =
-        getAllRepairOrders();
+        Array.from(getAllRepairOrders().values());
 
     const compareOrders = roSortOptions[roListSort?.value];
     const orderedRepairOrders = compareOrders ? allRepairOrders.toSorted(compareOrders) : allRepairOrders;
