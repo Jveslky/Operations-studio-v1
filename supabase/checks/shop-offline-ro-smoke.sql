@@ -1,0 +1,55 @@
+begin;
+set local statement_timeout='30s';
+set local lock_timeout='5s';
+do $verify$
+declare s uuid; owner_id uuid;writer_id uuid;tech_id uuid;outsider_id uuid;
+r public.shop_repair_orders; req uuid:=gen_random_uuid(); tech_req uuid:=gen_random_uuid();
+first_result jsonb; replay jsonb; result jsonb; denied boolean; tech_label text;
+begin
+select m.shop_id,min(m.user_id::text) filter(where role='owner')::uuid,min(m.user_id::text) filter(where role='service_writer')::uuid,min(m.user_id::text) filter(where role='technician')::uuid
+into s,owner_id,writer_id,tech_id from public.shop_members m where is_active group by m.shop_id having count(*) filter(where role='owner')>0 and count(*) filter(where role='service_writer')>0 and count(*) filter(where role='technician')>0 order by m.shop_id limit 1;
+if s is null then raise exception 'No QA role fixture';end if;
+select user_id into outsider_id from public.shop_members where is_active and shop_id<>s and not exists(select 1 from public.shop_members own where own.shop_id=s and own.user_id=shop_members.user_id and own.is_active) limit 1;
+if outsider_id is null then raise exception 'No outsider fixture';end if;
+select email into tech_label from auth.users where id=tech_id;
+perform set_config('request.jwt.claim.sub',owner_id::text,true);
+perform set_config('request.jwt.claims',jsonb_build_object('sub',owner_id,'role','authenticated')::text,true);
+execute 'set local role authenticated';
+insert into public.shop_repair_orders(shop_id,customer_name,unit_name,complaint,technician,technician_user_id,estimate_labor_rate)
+values(s,'SIM offline migration verification','SIM unit','SIM rollback-only fixture',tech_label,tech_id,100) returning * into r;
+perform set_config('request.jwt.claim.sub',writer_id::text,true);
+perform set_config('request.jwt.claims',jsonb_build_object('sub',writer_id,'role','authenticated')::text,true);
+first_result:=public.sync_shop_offline_ro(s,req,r.id,r.updated_at,'{"customer_notes":"SIM verified writer note"}');
+if first_result->>'status'<>'saved' then raise exception 'Writer save failed';end if;
+replay:=public.sync_shop_offline_ro(s,req,r.id,r.updated_at,'{"customer_notes":"SIM verified writer note"}');
+if replay is distinct from first_result then raise exception 'Replay changed';end if;
+denied:=false;
+begin perform public.sync_shop_offline_ro(s,req,r.id,r.updated_at,'{"customer_notes":"changed payload"}');
+exception when others then if sqlerrm like '%different details%' then denied:=true;else raise;end if;end;
+if not denied then raise exception 'Request reuse accepted';end if;
+result:=public.sync_shop_offline_ro(s,gen_random_uuid(),r.id,r.updated_at-interval '1 second','{"customer_notes":"stale"}');
+if result->>'status'<>'conflict' then raise exception 'Stale write accepted';end if;
+denied:=false;
+begin perform public.sync_shop_offline_ro(s,gen_random_uuid(),r.id,r.updated_at,'{"status":"Complete"}');
+exception when others then if sqlerrm like '%online save%' then denied:=true;else raise;end if;end;
+if not denied then raise exception 'Status queued';end if;
+perform set_config('request.jwt.claim.sub',tech_id::text,true);
+perform set_config('request.jwt.claims',jsonb_build_object('sub',tech_id,'role','authenticated')::text,true);
+result:=public.sync_shop_offline_ro(s,tech_req,r.id,(first_result->>'updated_at')::timestamptz,'{"technician_notes":"SIM verified technician note"}');
+if result->>'status'<>'saved' then raise exception 'Assigned technician save failed';end if;
+denied:=false;
+begin perform public.sync_shop_offline_ro(s,gen_random_uuid(),r.id,(result->>'updated_at')::timestamptz,'{"customer_notes":"forbidden technician office edit"}');
+exception when others then if sqlerrm='Repair order is unavailable' then denied:=true;else raise;end if;end;
+if not denied then raise exception 'Technician office edit accepted';end if;
+perform set_config('request.jwt.claim.sub',outsider_id::text,true);
+perform set_config('request.jwt.claims',jsonb_build_object('sub',outsider_id,'role','authenticated')::text,true);
+denied:=false;
+begin perform public.sync_shop_offline_ro(s,gen_random_uuid(),r.id,(result->>'updated_at')::timestamptz,'{"technician_notes":"forbidden cross-shop edit"}');
+exception when others then if sqlerrm='Repair order is unavailable' then denied:=true;else raise;end if;end;
+if not denied then raise exception 'Cross-shop edit accepted';end if;
+execute 'reset role';
+if (select count(*) from public.shop_offline_ro_operations where shop_id=s and request_id in(req,tech_req))<>2 then raise exception 'Operation ledger mismatch';end if;
+if (select customer_notes from public.shop_repair_orders where id=r.id)<>'SIM verified writer note' then raise exception 'Writer note changed';end if;
+end $verify$;
+select jsonb_build_object('passed',true,'checks',jsonb_build_array('writer save','exact replay','changed-request rejection','stale conflict','status rejection','assigned technician save','technician field restriction','cross-shop denial','two operation records')) as verification;
+rollback;

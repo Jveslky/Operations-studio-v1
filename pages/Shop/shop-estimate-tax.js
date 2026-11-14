@@ -6,6 +6,8 @@
 
     async function resolve(client, shopId, customerId) {
         if (!shopId) throw new Error('No active shop');
+        const context = await window.trackRightAuthReady;
+        if (!['owner', 'admin', 'service_writer'].includes(context?.role)) return null;
         const shop = await client.from('shops').select('default_taxable, default_tax_rate').eq('id', shopId).single();
         if (shop.error) throw shop.error;
         if (!shop.data) throw new Error('Shop tax settings unavailable');

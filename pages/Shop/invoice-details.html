@@ -167,7 +167,7 @@
             <section class="invoice-total-section">
                 <div><span>Subtotal</span><strong id="invoice-subtotal">$0.00</strong></div>
                 <div><span id="invoice-tax-label">Tax</span><strong id="invoice-tax">$0.00</strong></div>
-                <div class="invoice-grand-total"><span>Invoice Total</span><strong id="invoice-total">$0.00</strong></div>
+                <div class="invoice-grand-total"><span id="send-invoice-amount-label">Invoice Total</span><strong id="invoice-total">$0.00</strong></div>
             </section>
         </section>
         <section id="invoice-billing" class="invoice-payments" hidden><h2>Billing terms</h2><p id="invoice-billing-summary"></p><label>Purchase order<input id="invoice-purchase-order" maxlength="200"></label></section>
@@ -180,7 +180,7 @@
 
                 <div class="send-invoice-modal-header">
                     <div>
-                        <span>Share Invoice</span>
+                        <span id="send-invoice-purpose">Share Invoice</span>
                         <h2 id="send-invoice-number">
                             Invoice
                         </h2>
@@ -231,9 +231,15 @@
                     <textarea id="send-invoice-message"></textarea>
                 </label>
 
-                <p class="invoice-delivery-help">Email and text open your device's messaging app with this message. No invoice document is attached automatically. Finish sending there, then mark the invoice Sent here. Long Shift cannot confirm delivery.</p>
+                <p id="send-invoice-help" class="invoice-delivery-help">Email and text open your device's messaging app with this message. No invoice document is attached automatically. Finish sending there, then mark the invoice Sent here. Long Shift cannot confirm delivery.</p>
+
+                <p id="invoice-checkout-status" role="status"></p>
 
                 <div class="send-invoice-actions">
+                    <button id="invoice-checkout-link" type="button" hidden>
+                        Add Stripe Test Payment Link
+                    </button>
+
 
                     <button id="email-invoice-button"
                             type="button">
@@ -273,7 +279,7 @@
     <script src="shop-invoices-data.js"></script>
     <script src="shop-supplemental-estimates.js"></script>
     <script src="shop-payments.js"></script>
-    <script src="invoice-details.js"></script>
+    <script src="invoice-details.js?v=stripe-sandbox"></script>
 </body>
 
 </html>

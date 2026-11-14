@@ -2,8 +2,8 @@ import fs from 'node:fs';import assert from 'node:assert/strict';import {PGlite}
 const db=new PGlite(),A='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',B='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',writer='11111111-1111-1111-1111-111111111111',other='22222222-2222-2222-2222-222222222222',tech='33333333-3333-3333-3333-333333333333';
 await db.exec(`create role authenticated;create role anon;create schema auth;create table auth.users(id uuid primary key,email text);create table shops(id uuid primary key);create table members(shop_id uuid,user_id uuid,role text);
 create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.user',true),'')::uuid$$;
-create function has_shop_role(s uuid,r text[]) returns boolean language sql stable security definer as $$select exists(select 1 from members where shop_id=s and user_id=auth.uid() and role=any(r))$$;
-create function is_shop_member(s uuid) returns boolean language sql stable security definer as $$select exists(select 1 from members where shop_id=s and user_id=auth.uid())$$;
+create function has_shop_role(s uuid,r text[]) returns boolean language sql stable security definer as $$select exists(select 1 from public.members where shop_id=s and user_id=auth.uid() and role=any(r))$$;
+create function is_shop_member(s uuid) returns boolean language sql stable security definer as $$select exists(select 1 from public.members where shop_id=s and user_id=auth.uid())$$;
 insert into shops values('${A}'),('${B}');insert into auth.users values('${writer}','writer@test'),('${other}','other@test'),('${tech}','tech@test');insert into members values('${A}','${writer}','service_writer'),('${B}','${other}','owner'),('${A}','${tech}','technician');
 create table "Customers"(id uuid primary key,shop_id uuid,name text,contact_name text,phone text,email text,created_at timestamptz default now(),archived boolean default false);
 create table customer_units(id uuid,shop_id uuid,customer_id uuid,name text,year integer,make text,model text,serial text,archived boolean default false);
@@ -44,4 +44,40 @@ const altered=structuredClone(backup);altered.cloud.payments[0].notes='Tampered'
 const incomplete=structuredClone(backup);incomplete.cloud.payments=[];await assert.rejects(restore(incomplete),/does not match/);
 const crossShop=structuredClone(backup);crossShop.cloud.payments[0].shop_id=B;await assert.rejects(restore(crossShop),/tenant validation/);
 const oldBackup={format:'track-right-shop-backup',version:2,source_shop_id:A,cloud:{invoices:[{...legacy,id:uuid(),invoice_number:9002}]}};await restore(oldBackup);const oldRestored=await history({id:oldBackup.cloud.invoices[0].id});assert.equal(oldRestored.invoice.status,'Paid');assert.equal(oldRestored.entries[0].method,'legacy');assert.equal(Number(oldRestored.invoice.balance_due),0);
+const checkoutInvoice = (await make('Ready for Payment', 150)).invoice;
+const staleInvoice = (await make('Ready for Payment', 150)).invoice;
+await pay(staleInvoice, 20);
+await db.exec('reset role; create role service_role');
+await db.exec(fs.readFileSync(new URL('../supabase/release-candidates/shop-processor-payments.sql', import.meta.url), 'utf8'));
+await db.query("insert into private.shop_payment_merchants values ($1,'stripe','acct_test')", [A]);
+await db.exec('set role authenticated');
+const prepare = async invoice => (await db.query(
+    'select prepare_shop_payment_checkout($1) as checkout', [invoice.id]
+)).rows[0].checkout;
+const reservation = await prepare(checkoutInvoice);
+assert.equal(Number(reservation.amount_cents), 15000);
+assert.equal((await prepare(checkoutInvoice)).id, reservation.id);
+const checkout = reservation.id;
+const staleCheckout = uuid();
+await db.exec('reset role');
+await db.query(
+    "insert into private.shop_payment_checkouts(id,invoice_id,provider,merchant_account,amount,currency) values ($1,$2,'stripe','acct_test',150,'usd')",
+    [staleCheckout, staleInvoice.id]
+);
+const reconcile = (id, merchant, payment) => db.query(
+    "select reconcile_shop_processor_payment($1,'stripe',$2,$3,150,'usd') as outcome",
+    [id, merchant, payment]
+).then(result => result.rows[0].outcome);
+await db.exec('set role authenticated');
+await assert.rejects(reconcile(checkout, 'acct_test', 'pi_test'), /permission denied/);
+await db.exec('reset role; set role service_role');
+await assert.rejects(reconcile(checkout, 'acct_wrong', 'pi_test'), /Invalid processor/);
+assert.equal(await reconcile(checkout, 'acct_test', 'pi_test'), 'posted');
+assert.equal(await reconcile(checkout, 'acct_test', 'pi_test'), 'posted');
+assert.equal(await reconcile(staleCheckout, 'acct_test', 'pi_stale'), 'review');
+await db.exec('reset role');
+assert.equal((await db.query('select count(*)::int as n from shop_invoice_payments where request_id=$1', [checkout])).rows[0].n, 1);
+assert.equal((await db.query('select status from shop_invoices where id=$1', [checkoutInvoice.id])).rows[0].status, 'Paid');
+assert.equal((await db.query('select count(*)::int as n from shop_invoice_payments where request_id=$1', [staleCheckout])).rows[0].n, 0);
+console.log('Processor reconciliation: server-only access, merchant match, one ledger entry on replay, stale balance review passed.');
 await db.close();console.log('Payment SQL: partial/split balance, idempotent retries, exact cents, overpayment, immutable history, reversals, legacy preservation, finished/prepaid/completed RO rules, A/R and role/shop isolation passed.');

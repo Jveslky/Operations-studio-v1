@@ -64,6 +64,24 @@
         summary.append(identity, roleSelect, status, activeLabel);
         row.append(summary);
 
+        const accessSummary = document.createElement("p");
+        accessSummary.className = "owner-note";
+        accessSummary.textContent = member.role === "owner" || member.effective_permissions?.["repair_orders.write"] === true
+            ? "Repair orders: create and edit allowed."
+            : "Repair orders: create and edit denied by saved access.";
+        row.append(accessSummary);
+        if (member.role !== "owner") {
+            const assignmentSummary = document.createElement("p");
+            assignmentSummary.className = "owner-note";
+            assignmentSummary.textContent = member.effective_permissions?.["repair_orders.assign"] === true
+                ? "Technician assignment: allowed by saved access."
+                : "Technician assignment: denied by saved access.";
+            assignmentSummary.textContent += Object.hasOwn(member.permission_overrides || {}, "repair_orders.assign")
+                ? " Source: individual override."
+                : " Source: role preset.";
+            row.append(assignmentSummary);
+        }
+
         if (member.role === "owner") {
             roleSelect.disabled = true;
             active.disabled = true;

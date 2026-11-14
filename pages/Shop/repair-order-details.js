@@ -207,6 +207,10 @@ if (!repairOrder) {
             repairOrder.additionalTechnician
         );
 
+        // Select the saved values after adding historical options, before awaiting.
+        technicianSelect.value = repairOrder.technician || "Unassigned";
+        additionalTechnicianSelect.value = repairOrder.additionalTechnician || "";
+
         try {
             await window.trackRightAuthReady;
 
@@ -232,8 +236,7 @@ if (!repairOrder) {
                     technicianName
                 );
             });
-            technicianSelect.value = repairOrder.technician || "Unassigned";
-            additionalTechnicianSelect.value = repairOrder.additionalTechnician || "";
+            // Directory results must not overwrite a choice made while awaiting them.
         } catch (error) {
             console.error(
                 "Could not load active technicians:",
@@ -554,6 +557,46 @@ if (!repairOrder) {
             : !(canUpdateWork && workFields.has(field));
     });
 
+    const offlineNoteControl = (canWriteRepairOrder || canUpdateWork)
+        ? window.shopOfflineNotes.mount({context: billingContext, order: repairOrder, noteInput: technicianNotesInput, legacyOnly:true}) : null;
+
+    let legacyNotes = null;
+    if (offlineNoteControl) offlineNoteControl.then(control => { legacyNotes = control; offlineROControl?.sync(); }).catch(()=>{});
+    const roDraftInputs = {technician_notes:technicianNotesInput,labor_hours:laborHoursInput,additional_work_performed:additionalWorkInput};
+    if (canWriteRepairOrder) Object.assign(roDraftInputs, {complaint:complaintInput,parts_needed:partsNeededInput,customer_notes:customerNotesInput,priority:prioritySelect});
+    const tabKey='longshift.offline.ro.tab.id';
+    let offlineTabId;try{offlineTabId=sessionStorage.getItem(tabKey)||crypto.randomUUID();sessionStorage.setItem(tabKey,offlineTabId);}catch(_){}
+    const offlineROControl = (canWriteRepairOrder || canUpdateWork) && window.shopOfflineRO
+        ? window.shopOfflineRO.mount({context:billingContext,order:repairOrder,inputs:roDraftInputs,
+            onlineOnlyInputs:editableFields.filter(e=>e&&!Object.values(roDraftInputs).includes(e)),
+            interactionOnlyInputs:[...document.querySelectorAll('#approval-fields input, #approval-fields select, #approval-fields textarea, #approval-repeat, #approval-authorized-amount')],
+            onReload:()=>{hasUnsavedChanges=false;window.location.reload();},
+            canSync:()=>!!legacyNotes&&!legacyNotes.blocksOrderSave(),tabId:offlineTabId,host:detailPage}) : null;
+    const recoveryEnabled = offlineROControl?.context.project === 'amikoqrqutnpojtcyjlx'
+        || window.location.hostname === 'test-shop-combined.long-shift-test.pages.dev';
+    if(offlineROControl && navigator.onLine && recoveryEnabled && 'serviceWorker' in navigator){
+        const ready=document.createElement('p');ready.setAttribute('role','status');ready.textContent='Preparing same-tab offline RO recovery…';detailPage.prepend(ready);
+        try{
+            const project=offlineROControl.context.project;
+            const sessionKey=window.trackRightSupabase.auth.storageKey;
+            if(!sessionKey)throw Error('Session key unavailable');
+            sessionStorage.setItem('longshift.offline.ro.tab.v2',JSON.stringify({version:2,project,sessionKey,shop:billingContext.shopId,actor:billingContext.user.id,ro:repairOrder.recordId,label:String(repairOrder.id),expected:repairOrder.updatedAt,base:offlineROControl.base,tab:offlineROControl.tab,capturedAt:Date.now()}));
+            const worker=new URL('./offline-note-sw.js?v=13',location.href).href;
+            const verify=async()=>{
+                if(navigator.serviceWorker.controller?.scriptURL!==worker){ready.textContent='Offline recovery is installing. Keep this tab online until ready.';return;}
+                const cache=await caches.open('longshift-offline-ro-shell-v13');
+                for(const file of ['./offline-note-recovery','./offline-note-recovery.js?v=6','./shop-offline-ro.js?v=20261105-6'])if(!await cache.match(new URL(file,location.href).href))throw Error('Recovery file missing');
+                ready.hidden=true;
+            };
+            const failed=()=>{ready.textContent='Offline reopening unavailable. Keep this page open while disconnected.';};
+            navigator.serviceWorker.addEventListener('controllerchange',()=>verify().catch(failed));
+            navigator.serviceWorker.getRegistration(new URL('./',location.href).href).then(reg=>{
+                if(reg&&![reg.active,reg.installing,reg.waiting].some(w=>w&&new URL(w.scriptURL).pathname===new URL(worker).pathname))throw Error('Another offline worker controls this page');
+                return navigator.serviceWorker.register(worker,{scope:'./'});
+            }).then(verify).catch(failed);
+        }catch(_){ready.textContent='Offline reopening unavailable. Keep this page open while disconnected.';}
+    }
+
     saveButton.hidden = !canWriteRepairOrder && !canUpdateWork;
     bottomSaveButton.hidden = saveButton.hidden;
     createInvoiceButton.hidden = !window.trackRightCan("invoices.write");
@@ -590,6 +633,17 @@ if (!repairOrder) {
 
     saveButton.addEventListener("click", async function () {
         if (saveButton.disabled) return;
+        if (!navigator.onLine) {
+            if(!offlineROControl){alert('Offline saving is unavailable. Keep this page open and reconnect before saving.');return;}
+            const saved=await offlineROControl.queue();
+            if(saved && offlineROControl.unsupportedChanged())alert('Work details are saved on this computer. Status, assignments, approvals and billing changes still need a connection.');
+            return;
+        }
+        if(offlineROControl?.blocksOrderSave()){alert('Check the save message above before saving this repair order again.');return;}
+        if (offlineNoteControl) {
+            let control; try { control = await offlineNoteControl; } catch (_) { alert('Device note storage could not be checked. Your repair-order changes have not been saved.'); return; }
+            if (control.blocksOrderSave()) { alert('A device note is pending, needs review, or has just synced. Review it and reopen this repair order before saving other changes.'); return; }
+        }
         saveButton.disabled = true;
         bottomSaveButton.disabled = true;
         repairOrder.customer =
@@ -708,7 +762,10 @@ if (!repairOrder) {
             window.location.href = "./repair-orders.html";
         } catch (error) {
             console.error("Could not save repair order:", error);
-            alert(error?.message || "Could not save this repair order. Please retry.");
+            if(offlineROControl && (!navigator.onLine || /fetch|network|connection|timeout/i.test(error?.message||''))){
+                const retained=await offlineROControl.queue();
+                if(retained && offlineROControl.unsupportedChanged())alert('The full save could not be confirmed. Work details are retained on this computer; check status, assignments, approvals and billing when reconnected.');
+            }else alert(error?.message || "Could not save this repair order. Please retry.");
             saveButton.disabled = false;
             bottomSaveButton.disabled = false;
         }

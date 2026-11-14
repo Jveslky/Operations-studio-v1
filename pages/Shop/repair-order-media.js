@@ -169,24 +169,78 @@
         inspectionTemplateSelect.value = inspectionSettings.default_template_id || "";
     }
 
-    async function signedUrl(path) {
-        const { data, error } = await client.storage
+    const previewUrls = new Set();
+    let mediaGeneration = 0;
+    let mediaSessionEnded = false;
+
+    function clearMedia() {
+        mediaGeneration++;
+        mediaRecords = [];
+        mediaList.replaceChildren();
+        for (const url of previewUrls) URL.revokeObjectURL(url);
+        previewUrls.clear();
+    }
+
+    window.addEventListener("pagehide", clearMedia);
+    window.addEventListener("pageshow", function (event) {
+        if (event.persisted) window.location.reload();
+    });
+    client.auth.onAuthStateChange(function (event, session) {
+        if (event === "SIGNED_OUT" || (context?.user && session?.user.id !== context.user.id)) {
+            clearMedia();
+            mediaSessionEnded = true;
+            setControlsEnabled(false);
+        }
+    });
+
+    async function loadPreview(record, generation) {
+        if (generation !== mediaGeneration) return null;
+        const { data: file, error } = await client.storage
             .from("shop-inspection-media")
-            .createSignedUrl(path, 600);
+            .download(record.object_path);
+        if (generation !== mediaGeneration) return null;
         if (error) throw error;
-        return data.signedUrl;
+        const url = URL.createObjectURL(file);
+        previewUrls.add(url);
+        return url;
+    }
+
+    function makeVideoLoader(record, generation) {
+        const load = document.createElement("button");
+        load.type = "button";
+        load.textContent = "Load video";
+        load.addEventListener("click", async function () {
+            load.disabled = true;
+            load.textContent = "Loading video…";
+            try {
+                const url = await loadPreview(record, generation);
+                if (!url) return;
+                const video = document.createElement("video");
+                video.className = "ro-media-preview";
+                video.controls = true;
+                video.src = url;
+                load.replaceWith(video);
+            } catch {
+                load.textContent = "Retry video";
+                load.disabled = false;
+            }
+        });
+        return load;
     }
 
     async function renderMedia() {
+        if (!context || mediaSessionEnded) return;
+        clearMedia();
+        const generation = mediaGeneration;
         const { data, error } = await client.from("shop_ro_media")
             .select("id, category, caption, visibility, object_path, mime_type, file_size, uploaded_by, created_at")
             .eq("shop_id", context.shopId)
             .eq("repair_order_id", orderId)
             .order("created_at", { ascending: false });
 
+        if (generation !== mediaGeneration) return;
         if (error) throw error;
         mediaRecords = data;
-        mediaList.replaceChildren();
         if (!data.length) {
             const empty = document.createElement("p");
             empty.className = "ro-media-meta";
@@ -198,24 +252,24 @@
         for (const record of data) {
             const card = document.createElement("article");
             card.className = "ro-media-item";
-            try {
-                const url = await signedUrl(record.object_path);
-                const preview = document.createElement(record.mime_type.startsWith("video/") ? "video" : "img");
-                preview.className = "ro-media-preview";
-                preview.src = url;
-                if (preview.tagName === "VIDEO") {
-                    preview.controls = true;
-                    preview.preload = "metadata";
-                } else {
+            if (record.mime_type.startsWith("video/")) {
+                card.appendChild(makeVideoLoader(record, generation));
+            } else {
+                try {
+                    const url = await loadPreview(record, generation);
+                    if (!url) return;
+                    const preview = document.createElement("img");
+                    preview.className = "ro-media-preview";
+                    preview.src = url;
                     preview.alt = record.caption || "Repair order photo";
-                    preview.loading = "lazy";
+                    card.appendChild(preview);
+                } catch {
+                    if (generation !== mediaGeneration) return;
+                    const unavailable = document.createElement("div");
+                    unavailable.className = "ro-media-preview ro-media-unavailable";
+                    unavailable.textContent = "Preview unavailable";
+                    card.appendChild(unavailable);
                 }
-                card.appendChild(preview);
-            } catch (error) {
-                const unavailable = document.createElement("div");
-                unavailable.className = "ro-media-preview ro-media-unavailable";
-                unavailable.textContent = "Preview unavailable";
-                card.appendChild(unavailable);
             }
 
             const body = document.createElement("div");

@@ -1,0 +1,16 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';
+const {PGlite}=await import(process.env.PGLITE_MODULE||'@electric-sql/pglite');
+const db=new PGlite();const shop='aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',other='bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',ro='cccccccc-cccc-cccc-cccc-cccccccccccc',actor='11111111-1111-1111-1111-111111111111',bad='22222222-2222-2222-2222-222222222222',req='33333333-3333-3333-3333-333333333333',req2='44444444-4444-4444-4444-444444444444';
+await db.exec(`create role authenticated;create role anon;create schema auth;create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('test.actor',true),'')::uuid$$;
+create table public.shops(id uuid primary key);insert into shops values('${shop}'),('${other}');
+create table public.shop_repair_orders(id uuid primary key,shop_id uuid not null,technician_notes text,updated_at timestamptz not null);
+insert into public.shop_repair_orders values('${ro}','${shop}','before','2026-10-27T00:00:00Z');
+create function public.shop_can_access_ro(uuid,text,text) returns boolean language sql stable as $$select $1='${shop}'::uuid and $2='${ro}' and auth.uid()='${actor}'::uuid$$;
+create function public.shop_has_permission(uuid,text) returns boolean language sql stable as $$select $1='${shop}'::uuid and auth.uid()='${actor}'::uuid$$;`);
+const sql=fs.readFileSync(new URL('../supabase/shop-offline-note-sync-20261027.sql',import.meta.url),'utf8');await db.exec(sql);await db.exec(sql);await db.query("select set_config('test.actor',$1,false)",[actor]);await db.exec('set role authenticated');
+const run=(s,k,n,t='2026-10-27T00:00:00Z')=>db.query('select public.sync_shop_offline_note($1,$2,$3,$4,$5) result',[s,k,ro,t,n]);
+assert.equal((await run(shop,req,'offline note')).rows[0].result.status,'saved');assert.equal((await run(shop,req,'offline note')).rows[0].result.status,'saved');
+await assert.rejects(run(shop,req,'changed'),/different details/);assert.equal((await run(shop,req2,'stale note')).rows[0].result.status,'conflict');
+await assert.rejects(run(other,req2,'other'),/unavailable/);await assert.rejects(db.query('select * from shop_offline_note_operations'),/permission denied/);
+await db.query("select set_config('test.actor',$1,false)",[bad]);await assert.rejects(run(shop,req2,'denied'),/unavailable/);
+await db.exec('reset role');assert.equal((await db.query('select technician_notes from shop_repair_orders')).rows[0].technician_notes,'offline note');assert.equal(Number((await db.query('select count(*) n from shop_offline_note_operations')).rows[0].n),1);await db.close();console.log('Offline note SQL: replay, conflict, scope, permissions and operation isolation passed.');

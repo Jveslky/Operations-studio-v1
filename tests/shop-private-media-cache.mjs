@@ -4,9 +4,10 @@ import assert from 'node:assert/strict';
 import {webcrypto} from 'node:crypto';
 const calls=[];let config;
 const base='https://amikoqrqutnpojtcyjlx.supabase.co';
-const sandbox={URL,Request,crypto:webcrypto,window:{
+const sandbox={URL,Request,location:{hostname:'long-shift.example'},crypto:webcrypto,window:{
+ addEventListener(){},
  fetch:async(input,options)=>{calls.push({input,options});return {status:200}},
- supabase:{createClient(url,key,options){assert.equal(url,base);config=options;return {}}}
+ supabase:{createClient(url,key,options){assert.equal(url,base);config=options;return {auth:{onAuthStateChange(){}}}}}
 },document:{documentElement:{dataset:{}},readyState:'loading',addEventListener(){}}};
 vm.runInNewContext(fs.readFileSync(new URL('../js/supabase-client.js',import.meta.url),'utf8'),sandbox);
 const fetch=config.global.fetch;
@@ -14,6 +15,7 @@ const path=base+'/storage/v1/object/authenticated/shop-inspection-media/shop/ro/
 await fetch(path,{headers:{Authorization:'Bearer owner-test'}});
 await fetch(path,{headers:{Authorization:'Bearer tech-test'}});
 assert.equal(calls[0].options.cache,'no-store');
+assert.equal(calls[0].options.redirect,'error');
 assert.equal(calls[1].options.cache,'no-store');
 assert.notEqual(calls[0].input,calls[1].input);
 assert.equal(calls[1].options.headers.Authorization,'Bearer tech-test');

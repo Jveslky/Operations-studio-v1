@@ -76,20 +76,17 @@
             return;
         }
 
-        const { data, error } = await client.storage
-            .from("customer-tax-certificates")
-            .createSignedUrl(path, 600);
-        if (error) {
-            certificateStatus.textContent = "Certificate saved, but a preview link could not be created.";
-            return;
-        }
-
-        const link = document.createElement("a");
-        link.href = data.signedUrl;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.textContent = "View current certificate (link valid for 10 minutes)";
-        certificateStatus.appendChild(link);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = "Download current certificate";
+        button.addEventListener("click", async function () {
+            try {
+                await window.downloadPrivateShopDocument("customer-tax-certificates", path);
+            } catch {
+                certificateStatus.textContent = "Certificate could not be downloaded.";
+            }
+        });
+        certificateStatus.appendChild(button);
     }
 
     function fillCustomerTax(customer) {

@@ -1,8 +1,8 @@
 import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
 const source=fs.readFileSync(new URL('../pages/Shop/shop-repair-orders-data.js',import.meta.url),'utf8');
 async function fixture({confirm=true,failedRead=false}={}) {
- const calls=[],lines=[{part_number:'FILTER',quantity:2,stock_unit:'each'}],manifest=[{id:'s',number:2,revision:3,lines}],row={id:'ro',ro_number:1,shop_id:'a',status:'In Progress',estimate_stock_lines:[]};let prompt='';
- const client={rpc:async(name,args)=>{calls.push({name,args});return name==='get_shop_supplement_stock'?{data:manifest,error:failedRead?Error('Unavailable'):null}:{};},from(){return {select(){return this;},eq(){return this;},order:async()=>({data:[row]}),update(value){calls.push({name:'update',value});return this;},single:async()=>({data:{...row,status:'Ready for Payment'}})};}};
+ const calls=[],lines=[{part_number:'FILTER',quantity:2,stock_unit:'each'}],manifest=[{id:'s',number:2,revision:3,lines}],row={id:'ro',ro_number:1,shop_id:'a',status:'In Progress',updated_at:'2026-10-23T00:00:00Z',estimate_stock_lines:[]};let prompt='';
+ const client={rpc:async(name,args)=>{calls.push({name,args});return name==='get_shop_supplement_stock'?{data:manifest,error:failedRead?Error('Unavailable'):null}:{};},from(){return {select(){return this;},eq(){return this;},order:async()=>({data:[row]}),update(value){calls.push({name:'update',value});return this;},maybeSingle:async()=>({data:{...row,status:'Ready for Payment'}})};}};
  const c={window:{trackRightSupabase:client,trackRightAuthReady:Promise.resolve({shopId:'a',role:'service_writer',user:{id:'writer'}}),confirm:s=>{prompt=s;return confirm;}},console};vm.runInNewContext(source,c);
  const order=await c.window.trackRightRepairOrders.get('ro');return {calls,manifest,prompt:()=>prompt,finish:()=>c.window.trackRightRepairOrders.update({...order,status:'Ready for Payment'})};
 }

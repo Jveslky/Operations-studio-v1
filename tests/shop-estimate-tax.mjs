@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
-const context = {window:{}};
+const context = {window:{trackRightAuthReady:Promise.resolve({role:'owner'})}};
 vm.runInNewContext(fs.readFileSync(new URL('../pages/Shop/shop-estimate-tax.js', import.meta.url),'utf8'),context);
 const api = context.window.shopEstimateTax;
 const order = {estimateLaborHours:1, estimateLaborRate:100};
@@ -29,6 +29,8 @@ assert.equal((await settings(null)).taxable,true);
 assert.equal((await settings('inherit',false)).taxable,false);
 await assert.rejects(settings('exempt',true,true),/denied/);
 await assert.rejects(api.resolve({},null,null),/No active shop/);
+context.window.trackRightAuthReady = Promise.resolve({role:'technician'});
+assert.equal(await api.resolve({},'shop-a','customer-a'),null);
 const page=fs.readFileSync(new URL('../pages/Shop/repair-order-details.js',import.meta.url),'utf8');
 assert.match(page,/sendPreviewTotal\.textContent\s*=\s*estimateTotal/);
 assert.match(page,/shopEstimateTax\.lines\(estimateFinancials\(\)\)/);

@@ -35,16 +35,28 @@
         const email = context.user.email.toLowerCase();
         return [order.technician, order.additionalTechnician].some((value) => String(value || "").toLowerCase() === email);
     }
-    function renderOrders(orders) {
-        const active = orders.filter((order) => !order.archived && isAssigned(order) && !["Closed", "Complete"].includes(order.status));
+    function renderOrders(orders, showAll = false) {
+        const active = orders.filter((order) => !order.archived && isAssigned(order) && !["Closed", "Complete", "Ready for Payment"].includes(order.status));
         document.getElementById("tech-open-orders").textContent = active.length;
         document.getElementById("tech-waiting-approval").textContent = active.filter((order) => ["Sent", "Pending", "Waiting Approval"].includes(order.estimateApprovalStatus) || order.status === "Waiting Approval").length;
         roList.replaceChildren();
-        active.forEach((order) => {
+        const visible = showAll ? active : active.slice(0, 10);
+        visible.forEach((order) => {
             const item = row(`RO #${order.id} · ${order.unit || "Unit not listed"}`, `${order.customer || "Customer"} · Authorization: ${order.estimateApprovalStatus || "Draft"}`, order.status, "");
             const link = document.createElement("a"); link.href=`repair-order-details.html?id=${encodeURIComponent(order.id)}`; link.textContent="Open repair order"; item.append(link); roList.append(item);
         });
         if (!active.length) empty(roList, "No open repair orders are assigned to your email.");
+        if (active.length > 10) {
+            const toggle = document.createElement("button");
+            toggle.type = "button";
+            toggle.textContent = showAll ? "Show fewer" : `Show all ${active.length} assigned repair orders`;
+            toggle.setAttribute("aria-expanded", String(showAll));
+            toggle.addEventListener("click", () => {
+                renderOrders(orders, !showAll);
+                roList.lastElementChild.focus();
+            });
+            roList.append(toggle);
+        }
     }
     function renderSchedule(appointments) {
         const email=context.user.email.toLowerCase(), today=dateOnly(new Date().toISOString());
@@ -71,12 +83,18 @@
         return{label:`Expires ${formatDate(documentRecord.expires_on)}`,className:"current",alert:false};
     }
     async function openDocument(record, button) {
-        button.disabled=true;const result=await client.storage.from("shop-team-documents").createSignedUrl(record.object_path,300);button.disabled=false;
-        if(result.error){requestMessage.textContent=`Document could not open: ${result.error.message}`;return;} window.open(result.data.signedUrl,"_blank","noopener");
+        button.disabled = true;
+        try {
+            await window.downloadPrivateShopDocument("shop-team-documents", record.object_path);
+        } catch (error) {
+            requestMessage.textContent = `Document could not be downloaded: ${error.message}`;
+        } finally {
+            button.disabled = false;
+        }
     }
     function renderDocuments(documents) {
         documentList.replaceChildren();let alerts=0;
-        (documents||[]).filter((item)=>!item.archived_at).forEach((item)=>{const state=expiry(item);if(state.alert)alerts+=1;const entry=row(item.title,`${item.document_type.replaceAll("_"," ")}${item.issuer?` · ${item.issuer}`:""}`,state.label,state.className);const button=document.createElement("button");button.type="button";button.textContent="View document";button.addEventListener("click",()=>openDocument(item,button));entry.append(button);documentList.append(entry);});
+        (documents||[]).filter((item)=>!item.archived_at).forEach((item)=>{const state=expiry(item);if(state.alert)alerts+=1;const entry=row(item.title,`${item.document_type.replaceAll("_"," ")}${item.issuer?` · ${item.issuer}`:""}`,state.label,state.className);const button=document.createElement("button");button.type="button";button.textContent="Download document";button.addEventListener("click",()=>openDocument(item,button));entry.append(button);documentList.append(entry);});
         document.getElementById("tech-cert-alerts").textContent=alerts;if(!documentList.children.length)empty(documentList,"No certifications or documents have been shared with your account.");
     }
     function updateRequestDates(){const required=requestType.value!=="general";document.querySelector(".request-date-fields").hidden=!required;requestStart.required=required;requestEnd.required=required;if(!required){requestStart.value="";requestEnd.value="";}}
