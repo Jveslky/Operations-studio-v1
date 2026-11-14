@@ -78,16 +78,16 @@ body {
 }
 
     .customers-header h1 {
-        margin: 0 0 6px;
-        color: #1f2933;
-        font-size: clamp(2rem, 4vw, 2.7rem);
+        margin: 0;
+        color: #252a30;
+        font-size: 30px;
     }
 
     .customers-header p {
         max-width: 720px;
-        margin: 0;
-        color: #667085;
-        line-height: 1.55;
+        margin: 8px 0 0;
+        color: #68757a;
+        font-size: 14px;
     }
 
 
@@ -101,9 +101,9 @@ body {
     gap: 12px;
     margin-bottom: 22px;
     padding: 16px;
-    border: 1px solid #d3d8de;
+    border: 1px solid #a6bec2;
     border-radius: 10px;
-    background: #ffffff;
+    background: #dce7f0;
     box-shadow: 0 5px 16px rgba(31, 41, 51, 0.05);
 }
 
@@ -561,14 +561,6 @@ body {
    CUSTOMER DIRECTORY
    ========================= */
 
-.customer-directory {
-    padding: 20px;
-    background: #ffffff;
-    border: 1px solid #cbd4d7;
-    border-radius: 10px;
-    box-shadow: 0 3px 9px rgba(37, 42, 48, 0.06);
-}
-
 .customer-directory-header {
     display: flex;
     align-items: center;
@@ -584,12 +576,6 @@ body {
     font-weight: 800;
     letter-spacing: 0.6px;
     text-transform: uppercase;
-}
-
-.customer-directory-header h2 {
-    margin: 0;
-    color: #252a30;
-    font-size: 22px;
 }
 
 .customer-directory-list {
@@ -611,9 +597,9 @@ body {
 
 .customer-directory-card {
     padding: 17px 18px;
-    background: #f8fafb;
+    background: #fff;
     border: 1px solid #d1dade;
-    border-left: 4px solid #69b2bd;
+    border-left: 3px solid #a6b6c2;
     border-radius: 8px;
     cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
@@ -942,3 +928,40 @@ button.customer-summary-card:hover {border-color:#18bdf2;}
 .billing-history {max-height:220px;overflow:auto;font-size:.85rem;border-top:1px solid #cbd3d8;padding-top:8px;}
 
 .customer-billing fieldset {border:0;padding:0;margin:0;min-width:0;}
+
+.customer-page-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #db6128;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+}
+
+.customer-directory-label { margin: 0; }
+.customer-toolbar.customer-management-controls {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, .75fr);
+    align-items: end;
+}
+.customer-toolbar input,
+.customer-toolbar select {
+    width: 100%;
+    min-height: 44px;
+    border-color: #9cb5ba;
+    border-radius: 7px;
+    background: #fff;
+}
+.customer-toolbar select:focus {
+    outline: 3px solid rgba(233, 101, 37, .18);
+    border-color: #e96525;
+}
+.customers-page:has(.customer-record-panel:not([hidden])) .customers-header .add-customer-button { display: none; }
+.customer-directory-card-main > div:first-child { min-width: 0; overflow-wrap: anywhere; }
+
+@media (max-width: 900px) {
+    .customer-toolbar.customer-management-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+    .customer-toolbar.customer-management-controls { grid-template-columns: minmax(0, 1fr); }
+}

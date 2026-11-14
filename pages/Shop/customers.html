@@ -16,7 +16,7 @@
           href="../../css/layout.css">
 
     <link rel="stylesheet"
-          href="customers.css">
+          href="customers.css?v=20261114-1">
 
 <link rel="manifest" href="./manifest.webmanifest?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/shop-v2-32.png">
@@ -69,11 +69,16 @@
 
         <header class="customers-header">
             <div>
+                <span class="customer-page-label">Shop Workflow</span>
                 <h1>Customers</h1>
 
-                Manage customer information, vehicles,
-                repair history, and new repair orders.
+                <p>Manage customer information, vehicles, repair history, and new repair orders.</p>
             </div>
+            <button id="add-customer-button"
+                    class="add-customer-button"
+                    type="button">
+                Add Customer
+            </button>
         </header>
 
         <section class="customer-summary-grid">
@@ -100,33 +105,18 @@
             <button id="customer-net-filter" type="button" class="customer-summary-card"><span>NET Accounts</span><strong id="customer-net-count">0</strong></button>
         </section>
 
-        <section class="customer-toolbar">
-            <input id="customer-search-input"
+        <section class="customer-directory" aria-labelledby="customer-directory-heading">
+            <div class="customer-directory-header">
+                <h2 id="customer-directory-heading" class="customer-directory-label">Customer Directory</h2>
+            </div>
+
+            <div class="customer-toolbar customer-management-controls" role="search" aria-label="Customer directory">
+                <label>Search customers
+                    <input id="customer-search-input"
                    type="search"
                    placeholder="Name, account number, phone, email, vehicle or VIN" maxlength="200"
                    aria-label="Search customers by name, account number, phone, email, vehicle or VIN">
-
-            <button id="add-customer-button"
-                    class="add-customer-button"
-                    type="button">
-                Add Customer
-            </button>
-        </section>
-
-        <section class="customer-directory">
-            <div class="customer-directory-header">
-                <div>
-                    <span class="customer-directory-label">
-                        Customer Directory
-                    </span>
-
-
-
-
-                </div>
-            </div>
-
-            <div class="customer-management-controls">
+                </label>
             <label>Show<select id="customer-filter"><option value="all">All Customers</option><option value="outstanding">Outstanding Balances</option><option value="overdue">Overdue Accounts</option><option value="net">NET Accounts</option><option value="current">Current / No Outstanding Balance</option></select></label>
             <label>Sort<select id="customer-sort"><option value="activity">Most recent activity</option><option value="alphabetical">Alphabetical</option><option value="balance">Highest outstanding balance</option><option value="overdue">Oldest overdue invoice</option></select></label>
             <label class="customer-page-size" for="customer-page-size">Customers per page
