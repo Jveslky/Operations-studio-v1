@@ -573,7 +573,7 @@ if (!repairOrder) {
             onReload:()=>{hasUnsavedChanges=false;window.location.reload();},
             canSync:()=>!!legacyNotes&&!legacyNotes.blocksOrderSave(),tabId:offlineTabId,host:detailPage}) : null;
     const recoveryEnabled = offlineROControl?.context.project === 'amikoqrqutnpojtcyjlx'
-        || window.location.hostname === 'test-shop-combined.long-shift-test.pages.dev';
+        || ['test-shop-combined.long-shift-test.pages.dev', 'test-pilot-offline-candidate.long-shift-test.pages.dev'].includes(window.location.hostname);
     if(offlineROControl && navigator.onLine && recoveryEnabled && 'serviceWorker' in navigator){
         const ready=document.createElement('p');ready.setAttribute('role','status');ready.textContent='Preparing same-tab offline RO recovery…';detailPage.prepend(ready);
         try{
