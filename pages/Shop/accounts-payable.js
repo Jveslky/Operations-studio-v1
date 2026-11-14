@@ -50,10 +50,12 @@
             const amount = document.createElement("div"); const amountLabel = document.createElement("span"); amountLabel.textContent = "Amount"; const amountValue = document.createElement("strong"); amountValue.textContent = money(bill.total); amount.append(amountLabel, amountValue);
             const due = document.createElement("div"); const dueLabel = document.createElement("span"); dueLabel.textContent = "Due"; const dueValue = document.createElement("strong"); dueValue.textContent = dateOnly(bill.due_date) || "No due date"; due.append(dueLabel, dueValue);
             const state = document.createElement("div"); const stateLabel = document.createElement("span"); stateLabel.textContent = "Status"; const stateValue = document.createElement("strong"); stateValue.className = `bill-status ${display.toLowerCase().replace(" ", "-")}`; stateValue.textContent = display; state.append(stateLabel, stateValue);
-            if (bill.document_path) { const view = document.createElement("button"); view.type = "button"; view.dataset.documentPath = bill.document_path; view.textContent = "View Document"; state.appendChild(view); }
-            if (bill.status !== 'void' && window.trackRightCan('inventory.receive') && window.trackRightCan('expenses.read')) { const receive=document.createElement('button');receive.type='button';receive.textContent='Review parts for receiving';receive.addEventListener('click',()=>window.shopAPReceiving.open(bill).catch(error=>{window.alert(error.message);}));state.append(receive); }
-            if (!paid && canWrite) { const pay = document.createElement("button"); pay.type = "button"; pay.dataset.billId = bill.id; pay.textContent = "Mark Paid"; state.appendChild(pay); }
-            card.append(identity, amount, due, state); list.appendChild(card);
+            const actions = document.createElement("div");
+            actions.className = "bill-actions";
+            if (bill.document_path) { const view = document.createElement("button"); view.type = "button"; view.dataset.documentPath = bill.document_path; view.textContent = "View Document"; actions.appendChild(view); }
+            if (bill.status !== 'void' && window.trackRightCan('inventory.receive') && window.trackRightCan('expenses.read')) { const receive=document.createElement('button');receive.type='button';receive.textContent='Review Parts';receive.ariaLabel='Review parts for receiving';receive.addEventListener('click',()=>window.shopAPReceiving.open(bill).catch(error=>{window.alert(error.message);}));actions.append(receive); }
+            if (!paid && canWrite) { const pay = document.createElement("button"); pay.type = "button"; pay.dataset.billId = bill.id; pay.textContent = "Mark Paid"; actions.appendChild(pay); }
+            card.append(identity, amount, due, state, actions); list.appendChild(card);
         });
         if (!list.childElementCount) {
             const empty = document.createElement("p");
