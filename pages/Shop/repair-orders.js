@@ -282,6 +282,8 @@ function getStatusDotClass(status) {
     }
 }
 
+const roEstimateCurrency = new Intl.NumberFormat("en-US", { style: "currency", currency: "USD" });
+
 function createRepairOrderCard(order) {
     const card = document.createElement("a");
 
@@ -309,7 +311,13 @@ function createRepairOrderCard(order) {
 
     card.innerHTML = `
     <div class="ro-identity">
-        <h3>RO #${escapeHtml(order.id)}</h3>
+        <div class="ro-card-heading">
+            <h3>RO #${escapeHtml(order.id)}</h3>
+            <span class="ro-estimate-amount">
+                ${roEstimateCurrency.format(order.estimateTotal ?? 0)}
+                <small>Est. before tax</small>
+            </span>
+        </div>
         <p class="repair-order-customer">${escapeHtml(order.customer || "No customer entered")} &bull; ${escapeHtml(order.unit || "No unit entered")}</p>
         ${engineSize ? `<p class="repair-order-engine">Engine Size: ${escapeHtml(engineSize)}</p>` : ""}
         <p class="repair-order-complaint">${escapeHtml(order.complaint || "No work entered")}</p>
