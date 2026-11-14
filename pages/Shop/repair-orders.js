@@ -314,18 +314,11 @@ function createRepairOrderCard(order) {
         ${engineSize ? `<p class="repair-order-engine">Engine Size: ${escapeHtml(engineSize)}</p>` : ""}
         <p class="repair-order-complaint">${escapeHtml(order.complaint || "No work entered")}</p>
     </div>
-    <div class="ro-row-status">
-        <span class="ro-row-label">Status</span>
-        <span class="ro-status ${getStatusDotClass(order.status)}">${escapeHtml(order.status === "Complete" ? "Collected / Closed" : order.status || "Open")}</span>
-    </div>
-    <div>
-        <span class="ro-row-label">Assigned To</span>
-        <strong>${escapeHtml(order.technician || "Unassigned")}</strong>
-    </div>
     <div class="ro-row-secondary">
-        <span class="estimate-card-status estimate-${escapeHtml(estimateStatusClass)}">${escapeHtml(estimateStatus)}</span>
-        <span>${escapeHtml(order.priority || "Medium")} Priority</span>
+        <span class="estimate-card-status estimate-${escapeHtml(estimateStatusClass)}">${escapeHtml(estimateStatus === "No Estimate" ? estimateStatus : `Estimate: ${estimateStatus}`)}</span>
+        <span class="ro-exact-status">${escapeHtml(order.status === "Complete" ? "Collected / Closed" : order.status || "Open")}</span>
     </div>
+    <div class="ro-card-meta">Tech: ${escapeHtml(order.technician || "Unassigned")} &bull; ${escapeHtml(order.priority || "Medium")}</div>
 `;
 
     return card;
@@ -376,6 +369,14 @@ function renderRepairOrders() {
             createRepairOrderCard(order)
         );
     });
+
+    for (const lane of [attentionOrders, inProgressOrders, paymentOrders, completeOrders]) {
+        const count = lane.parentElement.querySelector(".ro-lane-count");
+        if (!count) continue;
+        const total = lane.children.length;
+        count.textContent = total;
+        count.setAttribute("aria-label", total === 1 ? "1 repair order" : `${total} repair orders`);
+    }
 
     showEmptyMessage(
         attentionOrders,
