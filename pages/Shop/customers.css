@@ -1011,3 +1011,21 @@ button.customer-summary-card:focus-visible { outline: 2px solid #347f8c; outline
 @media (max-width: 600px) {
     .customer-toolbar.customer-management-controls { grid-template-columns: minmax(0, 1fr); }
 }
+
+.billing-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+    gap: 12px;
+    align-items: start;
+    padding: 12px;
+    border: 1px solid #ccdbdc;
+    border-radius: 7px;
+    background: #f4f8f8;
+}
+.billing-group h3 {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 14px;
+}
+.billing-group > label { min-width: 0; }
+.billing-group input[type="checkbox"] { width: auto; justify-self: start; }
