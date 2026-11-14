@@ -71,6 +71,26 @@ body {
    PAGE HEADER
 ========================= */
 
+.invoice-page-label {
+    display: block;
+    margin-bottom: 6px;
+    color: #db6128;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+}
+
+.invoice-directory-label {
+    display: block;
+    margin: 0 0 16px;
+    color: #db6128;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+}
+
 .invoices-header,
 .invoice-page-header {
     display: flex;
