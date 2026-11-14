@@ -1,0 +1,35 @@
+@media screen {
+    .invoice-status, #invoice-status {
+        border-color: #d1d7dd;
+        background: #f4f6f8;
+        color: #475467;
+    }
+
+    .invoice-card[data-status="Sent"] .invoice-status,
+    #invoice-status[data-status="Sent"] {
+        border-color: #b2ccff;
+        background: #eff4ff;
+        color: #175cd3;
+    }
+
+    .invoice-card[data-status="Paid"] .invoice-status,
+    #invoice-status[data-status="Paid"] {
+        border-color: #abefc6;
+        background: #ecfdf3;
+        color: #067647;
+    }
+
+    .invoice-card[data-status="Overdue"] .invoice-status,
+    #invoice-status[data-status="Overdue"] {
+        border-color: #fecdca;
+        background: #fef3f2;
+        color: #b42318;
+    }
+
+    .invoice-card[data-status="Partially Paid"] .invoice-status,
+    #invoice-status[data-status="Partially Paid"] {
+        border-color: #c8dce1;
+        background: #eaf4f5;
+        color: #245b66;
+    }
+}

@@ -439,26 +439,8 @@ body {
     font-weight: 800;
 }
 
-    .invoice-status[data-status="Sent"],
-    .invoice-card[data-status="Sent"] .invoice-status {
-        border-color: #b2ccff;
-        background: #eff4ff;
-        color: #175cd3;
-    }
 
-    .invoice-status[data-status="Paid"],
-    .invoice-card[data-status="Paid"] .invoice-status {
-        border-color: #abefc6;
-        background: #ecfdf3;
-        color: #067647;
-    }
 
-    .invoice-status[data-status="Overdue"],
-    .invoice-card[data-status="Overdue"] .invoice-status {
-        border-color: #fecdca;
-        background: #fef3f2;
-        color: #b42318;
-    }
 
 
 /* =========================
@@ -697,10 +679,4 @@ body {
     .invoice-card-actions { grid-area: action; }
     .invoice-card-actions:empty { display: none; }
     .invoice-card-actions button { white-space: nowrap; }
-}
-
-.invoice-card[data-status="Partially Paid"] .invoice-status {
-    border-color: #c8dce1;
-    background: #eaf4f5;
-    color: #245b66;
 }

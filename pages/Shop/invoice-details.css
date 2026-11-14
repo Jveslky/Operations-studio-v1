@@ -207,14 +207,6 @@ body {
 }
 
 
-@media screen {
-    #invoice-status[data-status="Paid"] {
-        border-color: #abefc6;
-        background: #ecfdf3;
-        color: #067647;
-    }
-}
-
 /* =========================
    INFORMATION GRID
 ========================= */
