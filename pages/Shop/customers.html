@@ -81,6 +81,76 @@
             </button>
         </header>
 
+        <form id="add-customer-form"
+              class="add-customer-form"
+              hidden>
+
+            <div class="customer-form-header">
+                <h2 id="customer-form-title">Add Customer</h2>
+
+                <button id="close-customer-form"
+                        type="button"
+                        aria-label="Close customer form">
+                    ×
+                </button>
+            </div>
+
+            <div class="customer-form-grid">
+                <label>
+                    Customer or Company Name
+
+                    <input id="customer-name"
+                           type="text"
+                           required>
+                </label>
+
+                <label>
+                    Contact Name
+
+                    <input id="customer-contact"
+                           type="text">
+                </label>
+
+                <label>
+                    Phone Number
+
+                    <input id="customer-phone"
+                           type="tel">
+                </label>
+
+                <label>
+                    Email Address
+
+                    <input id="customer-email"
+                           type="email">
+                </label>
+            </div>
+
+            <label class="customer-notes-field">
+                Customer Notes
+
+                <textarea id="customer-notes"></textarea>
+            </label>
+
+            <div class="customer-form-actions">
+                <button id="save-customer-button"
+                        type="submit"
+                        class="save-customer-button">
+                    Save Customer
+                </button>
+
+                <button id="cancel-customer-form"
+                        type="button">
+                    Cancel
+                </button>
+            </div>
+
+            <p id="customer-save-message"
+               class="customer-save-message"
+               role="status"
+               aria-live="polite"></p>
+        </form>
+
         <section class="customer-summary-grid">
             <button id="customer-all-filter" type="button" class="customer-summary-card">
                 <span>Total Customers</span>
@@ -392,76 +462,6 @@
             </section>
 
         </section>
-
-        <form id="add-customer-form"
-              class="add-customer-form"
-              hidden>
-
-            <div class="customer-form-header">
-                <h2 id="customer-form-title">Add Customer</h2>
-
-                <button id="close-customer-form"
-                        type="button"
-                        aria-label="Close customer form">
-                    ×
-                </button>
-            </div>
-
-            <div class="customer-form-grid">
-                <label>
-                    Customer or Company Name
-
-                    <input id="customer-name"
-                           type="text"
-                           required>
-                </label>
-
-                <label>
-                    Contact Name
-
-                    <input id="customer-contact"
-                           type="text">
-                </label>
-
-                <label>
-                    Phone Number
-
-                    <input id="customer-phone"
-                           type="tel">
-                </label>
-
-                <label>
-                    Email Address
-
-                    <input id="customer-email"
-                           type="email">
-                </label>
-            </div>
-
-            <label class="customer-notes-field">
-                Customer Notes
-
-                <textarea id="customer-notes"></textarea>
-            </label>
-
-            <div class="customer-form-actions">
-                <button id="save-customer-button"
-                        type="submit"
-                        class="save-customer-button">
-                    Save Customer
-                </button>
-
-                <button id="cancel-customer-form"
-                        type="button">
-                    Cancel
-                </button>
-            </div>
-
-            <p id="customer-save-message"
-               class="customer-save-message"
-               role="status"
-               aria-live="polite"></p>
-        </form>
 
         <form id="new-repair-order-form"
               class="new-repair-order-form"
