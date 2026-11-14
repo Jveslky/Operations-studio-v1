@@ -918,7 +918,6 @@ textarea.new-ro-input {
 button.customer-summary-card {font:inherit;text-align:left;cursor:pointer;color:inherit;}
 button.customer-summary-card:hover { border-color: #729aa1; }
 button.customer-summary-card:focus-visible { outline: 2px solid #347f8c; outline-offset: 2px; }
-.customers-page:has(#customer-filter option[value="all"]:checked) #customer-all-filter,
 .customers-page:has(#customer-filter option[value="outstanding"]:checked) #customer-outstanding-filter,
 .customers-page:has(#customer-filter option[value="overdue"]:checked) #customer-overdue-filter,
 .customers-page:has(#customer-filter option[value="net"]:checked) #customer-net-filter {
@@ -1014,7 +1013,7 @@ button.customer-summary-card:focus-visible { outline: 2px solid #347f8c; outline
 
 .billing-group {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(160px, 100%), 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 12px;
     align-items: start;
     padding: 12px;
@@ -1029,3 +1028,7 @@ button.customer-summary-card:focus-visible { outline: 2px solid #347f8c; outline
 }
 .billing-group > label { min-width: 0; }
 .billing-group input[type="checkbox"] { width: auto; justify-self: start; }
+
+@media (max-width: 650px) {
+    .billing-group { grid-template-columns: minmax(0, 1fr); }
+}
