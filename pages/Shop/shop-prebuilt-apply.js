@@ -47,7 +47,7 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
   const quote=window.shopPrebuiltPricing.quote(template.definition,Number(fields.rate.value||0));
   return {template,quote};
  }
- function addJob(template,q,extraPart,extraHours=0){
+ function addJob(template,q,extraPart,extraHours,nonStock){
   if(q.laborHours>0&&Number(fields.rate.value||0)<=0)throw Error('Enter the estimate labor rate before adding itemized labor.');
   if(q.lines.some(l=>l.item_id)&&!stockEditor)throw Error('Stock editor unavailable. No job added.');
   if(order.estimatePrebuiltJobs.length>=100)throw Error('At most 100 prebuilt instances per estimate.');
@@ -60,11 +60,12 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
   // The add-on charge is included in Parts Total even when it shares a stock line with the package.
   if(extraPart)stockLines.push(extraPart);
   if(stockEditor)stockEditor.addLines(stockLines);
-  fields.parts.value=(oldParts+q.parts+extraCharge).toFixed(2);
+  fields.parts.value=(oldParts+q.parts+extraCharge+(nonStock?.total||0)).toFixed(2);
   if(extraHours)fields.hours.value=String(Math.round((Number(fields.hours.value||0)+extraHours)*1000)/1000);
   const summary=`${q.definition.name} (${q.definition.mode}): prebuilt labor $${q.labor.toFixed(2)}, prebuilt parts $${q.parts.toFixed(2)}, expected job time ${q.expectedHours} h; billable hours ${q.laborHours} h × $${q.rate.toFixed(2)}. ${q.lines.map(l=>`${l.part_number||l.description}: ${l.quantity} ${l.stock_unit||'units'}, charge $${l.charge.toFixed(2)}`).join('; ')}`;
   fields.notes.value=[fields.notes.value,summary,
    extraPart&&`Add-on part: ${extraPart.part_number} · ${extraPart.quantity} ${extraPart.stock_unit} · $${extraCharge.toFixed(2)}`,
+   nonStock&&`Non-stock part: ${nonStock.description} · $${nonStock.total.toFixed(2)}`,
    extraHours&&`Add-on labor: ${extraHours} h × $${q.rate.toFixed(2)}`].filter(Boolean).join('\n');
   order.estimatePrebuiltJobs.push({schema_version:2,instance_id:crypto.randomUUID(),template_id:template.id,template_version:template.version,added_at:new Date().toISOString(),definition:q.definition,quote:q,summary});
   Object.assign(order,{estimatePrebuiltLaborTotal:window.shopPrebuiltPricing.totals(order.estimatePrebuiltJobs).labor,estimatePrebuiltPartsTotal:window.shopPrebuiltPricing.totals(order.estimatePrebuiltJobs).parts});
@@ -98,6 +99,18 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
   const partNumber=extraField('Stocked part number','text','');
   const quantity=extraField('Part quantity','number','1');quantity.min='0.001';quantity.step='0.001';
   const hours=extraField('Additional labor hours','number','');hours.min='0';hours.step='0.1';
+  const nonStockDescription=extraField('Non-stock part number or description','text','');
+  nonStockDescription.maxLength=150;
+  const nonStockPrice=extraField('Non-stock part total','number','');nonStockPrice.min='0';nonStockPrice.step='0.01';
+  function getNonStockPart(){
+   const description=nonStockDescription.value.trim();
+   const price=nonStockPrice.value;
+   if(!description&&!price)return null;
+   if(!description||!/^\d+(?:\.\d{1,2})?$/.test(price)||Number(price)>9999999){
+    throw Error('Enter a non-stock part number or description and a valid line total.');
+   }
+   return {description,total:Number(price)};
+  }
   async function getExtraPart(number,count){
    if(!number)return null;
    if(!Number.isFinite(count)||count<=0||count>9999999||Math.abs(count*1000-Math.round(count*1000))>0.00001)throw Error('Enter a positive part quantity with up to three decimals.');
@@ -141,7 +154,8 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
     if(extraHours&&quote.rate<=0)throw Error('Enter the estimate labor rate before adding labor.');
     const extraPart=mode==='mixed'?await getExtraPart(partNumber.value.trim(),Number(quantity.value)):null;
     if(!dialog.open)return;
-    addJob(template,quote,extraPart,extraHours);
+    const nonStock=mode==='mixed'?getNonStockPart():null;
+    addJob(template,quote,extraPart,extraHours,nonStock);
     dialog.close();section.scrollIntoView({block:'nearest'});
    }catch(e){if(dialog.open)note.textContent=e.message;}
    finally{

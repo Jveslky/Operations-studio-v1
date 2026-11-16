@@ -53,10 +53,15 @@ mixedDialog.children[4].value='template';
 extras.children[1].children[0].value='FUEL';
 extras.children[2].children[0].value='2';
 extras.children[3].children[0].value='0.5';
+extras.children[4].children[0].value='Shop-supplied seal';
+extras.children[5].children[0].value='12.50';
 client.rpc=async()=>({data:{rows:[{id:'fuel',part_number:'FUEL',description:'Fuel filter',stock_unit:'each',sale_price:25}]}});
 await mixedDialog.children.at(-2).children[1].onclick();
-assert.equal(fields.parts.value,'197.90');
+assert.equal(fields.parts.value,'210.40');
 assert.equal(fields.hours.value,'1.5');
 assert.equal(editor.lines().find(line=>line.item_id==='fuel').quantity,2);
 assert.match(fields.notes.value,/Add-on labor: 0.5 h/);
 assert.equal(order.estimatePrebuiltJobs.at(-1).quote.total,98.95);
+
+assert.match(fields.notes.value,/Non-stock part: Shop-supplied seal.*12\.50/);
+assert.equal(editor.lines().length,2);
