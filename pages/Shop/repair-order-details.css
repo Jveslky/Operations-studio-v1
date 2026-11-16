@@ -1572,3 +1572,37 @@ textarea {
 
 .ro-prebuilt-jobs { padding-left: 1.25rem; }
 .ro-prebuilt-jobs:empty { display: none; }
+
+.ro-prebuilt-picker .ro-prebuilt-jobs {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+.ro-prebuilt-jobs li {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 16px;
+    padding: 9px 12px;
+    margin-bottom: 4px;
+    border: 1px solid #bed0dc;
+    border-radius: 6px;
+    background: #fff;
+}
+.ro-prebuilt-jobs li span { color: #52616a; }
+.prebuilt-dialog.ro-prebuilt-dialog { width: min(560px, calc(100vw - 24px)); }
+.ro-prebuilt-dialog > input { margin-bottom: 8px; }
+.ro-prebuilt-dialog [role="status"]:empty { display: none; }
+.ro-prebuilt-dialog .ro-prebuilt-preview {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 7px;
+    background: #e9f1f6;
+}
+.ro-prebuilt-preview h3 { margin: 0; }
+.ro-prebuilt-preview ul:empty { display: none; }
+.ro-prebuilt-dialog .prebuilt-actions { margin-block: 14px; flex-wrap: wrap; }
+.ro-prebuilt-dialog .prebuilt-actions button:last-child:not([hidden]) {
+    background: #a94117;
+    color: #fff;
+}
