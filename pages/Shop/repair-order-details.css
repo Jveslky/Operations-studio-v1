@@ -1488,38 +1488,38 @@ textarea {
     .estimate-card .estimate-header h2 { color: #783619; }
     .estimate-card #send-estimate-button,
     .estimate-card .ro-prebuilt-controls .primary-btn {
-        background: #ad4419;
-        border: 1px solid #ad4419;
+        background: #db6128;
+        border: 1px solid #db6128;
         color: #fff;
     }
     .estimate-card #send-estimate-button:hover:not(:disabled),
     .estimate-card .ro-prebuilt-controls .primary-btn:hover:not(:disabled) {
-        background: #8d3614;
+        background: #c95622;
     }
     .estimate-card .ro-prebuilt-picker {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
         gap: 8px 12px;
-        background: #fff8f2;
-        border-color: #ead0bd;
+        background: #e9f1f6;
+        border-color: #bed0dc;
     }
     .ro-prebuilt-picker h3 { margin: 0; }
     .ro-prebuilt-picker > a {
         padding: 6px 9px;
-        border: 1px solid #dfb99f;
+        border: 1px solid #a6becb;
         border-radius: 6px;
-        color: #783619;
+        color: #245562;
         background: #fff;
         font-size: .8125rem;
         font-weight: 700;
         text-decoration: none;
     }
-    .ro-prebuilt-picker > a:hover { background: #fff0e4; }
+    .ro-prebuilt-picker > a:hover { background: #dcebf3; }
     .ro-prebuilt-picker > :is(.ro-prebuilt-controls, p) { grid-column: 1 / -1; margin: 0; }
     .ro-prebuilt-picker #prebuilt-allocation-summary {
         padding-top: 8px;
-        border-top: 1px solid #ead0bd;
+        border-top: 1px solid #bed0dc;
         color: #52616a;
     }
     .estimate-total-row:has(#estimate-total) {
@@ -1527,4 +1527,24 @@ textarea {
         border-color: #e8c3a8;
     }
     .estimate-total-row:has(#estimate-total) :is(span, strong) { color: #783619; }
+}
+
+@media screen {
+    .estimate-card .estimate-grid > label {
+        min-width: 0;
+        padding: 12px;
+        border: 1px solid #e8c3a8;
+        border-radius: 8px;
+        background: #fff8f2;
+    }
+    .estimate-card .estimate-grid .detail-input {
+        box-sizing: border-box;
+        min-width: 0;
+        width: 100%;
+        background: #fff;
+        font-size: 1.125rem;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+    .estimate-card .estimate-grid input[type="number"]::placeholder { color: #65747e; }
 }
