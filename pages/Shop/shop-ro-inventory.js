@@ -7,13 +7,29 @@
   let lines=structuredClone(order.estimateStockLines),results=[],busy=false;
   const section=document.createElement('section');section.className='detail-card ro-stock-editor';
   const title=document.createElement('h3');title.textContent=titleText;section.append(title);
-  const help=document.createElement('p');help.textContent='Saved lines hold stock. Ready for Payment consumes held quantities after confirmation. On hand includes held parts until then. Manual parts charges remain in Parts total. Returns restore stock only; handle invoice credits separately.';section.append(help);
+  const help=document.createElement('p');help.textContent='Saved lines hold stock. Ready for Payment consumes held quantities after confirmation. On hand includes held parts until then. Manual parts charges remain in Parts total. Returns restore stock only; handle invoice credits separately.';if(hostElement)section.append(help);
   const message=document.createElement('p');message.setAttribute('role','status');section.append(message);
   const list=document.createElement('div');section.append(list);
   const search=document.createElement('input');search.className='detail-input';search.placeholder='Search stocked parts';search.setAttribute('aria-label','Search stocked parts');
   const find=document.createElement('button');find.className='secondary-btn';find.type='button';find.textContent='Search inventory';
   const found=document.createElement('div');
-  if(office){section.append(search,find,found);}
+  if(office){
+   if(hostElement){section.append(search,find,found);}
+   else{
+    const searchRow=document.createElement('div');
+    searchRow.className='ro-stock-search';
+    searchRow.append(search,find);
+    section.append(searchRow,found);
+   }
+  }
+  if(!hostElement){
+   const guidance=document.createElement('details');
+   guidance.className='ro-stock-help';
+   const summary=document.createElement('summary');
+   summary.textContent='Stock holds and returns';
+   guidance.append(summary,help);
+   section.append(guidance);
+  }
   const host=hostElement||document.getElementById('stocked-estimate-parts');
   if(host)host.append(section);else totalInput.closest('label')?.parentElement?.append(section);
   const total=()=>lines.reduce((n,x)=>n+Math.round(Number(x.quantity)*Number(x.unit_price)*100)/100,0);

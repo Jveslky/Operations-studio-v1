@@ -982,7 +982,7 @@ textarea {
     }
 
     .ro-work-panel textarea {
-        min-height: 90px;
+        min-height: 0;
         resize: vertical;
     }
 
@@ -1282,9 +1282,13 @@ textarea {
     }
 }
 @media screen {
+    .detail-header > div:first-child { flex: 1 1 360px; }
     .detail-header .detail-customer-unit {
-        background: #e2f1f4; border-left: 3px solid #69b2bd;
-        padding: 10px 14px; border-radius: 0 7px 7px 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 165px), 1fr));
+        gap: 8px 24px;
+        border: 0;
+        padding: 0;
     }
     #customer-name { display: inline; padding: 0; border-radius: 0; background: transparent; }
 }
@@ -1530,13 +1534,27 @@ textarea {
 }
 
 @media screen {
-    .estimate-card .estimate-grid > label {
-        min-width: 0;
+    .estimate-card .estimate-grid {
+        margin-block: 12px;
         padding: 12px;
-        border: 1px solid #e8c3a8;
+        border: 1px solid #ead8cb;
         border-radius: 8px;
         background: #fff8f2;
     }
+    .estimate-card .estimate-grid > label {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-width: 0;
+    }
+    #stocked-estimate-parts .ro-stock-editor { padding: 12px 14px; }
+    #stocked-estimate-parts h3 { margin: 0 0 8px; }
+    #stocked-estimate-parts [role="status"]:empty { margin: 0; }
+    .ro-stock-search { display: flex; flex-wrap: wrap; gap: 8px; }
+    .ro-stock-search input { flex: 1 1 230px; max-width: 360px; min-width: 0; }
+    .ro-stock-help { margin-top: 8px; color: #52616a; font-size: 13px; }
+    .ro-stock-help summary { width: fit-content; cursor: pointer; font-weight: 700; }
+    .ro-stock-help p { margin: 6px 0 0; max-width: 75ch; }
     .estimate-card .estimate-grid .detail-input {
         box-sizing: border-box;
         min-width: 0;
