@@ -401,8 +401,12 @@ if (!repairOrder) {
     document.querySelector("#unit-name").textContent =
         repairOrder.unit || "No unit entered";
 
-    statusDisplay.textContent =
-        repairOrder.status || "Open";
+    function showWorkflowStatus(status) {
+        statusDisplay.dataset.workflowStatus = status;
+        statusDisplay.textContent = status === "Complete" ? "Collected / Closed" : status;
+    }
+
+    showWorkflowStatus(repairOrder.status || "Open");
 
     // Keep a historical status selected until the user chooses a core status.
     const currentStatus = repairOrder.status || "Open";
@@ -622,8 +626,7 @@ if (!repairOrder) {
     });
 
     statusSelect.addEventListener("change", function () {
-        statusDisplay.textContent =
-            statusSelect.value;
+        showWorkflowStatus(statusSelect.value);
     });
 
 
@@ -738,7 +741,7 @@ if (!repairOrder) {
         if (!repairOrder.complaint) {
             repairOrder.status = "Needs Info";
             statusSelect.value = "Needs Info";
-            statusDisplay.textContent = "Needs Info";
+            showWorkflowStatus("Needs Info");
         }
 
 
@@ -751,7 +754,7 @@ if (!repairOrder) {
         ) {
             repairOrder.status = "Needs Info";
             statusSelect.value = "Needs Info";
-            statusDisplay.textContent = "Needs Info";
+            showWorkflowStatus("Needs Info");
         }
 
 

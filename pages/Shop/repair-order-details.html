@@ -8,7 +8,7 @@
 
     <link rel="stylesheet" href="../../css/base.css">
     <link rel="stylesheet" href="../../css/layout.css">
-    <link rel="stylesheet" href="./repair-order-details.css?v=detail-navigation-1">
+    <link rel="stylesheet" href="./repair-order-details.css?v=detail-visual-2">
 
 
 <link rel="manifest" href="./manifest.webmanifest?v=2">
@@ -96,6 +96,7 @@
 
         <nav class="ro-section-nav" aria-label="Repair order sections">
             <a href="#ro-work-request">Work Request</a>
+            <a href="#inspections-media">Inspections &amp; Media</a>
             <a href="#ro-estimate">Estimate</a>
             <a href="#approval-audit-title">Customer Approval</a>
         </nav>
@@ -120,7 +121,7 @@
                         <option value="Ready for Pickup">Ready for Pickup</option>
                         <option value="Complete">Collected / Closed</option>
                     </select>
-                    <small class="billing-help">Saving Ready for Payment prepares a draft invoice for office review. Approve or decline pending supplements first. Existing invoices are kept.</small>
+
                 </label>
 
 
@@ -158,6 +159,11 @@
 
             </div>
 
+
+            <details class="ro-status-guide">
+                <summary>Ready for Payment guidance</summary>
+                <p>Resolve pending supplements before saving. Ready for Payment prepares a draft invoice for office review and keeps existing invoices.</p>
+            </details>
 
             <label class="additional-work-field">
                 Additional Technician Work
@@ -202,7 +208,7 @@
 
             <article class="ro-work-panel">
 
-                <h2>Notes</h2>
+                <h2>Notes &amp; Findings</h2>
 
                 <label>
                     Customer Notes
@@ -642,10 +648,10 @@
     <script src="./shop-supplemental-estimates.js"></script>
     <script src="./shop-estimate-tax.js"></script>
     <script src="./shop-ro-inventory.js"></script>
-    <script src="shop-prebuilt-pricing.js"></script><script src="shop-prebuilt-editor.js"></script><script src="shop-prebuilt-apply.js"></script>
+    <script src="shop-prebuilt-pricing.js"></script><script src="shop-prebuilt-editor.js"></script><script src="shop-prebuilt-apply.js?v=detail-visual-2"></script>
 <script src="./shop-offline-notes.js?v=20261105-1"></script>
 <script src="./shop-offline-ro.js?v=20261105-6"></script>
-<script src="./repair-order-details.js?v=detail-navigation-1"></script>
+<script src="./repair-order-details.js?v=detail-visual-2"></script>
     <script src="./repair-order-media.js?v=private-media-1"></script>
 </body>
 </html>
