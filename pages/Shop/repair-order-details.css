@@ -1494,13 +1494,15 @@ textarea {
     }
     .estimate-card .estimate-header h2 { color: #783619; }
     .estimate-card #send-estimate-button,
-    .estimate-card .ro-prebuilt-controls .primary-btn {
+    .estimate-card .ro-prebuilt-controls .primary-btn,
+    .ro-prebuilt-dialog .prebuilt-actions button:last-child {
         background: #db6128;
         border: 1px solid #db6128;
         color: #fff;
     }
     .estimate-card #send-estimate-button:hover:not(:disabled),
-    .estimate-card .ro-prebuilt-controls .primary-btn:hover:not(:disabled) {
+    .estimate-card .ro-prebuilt-controls .primary-btn:hover:not(:disabled),
+    .ro-prebuilt-dialog .prebuilt-actions button:last-child:hover:not(:disabled) {
         background: #c95622;
     }
     .estimate-card .ro-prebuilt-picker {
@@ -1602,7 +1604,3 @@ textarea {
 .ro-prebuilt-preview h3 { margin: 0; }
 .ro-prebuilt-preview ul:empty { display: none; }
 .ro-prebuilt-dialog .prebuilt-actions { margin-block: 14px; flex-wrap: wrap; }
-.ro-prebuilt-dialog .prebuilt-actions button:last-child:not([hidden]) {
-    background: #a94117;
-    color: #fff;
-}
