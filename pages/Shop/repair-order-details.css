@@ -1354,3 +1354,23 @@ textarea {
 .ro-review-confirm { display: flex !important; align-items: flex-start; gap: 8px; margin: 16px 0; }
 .ro-review-confirm input { width: auto; flex: 0 0 auto; margin-top: 4px; }
 @media (max-width: 700px) { .ro-conflict-versions { grid-template-columns: minmax(0, 1fr); } }
+
+.ro-section-nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+.ro-section-nav a {
+    padding: 8px 12px;
+    border: 1px solid #b8c8cf;
+    border-radius: 6px;
+    background: #fff;
+    color: #27313b;
+    font-size: .875rem;
+    font-weight: 600;
+    text-decoration: none;
+}
+.ro-section-nav a:hover { background: #edf4f4; }
+.ro-section-nav a:focus-visible { outline: 2px solid #347f8c; outline-offset: 2px; }
+#ro-work-request, #ro-estimate, #approval-audit-title { scroll-margin-top: 16px; }

@@ -8,7 +8,7 @@
 
     <link rel="stylesheet" href="../../css/base.css">
     <link rel="stylesheet" href="../../css/layout.css">
-    <link rel="stylesheet" href="./repair-order-details.css?v=offline-ro-20261105-6">
+    <link rel="stylesheet" href="./repair-order-details.css?v=detail-navigation-1">
 
 
 <link rel="manifest" href="./manifest.webmanifest?v=2">
@@ -94,6 +94,12 @@
 
         </section>
 
+        <nav class="ro-section-nav" aria-label="Repair order sections">
+            <a href="#ro-work-request">Work Request</a>
+            <a href="#ro-estimate">Estimate</a>
+            <a href="#approval-audit-title">Customer Approval</a>
+        </nav>
+
         <!-- REPAIR ORDER CONTROLS -->
 
         <section class="ro-controls-panel">
@@ -172,7 +178,7 @@
 
             <article class="ro-work-panel">
 
-                <h2>Work Request</h2>
+                <h2 id="ro-work-request" tabindex="-1">Work Request</h2>
 
                 <label>
                     Complaint or Work Needed
@@ -269,7 +275,7 @@
             <div class="estimate-header">
 
                 <div>
-                    <h2>Estimate</h2>
+                    <h2 id="ro-estimate" tabindex="-1">Estimate</h2>
                     <p>
                         Prepare pricing and track customer approval.
                     </p>
@@ -459,7 +465,7 @@
         </section>
 
         <section class="detail-card approval-audit" aria-labelledby="approval-audit-title">
-            <h2 id="approval-audit-title">Customer Approval</h2>
+            <h2 id="approval-audit-title" tabindex="-1">Customer Approval</h2>
             <button id="approval-record-button" type="button" class="primary-btn" hidden>Record authorization</button>
             <p id="approval-audit-message" role="status" aria-live="polite"></p>
             <label id="approval-repeat-label" hidden><input id="approval-repeat" type="checkbox"> Record another authorization for this estimate</label>
@@ -639,7 +645,7 @@
     <script src="shop-prebuilt-pricing.js"></script><script src="shop-prebuilt-editor.js"></script><script src="shop-prebuilt-apply.js"></script>
 <script src="./shop-offline-notes.js?v=20261105-1"></script>
 <script src="./shop-offline-ro.js?v=20261105-6"></script>
-<script src="./repair-order-details.js?v=offline-ro-20261105-6"></script>
+<script src="./repair-order-details.js?v=detail-navigation-1"></script>
     <script src="./repair-order-media.js?v=private-media-1"></script>
 </body>
 </html>
