@@ -3,12 +3,12 @@
 window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
  const context=await window.trackRightAuthReady;if(!window.trackRightCan('repair_orders.write')||!['owner','admin','service_writer'].includes(context.role))return;
  const host=document.getElementById('stocked-estimate-parts');if(!host)return;
- const section=document.createElement('section');section.className='detail-card ro-prebuilt-picker';const title=document.createElement('h3');title.textContent='Prebuilt jobs';const link=document.createElement('a');link.href='prebuilt-jobs.html';link.target='_blank';link.rel='noopener';link.textContent='Manage shop catalog';const select=document.createElement('select');select.setAttribute('aria-label','Choose prebuilt job');const button=document.createElement('button');button.type='button';button.className='secondary-btn';button.textContent='Review prebuilt';const status=document.createElement('p');status.setAttribute('role','status');const allocation=document.createElement('p');allocation.id='prebuilt-allocation-summary';const controls=document.createElement('div');controls.className='ro-prebuilt-controls';
+ const section=document.createElement('section');section.className='detail-card ro-prebuilt-picker';const title=document.createElement('h3');title.textContent='Prebuilt jobs';const link=document.createElement('a');link.href='prebuilt-jobs.html';link.target='_blank';link.rel='noopener';link.textContent='Manage catalog';const select=document.createElement('select');select.setAttribute('aria-label','Choose prebuilt job');const button=document.createElement('button');button.type='button';button.className='primary-btn';button.textContent='Review job';const status=document.createElement('p');status.setAttribute('role','status');const allocation=document.createElement('p');allocation.id='prebuilt-allocation-summary';const controls=document.createElement('div');controls.className='ro-prebuilt-controls';
  const search=document.createElement('input');search.type='search';search.placeholder='Find a prebuilt job';search.setAttribute('aria-label','Find a prebuilt job');
  controls.append(search,select,button);section.append(title,link,controls,status,allocation);host.before(section);
  let templates=[],busy=false,pickerOpen=false;
  if(order.estimatePrebuiltJobs===undefined||!order.prebuiltAllocationsAvailable){status.textContent='Prebuilt migration is required before adding jobs.';button.disabled=true;return;}
- async function load(){const r=await window.trackRightSupabase.from('shop_prebuilt_jobs').select('*').eq('shop_id',context.shopId).eq('archived',false).order('updated_at',{ascending:false}).limit(200);if(r.error)throw r.error;templates=r.data;renderOptions();status.textContent=templates.length?'Choose a job, review quantities and prices, then save the RO to reserve stock.':'Create a prebuilt in the shop catalog first.';}
+ async function load(){const r=await window.trackRightSupabase.from('shop_prebuilt_jobs').select('*').eq('shop_id',context.shopId).eq('archived',false).order('updated_at',{ascending:false}).limit(200);if(r.error)throw r.error;templates=r.data;renderOptions();status.textContent=templates.length?'':'No prebuilt jobs yet. Add one in the catalog.';}
  function renderOptions(){
   const selected=select.value;
   const query=search.value.trim().toLowerCase();
@@ -22,7 +22,10 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
   if(matches.some(template=>template.id===selected))select.value=selected;
   button.disabled=busy||!matches.length;
  }
- search.addEventListener('input',renderOptions);
+ search.addEventListener('input',()=>{
+  renderOptions();
+  status.textContent=select.children.length?'':'No jobs match your search.';
+ });
  button.onclick=async()=>{if(busy)return;busy=true;button.disabled=true;try{
   const t=templates.find(t=>t.id===select.value);if(!t)return;
   const latest=await window.trackRightSupabase.from('shop_prebuilt_jobs').select('*').eq('id',t.id).eq('shop_id',context.shopId).single();if(latest.error)throw latest.error;if(latest.data.archived)throw Error('Template is archived. Refresh the page.');

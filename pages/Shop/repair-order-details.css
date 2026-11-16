@@ -1480,3 +1480,51 @@ textarea {
 @media screen and (min-width: 850px) {
     .estimate-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+@media screen {
+    .estimate-card .estimate-header {
+        background: #fff4eb;
+    }
+    .estimate-card .estimate-header h2 { color: #783619; }
+    .estimate-card #send-estimate-button,
+    .estimate-card .ro-prebuilt-controls .primary-btn {
+        background: #ad4419;
+        border: 1px solid #ad4419;
+        color: #fff;
+    }
+    .estimate-card #send-estimate-button:hover:not(:disabled),
+    .estimate-card .ro-prebuilt-controls .primary-btn:hover:not(:disabled) {
+        background: #8d3614;
+    }
+    .estimate-card .ro-prebuilt-picker {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 8px 12px;
+        background: #fff8f2;
+        border-color: #ead0bd;
+    }
+    .ro-prebuilt-picker h3 { margin: 0; }
+    .ro-prebuilt-picker > a {
+        padding: 6px 9px;
+        border: 1px solid #dfb99f;
+        border-radius: 6px;
+        color: #783619;
+        background: #fff;
+        font-size: .8125rem;
+        font-weight: 700;
+        text-decoration: none;
+    }
+    .ro-prebuilt-picker > a:hover { background: #fff0e4; }
+    .ro-prebuilt-picker > :is(.ro-prebuilt-controls, p) { grid-column: 1 / -1; margin: 0; }
+    .ro-prebuilt-picker #prebuilt-allocation-summary {
+        padding-top: 8px;
+        border-top: 1px solid #ead0bd;
+        color: #52616a;
+    }
+    .estimate-total-row:has(#estimate-total) {
+        background: #fff1e6;
+        border-color: #e8c3a8;
+    }
+    .estimate-total-row:has(#estimate-total) :is(span, strong) { color: #783619; }
+}
