@@ -26,10 +26,10 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
  }
  renderJobs();
  async function load(){const r=await window.trackRightSupabase.from('shop_prebuilt_jobs').select('*').eq('shop_id',context.shopId).eq('archived',false).order('updated_at',{ascending:false}).limit(200);if(r.error)throw r.error;return r.data||[];}
- function renderOptions(review,note){
+ function renderOptions(add,note,mode){
   const selected=select.value;
   const query=search.value.trim().toLowerCase();
-  const matches=templates.filter(t=>`${t.definition.name} ${t.definition.mode}`.toLowerCase().includes(query));
+  const matches=templates.filter(t=>t.definition.mode===mode&&t.definition.name.toLowerCase().includes(query));
   select.replaceChildren();
   for(const template of matches){
    const option=document.createElement('option');option.value=template.id;
@@ -37,8 +37,8 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
    select.append(option);
   }
   if(matches.some(template=>template.id===selected))select.value=selected;
-  review.disabled=!matches.length;
-  note.textContent=matches.length?'':templates.length?'No jobs match your search.':'No active jobs. Add one in the catalog.';
+  add.disabled=!matches.length;
+  note.textContent=matches.length?'':templates.length?'No matching jobs in this category.':'No active jobs. Add one in the catalog.';
  }
  async function quoteJob(templateId){
   const latest=await window.trackRightSupabase.from('shop_prebuilt_jobs').select('*').eq('id',templateId).eq('shop_id',context.shopId).single();if(latest.error)throw latest.error;if(latest.data.archived)throw Error('Template is archived. Refresh the page.');
@@ -73,61 +73,60 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
   const info=document.createElement('p');info.textContent=`Current repair order${order.customer?' · '+order.customer:''} · Labor rate $${Number(fields.rate.value||0).toFixed(2)}/h`;
   const note=document.createElement('p');note.setAttribute('role','status');note.textContent='Loading active jobs…';
   const actions=document.createElement('div');actions.className='prebuilt-actions';
-  const review=document.createElement('button');review.type='button';review.textContent='Review job';review.disabled=true;
   const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel';cancel.onclick=()=>dialog.close();
-  const preview=document.createElement('section');preview.className='ro-prebuilt-preview';preview.hidden=true;
-  const add=document.createElement('button');add.type='button';add.textContent='Add to estimate';add.hidden=true;
-  let selection=null,request=0;
-  function resetPreview(){
-   request++;selection=null;preview.hidden=true;add.hidden=true;
-  }
-  const filter=()=>{resetPreview();renderOptions(review,note);};
-  const changeJob=()=>{resetPreview();review.disabled=!select.value;note.textContent='';};
-  select.addEventListener('change',changeJob);
+  const add=document.createElement('button');add.type='button';add.textContent='Add to estimate';add.disabled=true;
   const catalogLink=link.cloneNode(true);
-  actions.append(review,cancel,add);dialog.append(heading,info,search,select,note,preview,actions,catalogLink);
+  const categories=document.createElement('div');categories.className='ro-prebuilt-categories';
+  categories.setAttribute('role','group');categories.setAttribute('aria-label','Pricing type');
+  let mode='flat',loading=true,adding=false;
+  const filter=()=>renderOptions(add,note,mode);
+  const categoryButtons=['flat','mixed','itemized'].map(value=>{
+   const category=document.createElement('button');category.type='button';
+   category.textContent=value[0].toUpperCase()+value.slice(1);
+   category.onclick=()=>selectCategory(value);
+   categories.append(category);
+   return [value,category];
+  });
+  function selectCategory(value){
+   mode=value;
+   for(const [key,category] of categoryButtons)category.setAttribute('aria-pressed',String(key===mode));
+   catalogLink.href='prebuilt-jobs.html?mode='+mode;
+   catalogLink.textContent='Build a '+mode+' job in Prebuilt Jobs';
+   if(!loading)filter();
+  }
+  selectCategory(mode);
+  actions.append(cancel,add);dialog.append(heading,categories,info,search,select,note,actions,catalogLink);
   document.body.append(dialog);
   dialog.addEventListener('close',()=>{
-   pickerOpen=false;search.removeEventListener('input',filter);
-   select.removeEventListener('change',changeJob);dialog.remove();
+   pickerOpen=false;search.removeEventListener('input',filter);dialog.remove();
   },{once:true});
-  review.onclick=async()=>{
-   if(review.disabled)return;
-   resetPreview();
-   const current=request;
-   review.disabled=true;note.textContent='Checking pricing and stocked parts…';
+  add.onclick=async()=>{
+   if(add.disabled||adding||!dialog.open||!select.value)return;
+   adding=true;
+   const id=select.value;
+   add.disabled=search.disabled=select.disabled=true;
+   for(const [,category] of categoryButtons)category.disabled=true;
+   note.textContent='Checking pricing and stocked parts…';
    try{
-    const result=await quoteJob(select.value);
-    if(!dialog.open||request!==current)return;
-    const q=result.quote;
-    const title=document.createElement('h3');title.textContent=q.definition.name;
-    const totals=document.createElement('p');
-    totals.textContent=`Labor $${q.labor.toFixed(2)} · Parts $${q.parts.toFixed(2)} · $${q.total.toFixed(2)} before tax · ${q.expectedHours} h expected`;
-    const parts=document.createElement('ul');
-    for(const line of q.lines){
-     const item=document.createElement('li');
-     item.textContent=`${line.description} · ${line.quantity} ${line.stock_unit||'units'}`;
-     parts.append(item);
-    }
-    preview.replaceChildren();preview.append(title,totals,parts);
-    selection=result;preview.hidden=false;add.hidden=false;note.textContent='';
-    add.focus();
-   }catch(e){if(dialog.open&&request===current)note.textContent=e.message;}
-   finally{if(dialog.open&&request===current)review.disabled=false;}
-  };
-  add.onclick=()=>{
-   if(!selection||!dialog.open)return;
-   try{
-    addJob(selection.template,selection.quote);
+    const {template,quote}=await quoteJob(id);
+    if(!dialog.open)return;
+    addJob(template,quote);
     dialog.close();section.scrollIntoView({block:'nearest'});
-   }catch(e){note.textContent=e.message;}
+   }catch(e){if(dialog.open)note.textContent=e.message;}
+   finally{
+    adding=false;
+    if(dialog.open){
+     add.disabled=search.disabled=select.disabled=false;
+     for(const [,category] of categoryButtons)category.disabled=false;
+    }
+   }
   };
   dialog.showModal();
   search.focus();
   try{
    const loaded=await load();
    if(!dialog.open)return;
-   templates=loaded;
+   templates=loaded;loading=false;
    filter();
    search.addEventListener('input',filter);
   }catch(e){note.textContent='Catalog unavailable: '+e.message;}

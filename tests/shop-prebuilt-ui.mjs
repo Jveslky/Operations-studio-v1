@@ -17,28 +17,30 @@ const button=root.previous.children.find(n=>n.className==='ro-prebuilt-controls'
 async function pickJob(confirm=true){
  await button.onclick();
  const dialog=context.document.body.children.at(-1);
- dialog.children[3].value='template';
+ dialog.children[4].value='template';
  const actions=dialog.children.at(-2);
- await actions.children[0].onclick();
- assert.equal(dialog.open,true);
- assert.equal(actions.children[2].hidden,false);
- actions.children[confirm?2:1].onclick();
+ await actions.children[confirm?1:0].onclick();
 }
 await pickJob();
 assert.equal(fields.parts.value,'83.95');assert.equal(fields.other.value,'0','package is not an Other charge');assert.equal(order.estimatePrebuiltLaborTotal,35);assert.equal(order.estimatePrebuiltPartsTotal,63.95);assert.equal(fields.hours.value,'1','flat package does not fabricate billed hours');assert.equal(editor.lines()[0].quantity,2,'included stock still reserves actual quantity');assert.equal(editor.lines()[0].unit_price,7.5,'existing stock charge preserved without a second part charge');assert.equal(order.estimatePrebuiltJobs[0].template_version,2);assert.match(fields.notes.value,/prebuilt labor \$35.00/);assert.deepEqual(writes,[],'adding a prebuilt does not post stock or financial transactions');
 const before=JSON.stringify(order);await pickJob(false);assert.equal(JSON.stringify(order),before,'cancelling review does not add a job');assert.ok(changes>0);
 console.log('Prebuilt UI: copied review, flat-price application, duplicate-stock merge, no fabricated labor hours, cancel and no immediate transactions passed.');
 
-fields.rate.value='175';const unchanged=JSON.stringify(order);await window.shopPrebuiltApply.openCurrent();const pickerDialog=context.document.body.children.at(-1);assert.equal(pickerDialog.open,true);assert.match(pickerDialog.children[1].textContent,/175.00/);assert.equal(JSON.stringify(order),unchanged,'opening toolbar picker never changes the estimate');assert.equal(pickerDialog.children[3].children.length,1,'picker contains active catalog results');const dialogCount=context.document.body.children.length;await window.shopPrebuiltApply.openCurrent();assert.equal(context.document.body.children.length,dialogCount,'repeated taps do not open multiple pickers');pickerDialog.children.at(-2).children[1].onclick();assert.equal(JSON.stringify(order),unchanged,'cancel leaves the estimate intact');console.log('Toolbar picker uses current rate, loads active jobs, prevents duplicate dialogs and cancels without changes');
+fields.rate.value='175';const unchanged=JSON.stringify(order);await window.shopPrebuiltApply.openCurrent();const pickerDialog=context.document.body.children.at(-1);assert.equal(pickerDialog.open,true);assert.match(pickerDialog.children[2].textContent,/175.00/);assert.equal(JSON.stringify(order),unchanged,'opening toolbar picker never changes the estimate');assert.equal(pickerDialog.children[4].children.length,1,'picker contains active catalog results');const dialogCount=context.document.body.children.length;await window.shopPrebuiltApply.openCurrent();assert.equal(context.document.body.children.length,dialogCount,'repeated taps do not open multiple pickers');pickerDialog.children.at(-2).children[0].onclick();assert.equal(JSON.stringify(order),unchanged,'cancel leaves the estimate intact');console.log('Toolbar picker uses current rate, loads active jobs, prevents duplicate dialogs and cancels without changes');
 
 assert.equal(root.previous.children.find(n=>n.className==='ro-prebuilt-jobs').children[0].children[0].textContent,'5 qt');
 await button.onclick();
 const searchDialog=context.document.body.children.at(-1);
-const search=searchDialog.children[2];
+const search=searchDialog.children[3];
 search.value='unmatched';
 search.events.input();
-assert.equal(searchDialog.children.at(-2).children[0].disabled,true);
+assert.equal(searchDialog.children.at(-2).children[1].disabled,true);
 search.value='5 qt';
 search.events.input();
-assert.equal(searchDialog.children.at(-2).children[0].disabled,false);
+assert.equal(searchDialog.children.at(-2).children[1].disabled,false);
+searchDialog.children[1].children[1].onclick();
+assert.equal(searchDialog.children.at(-2).children[1].disabled,true);
+assert.equal(searchDialog.children.at(-1).href,'prebuilt-jobs.html?mode=mixed');
+searchDialog.children[1].children[0].onclick();
+assert.equal(searchDialog.children.at(-2).children[1].disabled,false);
 searchDialog.close();

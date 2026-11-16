@@ -1595,12 +1595,10 @@ textarea {
 .prebuilt-dialog.ro-prebuilt-dialog { width: min(560px, calc(100vw - 24px)); }
 .ro-prebuilt-dialog > input { margin-bottom: 8px; }
 .ro-prebuilt-dialog [role="status"]:empty { display: none; }
-.ro-prebuilt-dialog .ro-prebuilt-preview {
-    margin-top: 12px;
-    padding: 12px;
-    border-radius: 7px;
-    background: #e9f1f6;
+.ro-prebuilt-categories { display: flex; flex-wrap: wrap; gap: 8px; }
+.ro-prebuilt-dialog .ro-prebuilt-categories button[aria-pressed="true"] {
+    background: #dcebf3;
+    border-color: #609da5;
+    color: #245562;
 }
-.ro-prebuilt-preview h3 { margin: 0; }
-.ro-prebuilt-preview ul:empty { display: none; }
 .ro-prebuilt-dialog .prebuilt-actions { margin-block: 14px; flex-wrap: wrap; }
