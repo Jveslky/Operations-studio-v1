@@ -3,13 +3,23 @@
 window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
  const context=await window.trackRightAuthReady;if(!window.trackRightCan('repair_orders.write')||!['owner','admin','service_writer'].includes(context.role))return;
  const host=document.getElementById('stocked-estimate-parts');if(!host)return;
- const section=document.createElement('section');section.className='detail-card ro-prebuilt-picker';const title=document.createElement('h3');title.textContent='Prebuilt jobs';const link=document.createElement('a');link.href='prebuilt-jobs.html';link.target='_blank';link.rel='noopener';link.textContent='Manage catalog';const select=document.createElement('select');select.setAttribute('aria-label','Choose prebuilt job');const button=document.createElement('button');button.type='button';button.className='primary-btn';button.textContent='Review job';const status=document.createElement('p');status.setAttribute('role','status');const allocation=document.createElement('p');allocation.id='prebuilt-allocation-summary';const controls=document.createElement('div');controls.className='ro-prebuilt-controls';
+ const section=document.createElement('section');section.className='detail-card ro-prebuilt-picker';const title=document.createElement('h3');title.textContent='Prebuilt jobs';const link=document.createElement('a');link.href='prebuilt-jobs.html';link.target='_blank';link.rel='noopener';link.textContent='Manage catalog';const select=document.createElement('select');select.setAttribute('aria-label','Choose prebuilt job');const button=document.createElement('button');button.type='button';button.className='primary-btn';button.textContent='Add prebuilt job';const status=document.createElement('p');status.setAttribute('role','status');const allocation=document.createElement('p');allocation.id='prebuilt-allocation-summary';const controls=document.createElement('div');controls.className='ro-prebuilt-controls';
  const search=document.createElement('input');search.type='search';search.placeholder='Find a prebuilt job';search.setAttribute('aria-label','Find a prebuilt job');
- controls.append(search,select,button);section.append(title,link,controls,status,allocation);host.before(section);
+ const jobs=document.createElement('ul');jobs.className='ro-prebuilt-jobs';
+ controls.append(button);section.append(title,link,controls,status,jobs,allocation);host.before(section);
  let templates=[],busy=false,pickerOpen=false;
  if(order.estimatePrebuiltJobs===undefined||!order.prebuiltAllocationsAvailable){status.textContent='Prebuilt migration is required before adding jobs.';button.disabled=true;return;}
- async function load(){const r=await window.trackRightSupabase.from('shop_prebuilt_jobs').select('*').eq('shop_id',context.shopId).eq('archived',false).order('updated_at',{ascending:false}).limit(200);if(r.error)throw r.error;templates=r.data;renderOptions();status.textContent=templates.length?'':'No prebuilt jobs yet. Add one in the catalog.';}
- function renderOptions(){
+ function renderJobs(){
+  jobs.replaceChildren();
+  for(const job of order.estimatePrebuiltJobs){
+   const item=document.createElement('li');
+   item.textContent=job.definition?.name||job.quote?.definition?.name||'Prebuilt job';
+   jobs.append(item);
+  }
+ }
+ renderJobs();
+ async function load(){const r=await window.trackRightSupabase.from('shop_prebuilt_jobs').select('*').eq('shop_id',context.shopId).eq('archived',false).order('updated_at',{ascending:false}).limit(200);if(r.error)throw r.error;return r.data||[];}
+ function renderOptions(review,note){
   const selected=select.value;
   const query=search.value.trim().toLowerCase();
   const matches=templates.filter(t=>`${t.definition.name} ${t.definition.mode}`.toLowerCase().includes(query));
@@ -20,13 +30,13 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
    select.append(option);
   }
   if(matches.some(template=>template.id===selected))select.value=selected;
-  button.disabled=busy||!matches.length;
+  review.disabled=!matches.length;
+  note.textContent=matches.length?'':templates.length?'No jobs match your search.':'No active jobs. Add one in the catalog.';
  }
- search.addEventListener('input',()=>{
-  renderOptions();
-  status.textContent=select.children.length?'':'No jobs match your search.';
- });
- button.onclick=async()=>{if(busy)return;busy=true;button.disabled=true;try{
+ async function reviewJob(){
+  if(busy)return;
+  busy=true;button.disabled=true;
+  try{
   const t=templates.find(t=>t.id===select.value);if(!t)return;
   const latest=await window.trackRightSupabase.from('shop_prebuilt_jobs').select('*').eq('id',t.id).eq('shop_id',context.shopId).single();if(latest.error)throw latest.error;if(latest.data.archived)throw Error('Template is archived. Refresh the page.');
   const template=structuredClone(latest.data);
@@ -44,21 +54,44 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
   fields.notes.value=[fields.notes.value,summary].filter(Boolean).join('\n');
   order.estimatePrebuiltJobs.push({schema_version:2,instance_id:crypto.randomUUID(),template_id:template.id,template_version:template.version,added_at:new Date().toISOString(),definition:q.definition,quote:q,summary});
   Object.assign(order,{estimatePrebuiltLaborTotal:window.shopPrebuiltPricing.totals(order.estimatePrebuiltJobs).labor,estimatePrebuiltPartsTotal:window.shopPrebuiltPricing.totals(order.estimatePrebuiltJobs).parts});
-  changed();status.textContent='Added to the unsaved estimate. Review totals and tax, then save; normal approval revision and stock checks apply.';
- }catch(e){status.textContent=e.message;}finally{busy=false;renderOptions();}};
+  renderJobs();changed();status.textContent='Added to the unsaved estimate. Review totals and tax, then save; normal approval revision and stock checks apply.';
+ }catch(e){status.textContent=e.message;}finally{busy=false;button.disabled=false;button.focus();}}
  window.shopPrebuiltApply.openCurrent=async()=>{
-  if(busy||pickerOpen)return;pickerOpen=true;
-  const dialog=document.createElement('dialog');dialog.className='prebuilt-dialog';dialog.setAttribute('aria-label','Add prebuilt to current repair order');
-  const heading=document.createElement('h2');heading.textContent='Add prebuilt';
+  if(busy||pickerOpen)return;
+  pickerOpen=true;
+  search.value='';select.replaceChildren();templates=[];
+  const dialog=document.createElement('dialog');
+  dialog.className='prebuilt-dialog';
+  dialog.setAttribute('aria-label','Add prebuilt job');
+  const heading=document.createElement('h2');heading.textContent='Add prebuilt job';
   const info=document.createElement('p');info.textContent=`Current repair order${order.customer?' · '+order.customer:''} · Labor rate $${Number(fields.rate.value||0).toFixed(2)}/h`;
-  const picker=document.createElement('select');picker.setAttribute('aria-label','Active prebuilt jobs');
   const note=document.createElement('p');note.setAttribute('role','status');note.textContent='Loading active jobs…';
-  const actions=document.createElement('div');actions.className='prebuilt-actions';const review=document.createElement('button');review.type='button';review.textContent='Review prebuilt';review.disabled=true;
-  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel';cancel.onclick=()=>dialog.close();actions.append(review,cancel);dialog.append(heading,info,picker,note,actions);document.body.append(dialog);dialog.addEventListener('close',()=>{pickerOpen=false;dialog.remove()},{once:true});dialog.showModal();
-  try{await load();if(!dialog.open)return;for(const t of templates){const option=document.createElement('option');option.value=t.id;option.textContent=`${t.definition.name} · ${t.definition.mode}`;picker.append(option)}review.disabled=!templates.length;note.textContent=templates.length?'Review parts, quantities and pricing before adding to this estimate.':'No active jobs. Create one in Inventory → Prebuilt Jobs.';}catch(e){note.textContent='Catalog unavailable: '+e.message;}
-  review.onclick=async()=>{if(review.disabled)return;search.value="";renderOptions();select.value=picker.value;dialog.close();await button.onclick();section.scrollIntoView({block:'center'});};
+  const actions=document.createElement('div');actions.className='prebuilt-actions';
+  const review=document.createElement('button');review.type='button';review.textContent='Review job';review.disabled=true;
+  const cancel=document.createElement('button');cancel.type='button';cancel.textContent='Cancel';cancel.onclick=()=>dialog.close();
+  const filter=()=>renderOptions(review,note);
+  actions.append(review,cancel);dialog.append(heading,info,search,select,note,actions);
+  document.body.append(dialog);
+  dialog.addEventListener('close',()=>{
+   pickerOpen=false;search.removeEventListener('input',filter);dialog.remove();
+  },{once:true});
+  review.onclick=async()=>{
+   if(review.disabled)return;
+   dialog.close();
+   await reviewJob();
+   section.scrollIntoView({block:'nearest'});
+  };
+  dialog.showModal();
+  search.focus();
+  try{
+   const loaded=await load();
+   if(!dialog.open)return;
+   templates=loaded;
+   filter();
+   search.addEventListener('input',filter);
+  }catch(e){note.textContent='Catalog unavailable: '+e.message;}
  };
+ button.onclick=window.shopPrebuiltApply.openCurrent;
  window.dispatchEvent(new CustomEvent('longshift:prebuilt-ready'));
- try{await load();}catch(e){status.textContent='Prebuilt catalog unavailable: '+e.message;button.disabled=true;}
 }};
 })();
