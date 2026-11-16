@@ -310,7 +310,7 @@ textarea {
     margin-top: 4px;
     padding: 0;
     overflow: hidden;
-    background: linear-gradient( to right, #ffffff 0%, #f4f8f8 72%, #e1f0f2 100% );
+    background: #fff;
     border: 1px solid #c6d2d4;
     border-top: 4px solid #db6128;
     border-radius: 10px;
@@ -1403,14 +1403,13 @@ textarea {
     .ro-status-guide p { margin: 6px 0; }
     .ro-work-panel { min-width: 0; }
     .ro-work-panel:first-child { border-top: 3px solid #347f8c; }
-    #complaint.detail-input { background: #f4f8f8; border-color: #9cb5ba; }
     .ro-media-header { gap: 12px; flex-wrap: wrap; }
     .attach-inspection-panel { max-width: 100%; }
     .attach-inspection-controls { display: flex; flex-wrap: wrap; gap: 8px; }
     .attach-inspection-controls select { max-width: 100%; }
     .ro-prebuilt-picker.detail-card {
         padding: 12px 14px;
-        background: #edf4f4;
+        background: #f7f6f4;
     }
     .ro-prebuilt-picker h3 { margin: 0 0 4px; }
     .ro-prebuilt-controls { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
@@ -1442,4 +1441,42 @@ textarea {
         [data-workflow-status="Awaiting Payment"]) { background: #f4ead6; color: #684b18; }
     #status-display:is([data-workflow-status="Ready for Pickup"], [data-workflow-status="Complete"],
         [data-workflow-status="Closed"], [data-workflow-status="Paid"]) { background: #e1ede4; color: #28543b; }
+}
+
+@media screen {
+    .estimate-card .ro-prebuilt-picker,
+    .estimate-card #stocked-estimate-parts > .detail-card {
+        margin: 0 20px 14px;
+        padding: 14px;
+        border: 1px solid #d7d9dc;
+        border-radius: 8px;
+        box-shadow: none;
+    }
+    .estimate-card #stocked-estimate-parts > .detail-card { background: #f7f6f4; }
+    .estimate-total-row {
+        gap: 16px;
+        padding: 7px 12px;
+        border-bottom: 0;
+    }
+    .estimate-total-row strong {
+        min-width: 0;
+        flex: 0 1 9rem;
+        font-size: 16px;
+        font-variant-numeric: tabular-nums;
+    }
+    .estimate-total-row:has(#estimate-total) {
+        padding-block: 10px;
+        background: #f4f1ed;
+        border: 1px solid #ded8d0;
+        border-radius: 6px;
+    }
+    #estimate-total { font-size: 22px; }
+    .estimate-card :is(#estimate-tax-message, #ro-billing-summary) {
+        margin: 8px 20px;
+        color: #52616a;
+        font-size: 13px;
+    }
+}
+@media screen and (min-width: 850px) {
+    .estimate-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
