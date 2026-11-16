@@ -1456,7 +1456,10 @@ textarea {
         border-radius: 8px;
         box-shadow: none;
     }
-    .estimate-card #stocked-estimate-parts > .detail-card { background: #f7f6f4; }
+    .estimate-card #stocked-estimate-parts > .detail-card {
+        background: #e9f1f6;
+        border-color: #bed0dc;
+    }
     .estimate-total-row {
         gap: 16px;
         padding: 7px 12px;
