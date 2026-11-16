@@ -47,7 +47,7 @@ const qty=pending?String(pending.p_quantity):window.prompt('Quantity physically 
    if(!office)throw Error('Office estimate access is required.');
    const next=structuredClone(lines);
    for(const addition of additions){const existing=next.find(x=>x.item_id===addition.item_id);
-    if(existing){const value=Math.round(existing.quantity*existing.unit_price*100)/100;existing.quantity=Math.round((Number(existing.quantity)+Number(addition.quantity))*1000)/1000;existing.unit_price=Math.floor((value/existing.quantity)*100)/100;}
+    if(existing){const value=Math.round((existing.quantity*existing.unit_price+addition.quantity*addition.unit_price)*100)/100;existing.quantity=Math.round((Number(existing.quantity)+Number(addition.quantity))*1000)/1000;existing.unit_price=Math.floor((value/existing.quantity)*100)/100;}
     else next.push(structuredClone(addition));
    }
    if(next.length>100)throw Error('At most 100 stocked lines per estimate.');

@@ -29,7 +29,7 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
  function renderOptions(add,note,mode){
   const selected=select.value;
   const query=search.value.trim().toLowerCase();
-  const matches=templates.filter(t=>t.definition.mode===mode&&t.definition.name.toLowerCase().includes(query));
+  const matches=templates.filter(t=>(mode==='mixed'||t.definition.mode===mode)&&t.definition.name.toLowerCase().includes(query));
   select.replaceChildren();
   for(const template of matches){
    const option=document.createElement('option');option.value=template.id;
@@ -47,17 +47,25 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
   const quote=window.shopPrebuiltPricing.quote(template.definition,Number(fields.rate.value||0));
   return {template,quote};
  }
- function addJob(template,q){
+ function addJob(template,q,extraPart,extraHours=0){
   if(q.laborHours>0&&Number(fields.rate.value||0)<=0)throw Error('Enter the estimate labor rate before adding itemized labor.');
   if(q.lines.some(l=>l.item_id)&&!stockEditor)throw Error('Stock editor unavailable. No job added.');
   if(order.estimatePrebuiltJobs.length>=100)throw Error('At most 100 prebuilt instances per estimate.');
+  if(extraPart&&!stockEditor)throw Error('Stock editor unavailable. No job added.');
+  const extraCharge=extraPart?Math.round(extraPart.quantity*extraPart.unit_price*100)/100:0;
   const oldParts=Number(fields.parts.value||0);
   // Existing line value is preserved when adding a second use of the same part.
   // Package billing is carried by the estimate totals, not charged twice here.
-  if(stockEditor)stockEditor.addLines(q.lines.filter(l=>l.item_id).map(l=>({item_id:l.item_id,part_number:l.part_number,description:l.description,stock_unit:l.stock_unit,quantity:l.quantity,unit_price:0})));
-  fields.parts.value=(oldParts+q.parts).toFixed(2);
+  const stockLines=q.lines.filter(l=>l.item_id).map(l=>({item_id:l.item_id,part_number:l.part_number,description:l.description,stock_unit:l.stock_unit,quantity:l.quantity,unit_price:0}));
+  // The add-on charge is included in Parts Total even when it shares a stock line with the package.
+  if(extraPart)stockLines.push(extraPart);
+  if(stockEditor)stockEditor.addLines(stockLines);
+  fields.parts.value=(oldParts+q.parts+extraCharge).toFixed(2);
+  if(extraHours)fields.hours.value=String(Math.round((Number(fields.hours.value||0)+extraHours)*1000)/1000);
   const summary=`${q.definition.name} (${q.definition.mode}): prebuilt labor $${q.labor.toFixed(2)}, prebuilt parts $${q.parts.toFixed(2)}, expected job time ${q.expectedHours} h; billable hours ${q.laborHours} h × $${q.rate.toFixed(2)}. ${q.lines.map(l=>`${l.part_number||l.description}: ${l.quantity} ${l.stock_unit||'units'}, charge $${l.charge.toFixed(2)}`).join('; ')}`;
-  fields.notes.value=[fields.notes.value,summary].filter(Boolean).join('\n');
+  fields.notes.value=[fields.notes.value,summary,
+   extraPart&&`Add-on part: ${extraPart.part_number} · ${extraPart.quantity} ${extraPart.stock_unit} · $${extraCharge.toFixed(2)}`,
+   extraHours&&`Add-on labor: ${extraHours} h × $${q.rate.toFixed(2)}`].filter(Boolean).join('\n');
   order.estimatePrebuiltJobs.push({schema_version:2,instance_id:crypto.randomUUID(),template_id:template.id,template_version:template.version,added_at:new Date().toISOString(),definition:q.definition,quote:q,summary});
   Object.assign(order,{estimatePrebuiltLaborTotal:window.shopPrebuiltPricing.totals(order.estimatePrebuiltJobs).labor,estimatePrebuiltPartsTotal:window.shopPrebuiltPricing.totals(order.estimatePrebuiltJobs).parts});
   renderJobs();changed();status.textContent='Job added. Save the repair order to keep it.';
@@ -80,7 +88,26 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
   categories.setAttribute('role','group');categories.setAttribute('aria-label','Pricing type');
   let mode='flat',loading=true,adding=false;
   const filter=()=>renderOptions(add,note,mode);
-  const categoryButtons=['flat','mixed','itemized'].map(value=>{
+  const extras=document.createElement('fieldset');extras.hidden=true;
+  const legend=document.createElement('legend');legend.textContent='Optional add-ons';extras.append(legend);
+  function extraField(labelText,type,value){
+   const label=document.createElement('label');label.textContent=labelText;
+   const input=document.createElement('input');input.type=type;input.value=value;
+   label.append(input);extras.append(label);return input;
+  }
+  const partNumber=extraField('Stocked part number','text','');
+  const quantity=extraField('Part quantity','number','1');quantity.min='0.001';quantity.step='0.001';
+  const hours=extraField('Additional labor hours','number','');hours.min='0';hours.step='0.1';
+  async function getExtraPart(number,count){
+   if(!number)return null;
+   if(!Number.isFinite(count)||count<=0||count>9999999||Math.abs(count*1000-Math.round(count*1000))>0.00001)throw Error('Enter a positive part quantity with up to three decimals.');
+   const result=await window.trackRightSupabase.rpc('shop_inventory_directory',{p_shop:context.shopId,p_search:number,p_filter:'active',p_page:0,p_size:25});
+   if(result.error)throw result.error;
+   const item=result.data.rows.find(row=>row.part_number.toLowerCase()===number.toLowerCase());
+   if(!item)throw Error('Enter an exact active stocked part number.');
+   return {item_id:item.id,part_number:item.part_number,description:item.description,stock_unit:item.stock_unit,quantity:count,unit_price:Number(item.sale_price)};
+  }
+  const categoryButtons=['flat','mixed'].map(value=>{
    const category=document.createElement('button');category.type='button';
    category.textContent=value[0].toUpperCase()+value.slice(1);
    category.onclick=()=>selectCategory(value);
@@ -88,14 +115,14 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
    return [value,category];
   });
   function selectCategory(value){
-   mode=value;
+   mode=value;extras.hidden=mode!=='mixed';
    for(const [key,category] of categoryButtons)category.setAttribute('aria-pressed',String(key===mode));
    catalogLink.href='prebuilt-jobs.html?mode='+mode;
    catalogLink.textContent='Build a '+mode+' job in Prebuilt Jobs';
    if(!loading)filter();
   }
   selectCategory(mode);
-  actions.append(cancel,add);dialog.append(heading,categories,info,search,select,note,actions,catalogLink);
+  actions.append(cancel,add);dialog.append(heading,categories,info,search,select,extras,note,actions,catalogLink);
   document.body.append(dialog);
   dialog.addEventListener('close',()=>{
    pickerOpen=false;search.removeEventListener('input',filter);dialog.remove();
@@ -104,19 +131,23 @@ window.shopPrebuiltApply={async mount({order,stockEditor,fields,changed}){
    if(add.disabled||adding||!dialog.open||!select.value)return;
    adding=true;
    const id=select.value;
-   add.disabled=search.disabled=select.disabled=true;
+   add.disabled=search.disabled=select.disabled=extras.disabled=true;
    for(const [,category] of categoryButtons)category.disabled=true;
    note.textContent='Checking pricing and stocked parts…';
    try{
     const {template,quote}=await quoteJob(id);
+    const extraHours=mode==='mixed'?Number(hours.value||0):0;
+    if(!Number.isFinite(extraHours)||extraHours<0||extraHours>9999999||Math.abs(extraHours*10-Math.round(extraHours*10))>0.00001)throw Error('Enter labor hours in tenths of an hour.');
+    if(extraHours&&quote.rate<=0)throw Error('Enter the estimate labor rate before adding labor.');
+    const extraPart=mode==='mixed'?await getExtraPart(partNumber.value.trim(),Number(quantity.value)):null;
     if(!dialog.open)return;
-    addJob(template,quote);
+    addJob(template,quote,extraPart,extraHours);
     dialog.close();section.scrollIntoView({block:'nearest'});
    }catch(e){if(dialog.open)note.textContent=e.message;}
    finally{
     adding=false;
     if(dialog.open){
-     add.disabled=search.disabled=select.disabled=false;
+     add.disabled=search.disabled=select.disabled=extras.disabled=false;
      for(const [,category] of categoryButtons)category.disabled=false;
     }
    }

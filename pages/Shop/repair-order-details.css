@@ -1602,3 +1602,5 @@ textarea {
     color: #245562;
 }
 .ro-prebuilt-dialog .prebuilt-actions { margin-block: 14px; flex-wrap: wrap; }
+.ro-prebuilt-dialog fieldset[hidden] { display: none; }
+.ro-prebuilt-dialog fieldset:not([hidden]) { background: #e9f1f6; }
