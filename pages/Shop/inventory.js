@@ -51,7 +51,24 @@
         const container=el('inventory-rows');container.replaceChildren();
         for(const item of rows){
             const card=document.createElement('article');card.className='inventory-part';
-            card.innerHTML=`<div><h3>${escape(item.part_number)} ${item.archived?'· Archived':''}</h3><p>${escape(item.manufacturer||'No manufacturer')} · ${escape(item.description)}</p><p>Bin: ${escape(item.location||'Not set')} · Sale: ${money(item.sale_price)} / ${escape(item.stock_unit)}</p></div><div><div class="count ${Number(item.on_hand)<=Number(item.reorder_point)?'low':''}">${quantity(item.on_hand)} ${escape(item.stock_unit)}</div><p>On hand · Reorder at ${quantity(item.reorder_point)}</p><p>On hold: ${quantity(item.on_hold||0)} · Available: ${quantity(item.available??item.on_hand)}</p><p>Last receipt cost: ${item.last_unit_cost==null?'—':money(item.last_unit_cost)}</p></div><div class="inventory-actions"></div>`;
+            const low=Number(item.on_hand)<=Number(item.reorder_point);
+            card.innerHTML=`
+                <div class="inventory-identification">
+                    <h3>${escape(item.part_number)} ${item.archived?'· Archived':''}</h3>
+                    <p>${escape(item.description)}</p>
+                    <p>${[item.manufacturer,item.category].filter(Boolean).map(escape).join(' · ')}${item.manufacturer||item.category?' · ':''}Bin: ${escape(item.location||'Not set')}</p>
+                </div>
+                <dl class="inventory-counts">
+                    <div><dt>On hand</dt><dd class="${low?'low':''}">${quantity(item.on_hand)}</dd></div>
+                    <div><dt>Held</dt><dd>${quantity(item.on_hold||0)}</dd></div>
+                    <div><dt>Available</dt><dd>${quantity(item.available??item.on_hand)}</dd></div>
+                    <div><dt>Reorder at</dt><dd>${quantity(item.reorder_point)}</dd></div>
+                </dl>
+                <div class="inventory-pricing">
+                    <p>Sale <strong>${money(item.sale_price)}</strong> / ${escape(item.stock_unit)}</p>
+                    <p>Last receipt cost ${item.last_unit_cost==null?'—':money(item.last_unit_cost)}</p>
+                </div>
+                <div class="inventory-actions"></div>`;
             const actions=card.querySelector('.inventory-actions');
             function button(label,action,write=false){const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=write&&(busy||!!pending||!loaded);b.addEventListener('click',action);actions.append(b);}
             button('History',()=>{historyItem=item;historyPage=0;loadHistory();});
