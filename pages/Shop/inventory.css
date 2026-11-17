@@ -154,7 +154,6 @@
 }
 #inventory-category-title { display:flex; align-items:center; gap:12px; }
 #inventory-category-title .inventory-category-icon { flex:none; }
-.inventory-page .inventory-back-shop,
 .inventory-page #inventory-category-back {
     background:#d96326;
     border:1px solid #d96326;
@@ -164,7 +163,6 @@
     padding:11px 16px;
     text-decoration:none;
 }
-.inventory-page .inventory-back-shop:hover,
 .inventory-page #inventory-category-back:hover { background:#bd511f; border-color:#bd511f; }
 
 .inventory-page { padding-top: 22px; }
