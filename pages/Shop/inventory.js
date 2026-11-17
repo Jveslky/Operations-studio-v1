@@ -29,6 +29,35 @@
         action.storageKey=keys.sort()[0];return action;
     }
     function message(text,error=false){el('inventory-message').textContent=text;el('inventory-message').classList.toggle('is-error',error);}
+    let category=null,categories=[],categoryAvailable=!receivingView,categoryOverview=false;
+    function renderCategories(){
+        const grid=el('inventory-categories');
+        grid.hidden=!categoryOverview;
+        el('inventory-rows').hidden=categoryOverview;
+        el('inventory-parts-pager').hidden=categoryOverview;
+        el('inventory-category-back').hidden=receivingView||!categoryAvailable||categoryOverview;
+        const title=el('inventory-category-title');
+        el('item-category').disabled=!categoryAvailable;
+        title.hidden=category===null;
+        title.textContent=category||'Uncategorized';
+        grid.replaceChildren();
+        if(!categoryOverview)return;
+        const options=el('inventory-category-options');options.replaceChildren();
+        for(const group of categories){
+            const tile=document.createElement('button');tile.type='button';
+            const icon=document.createElement('span');icon.className='inventory-category-icon';icon.setAttribute('aria-hidden','true');
+            icon.textContent=({'filters':'◉','tires':'◎','fluids & lubricants':'◒','brakes':'⊙','electrical':'ϟ','lighting':'◐'})[group.category?.toLowerCase()]||'▣';
+            const name=document.createElement('strong');name.textContent=group.category||'Uncategorized';
+            const count=document.createElement('span');count.textContent=group.item_count+' items';
+            tile.append(icon,name,count);
+            if(Number(group.low_count)>0){
+                const low=document.createElement('span');low.className='inventory-category-low';low.textContent=group.low_count+' low stock';tile.append(low);
+            }
+            tile.addEventListener('click',()=>{category=group.category??'';page=0;load();el('inventory-category-back').focus();});
+            grid.append(tile);
+            if(group.category){const option=document.createElement('option');option.value=group.category;options.append(option);}
+        }
+    }
     function controls(){
         const locked=busy||!!pending||!loaded;
         el('inventory-new').hidden=!canManage;
@@ -80,11 +109,23 @@
     async function load(){
         const request=++generation;loaded=false;rows=[];controls();message('Loading stock…');
         try{
-            const result=await client.rpc('shop_inventory_directory',{p_shop:context.shopId,p_search:el('inventory-search').value.trim(),p_filter:el('inventory-filter').value,p_page:page,p_size:25});
+            const search=el('inventory-search').value.trim(),filter=el('inventory-filter').value;
+            const args={p_shop:context.shopId,p_search:search,p_filter:filter,p_page:page,p_size:25};
+            let result=categoryAvailable&&!receivingView
+                ?await client.rpc('shop_inventory_category_directory',{...args,p_category:search?null:category})
+                :await client.rpc('shop_inventory_directory',args);
+            if(request!==generation)return;
+            if(result.error?.code==='PGRST202'&&categoryAvailable&&!receivingView){
+                categoryAvailable=false;
+                result=await client.rpc('shop_inventory_directory',args);
+            }
             if(request!==generation)return;if(result.error)throw result.error;
+            categoryOverview=categoryAvailable&&!receivingView&&!search&&filter==='active'&&category===null&&Array.isArray(result.data.categories);
+            if(categoryOverview)categories=result.data.categories;
+            renderCategories();
             count=Number(result.data.count);if(page>0&&page*25>=count){page=Math.max(0,Math.ceil(count/25)-1);return load();}
             rows=result.data.rows||[];canReceive=result.data.can_receive===true;canManage=result.data.can_manage===true;loaded=true;controls();
-            message(rows.length?'Stock refreshed. Open History for receipts and corrections.':'No matching parts. An owner/admin can add the first catalog item.');
+            message(categoryOverview?(categories.length?'':'No active parts in the catalog.'):rows.length?'Stock refreshed. Open History for receipts and corrections.':'No matching parts. An owner/admin can add the first catalog item.');
         }catch(error){if(request!==generation)return;count=0;canReceive=false;canManage=false;controls();message(`Inventory unavailable: ${error.message}. If this workspace has not been installed, apply the inventory foundation SQL update.`,true);}
     }
     async function loadHistory(){
@@ -99,11 +140,11 @@
             el('history-previous').disabled=historyPage===0;el('history-next').disabled=(historyPage+1)*25>=historyCount;
         }catch(error){if(request!==historyGeneration)return;el('inventory-history-rows').textContent=`History unavailable: ${error.message}`;el('history-page-label').textContent='';}
     }
-    const itemFields={part_number:'item-part-number',manufacturer:'item-manufacturer',description:'item-description',stock_unit:'item-stock-unit',location:'item-location',sale_price:'item-sale-price',reorder_point:'item-reorder-point',archived:'item-archived'};
+    const itemFields={category:'item-category',part_number:'item-part-number',manufacturer:'item-manufacturer',description:'item-description',stock_unit:'item-stock-unit',location:'item-location',sale_price:'item-sale-price',reorder_point:'item-reorder-point',archived:'item-archived'};
     function editItem(item=null){
         if(dirty&&!window.confirm('Discard unsaved part edits?'))return;
         editing=item;dirty=false;el('inventory-editor').hidden=false;el('inventory-editor-title').textContent=item?'Edit part':'Add part';
-        for(const [key,id] of Object.entries(itemFields)){const node=el(id),value=item?.[key]??(key==='stock_unit'?'each':key==='sale_price'||key==='reorder_point'?'0':'');if(node.type==='checkbox')node.checked=value===true;else node.value=value;}
+        for(const [key,id] of Object.entries(itemFields)){const node=el(id),value=item?.[key]??(key==='category'&&!item?category||'':key==='stock_unit'?'each':key==='sale_price'||key==='reorder_point'?'0':'');if(node.type==='checkbox')node.checked=value===true;else node.value=value;}
         el('item-part-number').focus();
     }
     function addToReceipt(item){
@@ -162,7 +203,7 @@
         }catch(error){message(pending?`Server save not confirmed: ${error.message}. Use Retry same save; do not enter it again.`:error.code==='23505'?'That part or supplier/invoice/delivery already exists. Check its history before receiving again.':error.message,true);}
         finally{busy=false;controls();}
     }
-    el('inventory-item-form').addEventListener('submit',async event=>{event.preventDefault();if(!canManage)return;try{const values={};for(const [key,id] of Object.entries(itemFields)){const n=el(id);values[key]=n.type==='checkbox'?n.checked:n.value.trim();}numeric(values.sale_price,2);numeric(values.reorder_point,3);await mutate('save_shop_inventory_item',{p_id:editing?.id||null,p_expected:editing?.updated_at||null,p_values:values},`Save part ${values.part_number}`);}catch(error){message(error.message,true);}});
+    el('inventory-item-form').addEventListener('submit',async event=>{event.preventDefault();if(!canManage)return;try{const values={};for(const [key,id] of Object.entries(itemFields)){if(key==='category'&&!categoryAvailable)continue;const n=el(id);values[key]=n.type==='checkbox'?n.checked:n.value.trim();}numeric(values.sale_price,2);numeric(values.reorder_point,3);await mutate('save_shop_inventory_item',{p_id:editing?.id||null,p_expected:editing?.updated_at||null,p_values:values},`Save part ${values.part_number}`);}catch(error){message(error.message,true);}});
     el('inventory-receipt-form').addEventListener('submit',async event=>{event.preventDefault();if(!canReceive||!basket.length)return;try{const receipt={supplier:el('receipt-supplier').value.trim(),invoice_reference:el('receipt-invoice').value.trim(),delivery_reference:el('receipt-delivery').value.trim(),notes:el('receipt-notes').value.trim()};if(!receipt.supplier||!receipt.invoice_reference||!receipt.delivery_reference)throw Error('Supplier, invoice and delivery references are required.');const lines=basket.map(line=>({item_id:line.item.id,quantity:numeric(line.quantity,3,true),unit_cost:numeric(line.unit_cost,4)}));const summary=`Receive from ${receipt.supplier}\nInvoice ${receipt.invoice_reference} · Delivery ${receipt.delivery_reference}\n`+basket.map(line=>`${line.item.part_number}: +${quantity(line.quantity)} ${line.item.stock_unit} at ${money(line.unit_cost)} each`).join('\n');await mutate('receive_shop_inventory',{p_receipt:receipt,p_lines:lines},summary,true);}catch(error){message(error.message,true);}});
     el('inventory-adjustment-form').addEventListener('submit',async event=>{event.preventDefault();if(!canManage||!adjusting)return;try{const raw=el('adjustment-quantity').value.trim(),value=Number(raw),reason=el('adjustment-reason').value.trim();if(!/^-?[0-9]+(?:\.[0-9]{1,3})?$/.test(raw)||!Number.isFinite(value)||value===0||!reason)throw Error('Enter a nonzero correction (up to 3 decimals) and a reason.');const next=Math.round((Number(adjusting.on_hand)+value)*1000)/1000;if(next<0)throw Error('Correction would make stock negative.');await mutate('adjust_shop_inventory',{p_item:adjusting.id,p_quantity:value,p_expected:Number(adjusting.on_hand),p_reason:reason},`${adjusting.part_number}: ${quantity(adjusting.on_hand)} → ${quantity(next)} ${adjusting.stock_unit}\nReason: ${reason}`,true);}catch(error){message(error.message,true);}});
     el('inventory-new').addEventListener('click',()=>editItem());el('inventory-item-form').addEventListener('input',()=>{dirty=true;});
@@ -170,7 +211,11 @@
     el('inventory-adjustment-cancel').addEventListener('click',()=>{adjusting=null;el('inventory-adjustment').hidden=true;});
     el('inventory-receipt-cancel').addEventListener('click',()=>{if(!basket.length||window.confirm('Clear this unsaved receipt?')){basket=[];el('inventory-receipt-form').reset();renderBasket();controls();}});
     el('inventory-refresh').addEventListener('click',()=>{clearTimeout(timer);load();if(historyItem)loadHistory();});
-    el('inventory-filter').addEventListener('change',()=>{page=0;load();});el('inventory-search').addEventListener('input',()=>{clearTimeout(timer);++generation;loaded=false;rows=[];controls();timer=setTimeout(()=>{page=0;load();},250);});
+    el('inventory-category-back').addEventListener('click',()=>{
+        clearTimeout(timer);category=null;page=0;el('inventory-search').value='';el('inventory-filter').value='active';load();
+        el('inventory-search').focus();
+    });
+    el('inventory-filter').addEventListener('change',()=>{page=0;load();});el('inventory-search').addEventListener('input',()=>{clearTimeout(timer);category=null;++generation;loaded=false;rows=[];controls();timer=setTimeout(()=>{page=0;load();},250);});
     el('inventory-previous').addEventListener('click',()=>{page=Math.max(0,page-1);load();});el('inventory-next').addEventListener('click',()=>{page++;load();});
     el('inventory-history-close').addEventListener('click',()=>{++historyGeneration;historyItem=null;el('inventory-history').hidden=true;});
     el('history-previous').addEventListener('click',()=>{historyPage=Math.max(0,historyPage-1);loadHistory();});el('history-next').addEventListener('click',()=>{historyPage++;loadHistory();});

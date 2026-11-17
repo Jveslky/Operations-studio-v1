@@ -7,6 +7,7 @@ function boot(user='owner-a',search='',hostname='',role='owner'){
  function node(id){if(!nodes.has(id))nodes.set(id,{id,type:id==='item-archived'?'checkbox':'text',value:id==='inventory-filter'?'active':'',checked:false,hidden:false,disabled:false,textContent:'',innerHTML:'',children:[],listeners:{},classList:{toggle(){}},replaceChildren(){this.children=[];this.innerHTML='';},append(n){this.children.push(n);},addEventListener(e,f){this.listeners[e]=f;},focus(){},reset(){},after(){},setAttribute(){},querySelector(selector){return node(this.id+selector);}});return nodes.get(id);}
  const window={location:{search,hostname},trackRightAuthReady:Promise.resolve({shopId:'shop-a',role,user:{id:user}}),confirm:()=>true,addEventListener(){},trackRightSupabase:{async rpc(name,args){
   calls.push({name,args:JSON.parse(JSON.stringify(args))});
+  if(name==='shop_inventory_category_directory')return {error:{code:'PGRST202'}};
   if(name==='shop_inventory_directory'){
    if(blockRead)return new Promise(resolve=>reads.push(resolve));
    return failRead?{error:{message:'Read failed'}}:{data:{count:1,rows:[{...item,on_hand:stock}],can_receive:true,can_manage:true}};
