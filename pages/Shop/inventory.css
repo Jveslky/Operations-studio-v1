@@ -166,3 +166,21 @@
 }
 .inventory-page .inventory-back-shop:hover,
 .inventory-page #inventory-category-back:hover { background:#bd511f; border-color:#bd511f; }
+
+.inventory-page { padding-top: 22px; }
+.inventory-heading { gap: 12px; margin-bottom: 10px; }
+.inventory-heading h1 { margin-bottom: 5px; }
+.inventory-heading p:last-child { margin-top: 0; }
+#inventory-message { min-height: 0; margin: 8px 0; }
+#inventory-message:empty { display: none; }
+.inventory-toolbar { margin: 10px 0; padding: 10px 14px; gap: 12px; }
+#inventory-grid-settings, #inventory-layout-actions { margin-bottom: 8px; }
+#inventory-grid-columns, #inventory-layout-actions button { min-height: 36px; padding-block: 6px; }
+.inventory-categories > button, .inventory-layout-tile > button { min-height: 76px; padding-block: 8px; }
+.inventory-part { margin-block: 8px; }
+.inventory-panel { margin-block: 14px; padding: 16px; }
+.inventory-grid { gap: 12px; }
+.inventory-stock-help { margin-bottom: 10px; color: #526773; font-size: 13px; }
+.inventory-stock-help summary { cursor: pointer; }
+.inventory-stock-help p { margin: 6px 0 0; }
+#inventory-category-title, #inventory-icon-picker { margin-block: 8px; }
