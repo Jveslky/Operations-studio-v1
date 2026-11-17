@@ -33,6 +33,7 @@
     function renderCategories(){
         const grid=el('inventory-categories');
         grid.hidden=!categoryOverview;
+        el('inventory-grid-settings').hidden=!categoryOverview||!categories.length;
         el('inventory-rows').hidden=categoryOverview;
         el('inventory-parts-pager').hidden=categoryOverview;
         el('inventory-category-back').hidden=receivingView||!categoryAvailable||categoryOverview;
@@ -85,7 +86,8 @@
                 <div class="inventory-identification">
                     <h3>${escape(item.part_number)} ${item.archived?'· Archived':''}</h3>
                     <p>${escape(item.description)}</p>
-                    <p>${[item.manufacturer,item.category].filter(Boolean).map(escape).join(' · ')}${item.manufacturer||item.category?' · ':''}Bin: ${escape(item.location||'Not set')}</p>
+                    <p>${[item.manufacturer,item.category].filter(Boolean).map(escape).join(' · ')}</p>
+                    <span class="inventory-bin${item.location?'':' inventory-bin-empty'}"><span>Bin</span> <strong>${escape(item.location||'Not set')}</strong></span>
                 </div>
                 <dl class="inventory-counts">
                     <div><dt>On hand</dt><dd class="${low?'low':''}">${quantity(item.on_hand)}</dd></div>
@@ -211,6 +213,12 @@
     el('inventory-adjustment-cancel').addEventListener('click',()=>{adjusting=null;el('inventory-adjustment').hidden=true;});
     el('inventory-receipt-cancel').addEventListener('click',()=>{if(!basket.length||window.confirm('Clear this unsaved receipt?')){basket=[];el('inventory-receipt-form').reset();renderBasket();controls();}});
     el('inventory-refresh').addEventListener('click',()=>{clearTimeout(timer);load();if(historyItem)loadHistory();});
+    const gridColumns=el('inventory-grid-columns');
+    const updateGridColumns=()=>el('inventory-categories').setAttribute('data-columns',gridColumns.value);
+    gridColumns.addEventListener('change',()=>{
+        updateGridColumns();
+        try{localStorage.setItem('long-shift-inventory-grid:'+context.shopId+':'+context.user.id,gridColumns.value);}catch{}
+    });
     el('inventory-category-back').addEventListener('click',()=>{
         clearTimeout(timer);category=null;page=0;el('inventory-search').value='';el('inventory-filter').value='active';load();
         el('inventory-search').focus();
@@ -224,6 +232,11 @@
     async function initialize(){try{
         context=await window.trackRightAuthReady;if(!context?.shopId||!context?.user?.id)throw Error('Shop session unavailable.');
         storageKey=`long-shift-inventory-pending:${context.shopId}:${context.user.id}`;
+        try{
+            const columns=localStorage.getItem('long-shift-inventory-grid:'+context.shopId+':'+context.user.id);
+            gridColumns.value=['2','3','4','5'].includes(columns)?columns:'auto';
+        }catch{gridColumns.value='auto';}
+        updateGridColumns();
         pending=readPending();
         await load();setupResponseLoss();
     }catch(error){message(error.message,true);loaded=false;controls();}}
