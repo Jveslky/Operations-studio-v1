@@ -131,3 +131,14 @@
 .inventory-layout-tile > button { width:100%; }
 .inventory-layout-tile > button:disabled { opacity:1; pointer-events:none; }
 .inventory-layout-tile > div { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.inventory-categories .inventory-category-icon {
+    grid-column: 1;
+    grid-row: span 3;
+    width: 58px;
+    height: 58px;
+    object-fit: cover;
+    border-radius: 7px;
+    background: #171c20;
+}
+.inventory-categories :is(button) > :is(strong,span) { grid-column: 2; }
+#inventory-icon-picker { display:flex; align-items:end; flex-wrap:wrap; gap:10px; margin:12px 0; }

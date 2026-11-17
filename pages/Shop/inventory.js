@@ -48,11 +48,52 @@
         renderCategories();
         el('inventory-categories').children[to]?.querySelector('button:not(:disabled)').focus();
     }
+    const iconPresets=new Set(['batteries', 'belts', 'brake-pads', 'brake-rotors', 'bulbs', 'cooling', 'drivetrain', 'electrical', 'engine', 'exhaust', 'filters', 'fluids', 'fuel-system', 'hardware', 'hoses', 'hvac', 'ignition', 'misc', 'steering', 'suspension', 'tires', 'transmission', 'wheels', 'wipers']);
+    const iconAliases=new Map([
+        ['brakes','brake-rotors'],['oil filters','filters'],['fuel filters','filters'],
+        ['fluids & lubricants','fluids'],['oil','fluids'],['coolant','cooling'],
+        ['lighting','bulbs'],['engine components','engine'],
+        ['steering & suspension','suspension'],['belts & hoses','belts']
+    ]);
+    let iconChoices=new Map(),iconSettingsReady=false;
+    function presetFor(group){
+        const key=tileKey(group);
+        const preset=iconChoices.get(key)??iconAliases.get(key)??key.replace(/ +/g,'-');
+        return iconPresets.has(preset)?preset:'misc';
+    }
+    function renderIconPicker(){
+        const picker=el('inventory-icon-picker');
+        picker.hidden=!iconSettingsReady||!canManage||category===null;
+        if(picker.hidden)return;
+        const select=el('inventory-icon-select');
+        select.replaceChildren();
+        for(const key of ['',...iconPresets]){
+            const option=document.createElement('option');
+            option.value=key;
+            option.textContent=key==='misc'?'Miscellaneous':key==='hvac'?'HVAC':key?key.replace(/(^|-)([a-z])/g,(_,separator,letter)=>(separator?' ':'')+letter.toUpperCase()):'Automatic';
+            select.append(option);
+        }
+        select.value=iconChoices.get(category.toLowerCase())??'';
+    }
     function renderCategories(){
         const grid=el('inventory-categories');
         grid.hidden=!categoryOverview;
         el('inventory-layout-actions').hidden=!categoryOverview||categories.length<2;
-        el('inventory-layout-edit').textContent=editingLayout?'Done':'Edit layout';
+        el('inventory-icon-save').addEventListener('click',async()=>{
+        if(!canManage||category===null||!iconSettingsReady)return;
+        const button=el('inventory-icon-save'),selected=category;
+        const preset=el('inventory-icon-select').value||null;
+        button.disabled=true;
+        try{
+            const result=await client.rpc('save_shop_inventory_icon',{p_shop:context.shopId,p_category:selected,p_preset:preset});
+            if(result.error)throw result.error;
+            if(preset)iconChoices.set(selected.toLowerCase(),preset);
+            else iconChoices.delete(selected.toLowerCase());
+            renderCategories();message('Category image saved for this shop.');
+        }catch(error){message(error.message,true);}
+        finally{button.disabled=false;}
+    });
+    el('inventory-layout-edit').textContent=editingLayout?'Done':'Edit layout';
         el('inventory-layout-reset').hidden=!editingLayout||!tileOrder.length;
         el('inventory-grid-settings').hidden=!categoryOverview||!categories.length;
         el('inventory-rows').hidden=categoryOverview;
@@ -67,8 +108,10 @@
         const options=el('inventory-category-options');options.replaceChildren();
         for(const [index,group] of orderedCategories().entries()){
             const tile=document.createElement('button');tile.type='button';
-            const icon=document.createElement('span');icon.className='inventory-category-icon';icon.setAttribute('aria-hidden','true');
-            icon.textContent=({'filters':'◉','tires':'◎','fluids & lubricants':'◒','brakes':'⊙','electrical':'ϟ','lighting':'◐'})[group.category?.toLowerCase()]||'▣';
+            const icon=document.createElement('img');
+            icon.className='inventory-category-icon';icon.alt='';
+            icon.width=58;icon.height=58;icon.decoding='async';
+            icon.src='inventory-icons/'+presetFor(group)+'.webp';
             const name=document.createElement('strong');name.textContent=group.category||'Uncategorized';
             const count=document.createElement('span');count.textContent=group.item_count+' items';
             tile.append(icon,name,count);
@@ -173,7 +216,7 @@
             if(categoryOverview)categories=result.data.categories;
             renderCategories();
             count=Number(result.data.count);if(page>0&&page*25>=count){page=Math.max(0,Math.ceil(count/25)-1);return load();}
-            rows=result.data.rows||[];canReceive=result.data.can_receive===true;canManage=result.data.can_manage===true;loaded=true;controls();
+            rows=result.data.rows||[];canReceive=result.data.can_receive===true;canManage=result.data.can_manage===true;loaded=true;controls();renderIconPicker();
             message(categoryOverview?(categories.length?'':'No active parts in the catalog.'):rows.length?'Stock refreshed. Open History for receipts and corrections.':'No matching parts. An owner/admin can add the first catalog item.');
         }catch(error){if(request!==generation)return;count=0;canReceive=false;canManage=false;controls();message(`Inventory unavailable: ${error.message}. If this workspace has not been installed, apply the inventory foundation SQL update.`,true);}
     }
@@ -295,7 +338,16 @@
         }catch{}
         updateGridColumns();
         pending=readPending();
-        await load();setupResponseLoss();
+        await load();
+        if(!receivingView&&categoryAvailable){
+            const icons=await client.rpc('shop_inventory_icons',{p_shop:context.shopId});
+            if(!icons.error&&icons.data){
+                iconChoices=new Map(Object.entries(icons.data));
+                iconSettingsReady=true;
+                renderCategories();renderIconPicker();
+            }
+        }
+        setupResponseLoss();
     }catch(error){message(error.message,true);loaded=false;controls();}}
     initialize();
 })();
