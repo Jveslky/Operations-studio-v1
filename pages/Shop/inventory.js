@@ -30,9 +30,30 @@
     }
     function message(text,error=false){el('inventory-message').textContent=text;el('inventory-message').classList.toggle('is-error',error);}
     let category=null,categories=[],categoryAvailable=!receivingView,categoryOverview=false;
+    let editingLayout=false,tileOrder=[],dragged=null;
+    const tileKey=group=>group.category?.toLowerCase()??'';
+    const layoutKey=()=>`long-shift-inventory-layout:${context.shopId}:${context.user.id}`;
+    function orderedCategories(){
+        const positions=new Map(tileOrder.map((key,index)=>[key,index]));
+        return [...categories].sort((a,b)=>(positions.get(tileKey(a))??Infinity)-(positions.get(tileKey(b))??Infinity));
+    }
+    function saveLayout(){
+        try{localStorage.setItem(layoutKey(),JSON.stringify(tileOrder));}
+        catch{el('inventory-layout-status').textContent='Layout could not be saved in this browser.';}
+    }
+    function moveTile(from,to){
+        tileOrder=orderedCategories().map(tileKey);
+        tileOrder.splice(to,0,...tileOrder.splice(from,1));
+        saveLayout();
+        renderCategories();
+        el('inventory-categories').children[to]?.querySelector('button:not(:disabled)').focus();
+    }
     function renderCategories(){
         const grid=el('inventory-categories');
         grid.hidden=!categoryOverview;
+        el('inventory-layout-actions').hidden=!categoryOverview||categories.length<2;
+        el('inventory-layout-edit').textContent=editingLayout?'Done':'Edit layout';
+        el('inventory-layout-reset').hidden=!editingLayout||!tileOrder.length;
         el('inventory-grid-settings').hidden=!categoryOverview||!categories.length;
         el('inventory-rows').hidden=categoryOverview;
         el('inventory-parts-pager').hidden=categoryOverview;
@@ -44,7 +65,7 @@
         grid.replaceChildren();
         if(!categoryOverview)return;
         const options=el('inventory-category-options');options.replaceChildren();
-        for(const group of categories){
+        for(const [index,group] of orderedCategories().entries()){
             const tile=document.createElement('button');tile.type='button';
             const icon=document.createElement('span');icon.className='inventory-category-icon';icon.setAttribute('aria-hidden','true');
             icon.textContent=({'filters':'◉','tires':'◎','fluids & lubricants':'◒','brakes':'⊙','electrical':'ϟ','lighting':'◐'})[group.category?.toLowerCase()]||'▣';
@@ -55,7 +76,33 @@
                 const low=document.createElement('span');low.className='inventory-category-low';low.textContent=group.low_count+' low stock';tile.append(low);
             }
             tile.addEventListener('click',()=>{category=group.category??'';page=0;load();el('inventory-category-back').focus();});
-            grid.append(tile);
+            if(editingLayout){
+                const wrapper=document.createElement('div');wrapper.className='inventory-layout-tile';
+                wrapper.draggable=true;
+                wrapper.addEventListener('dragstart',event=>{
+                    dragged=index;
+                    event.dataTransfer.setData('text/plain',String(index));
+                    event.dataTransfer.effectAllowed='move';
+                });
+                wrapper.addEventListener('dragend',()=>{dragged=null;});
+                wrapper.addEventListener('dragover',event=>{if(dragged!==null)event.preventDefault();});
+                wrapper.addEventListener('drop',event=>{
+                    if(dragged===null)return;
+                    event.preventDefault();
+                    const from=dragged;dragged=null;
+                    if(from!==index)moveTile(from,index);
+                });
+                tile.disabled=true;
+                const actions=document.createElement('div');
+                for(const [label,offset] of [['Earlier',-1],['Later',1]]){
+                    const move=document.createElement('button');move.type='button';move.textContent=label;
+                    move.setAttribute('aria-label',`Move ${name.textContent} ${label.toLowerCase()}`);
+                    move.disabled=index+offset<0||index+offset>=categories.length;
+                    move.addEventListener('click',()=>moveTile(index,index+offset));
+                    actions.append(move);
+                }
+                wrapper.append(tile,actions);grid.append(wrapper);
+            }else grid.append(tile);
             if(group.category){const option=document.createElement('option');option.value=group.category;options.append(option);}
         }
     }
@@ -213,6 +260,12 @@
     el('inventory-adjustment-cancel').addEventListener('click',()=>{adjusting=null;el('inventory-adjustment').hidden=true;});
     el('inventory-receipt-cancel').addEventListener('click',()=>{if(!basket.length||window.confirm('Clear this unsaved receipt?')){basket=[];el('inventory-receipt-form').reset();renderBasket();controls();}});
     el('inventory-refresh').addEventListener('click',()=>{clearTimeout(timer);load();if(historyItem)loadHistory();});
+    el('inventory-layout-edit').addEventListener('click',()=>{
+        editingLayout=!editingLayout;el('inventory-layout-status').textContent='';renderCategories();
+    });
+    el('inventory-layout-reset').addEventListener('click',()=>{
+        tileOrder=[];saveLayout();renderCategories();el('inventory-layout-edit').focus();
+    });
     const gridColumns=el('inventory-grid-columns');
     const updateGridColumns=()=>el('inventory-categories').setAttribute('data-columns',gridColumns.value);
     gridColumns.addEventListener('change',()=>{
@@ -236,6 +289,10 @@
             const columns=localStorage.getItem('long-shift-inventory-grid:'+context.shopId+':'+context.user.id);
             gridColumns.value=['2','3','4','5'].includes(columns)?columns:'auto';
         }catch{gridColumns.value='auto';}
+        try{
+            const saved=JSON.parse(localStorage.getItem(layoutKey()));
+            if(Array.isArray(saved))tileOrder=saved.filter(key=>typeof key==='string');
+        }catch{}
         updateGridColumns();
         pending=readPending();
         await load();setupResponseLoss();
