@@ -61,6 +61,15 @@
         const preset=iconChoices.get(key)??iconAliases.get(key)??key.replace(/ +/g,'-');
         return iconPresets.has(preset)?preset:'misc';
     }
+    function categoryImage(group){
+        const frame=document.createElement('span');
+        frame.className='inventory-category-icon';
+        const image=document.createElement('img');
+        image.alt='';image.width=58;image.height=58;image.decoding='async';
+        image.src='inventory-icons/'+presetFor(group)+'.webp';
+        frame.append(image);
+        return frame;
+    }
     function renderIconPicker(){
         const picker=el('inventory-icon-picker');
         picker.hidden=!iconSettingsReady||!canManage||category===null;
@@ -102,16 +111,17 @@
         const title=el('inventory-category-title');
         el('item-category').disabled=!categoryAvailable;
         title.hidden=category===null;
-        title.textContent=category||'Uncategorized';
+        title.textContent='';
+        if(category!==null){
+            const label=document.createElement('span');label.textContent=category||'Uncategorized';
+            title.append(categoryImage({category}),label);
+        }
         grid.replaceChildren();
         if(!categoryOverview)return;
         const options=el('inventory-category-options');options.replaceChildren();
         for(const [index,group] of orderedCategories().entries()){
             const tile=document.createElement('button');tile.type='button';
-            const icon=document.createElement('img');
-            icon.className='inventory-category-icon';icon.alt='';
-            icon.width=58;icon.height=58;icon.decoding='async';
-            icon.src='inventory-icons/'+presetFor(group)+'.webp';
+            const icon=categoryImage(group);
             const name=document.createElement('strong');name.textContent=group.category||'Uncategorized';
             const count=document.createElement('span');count.textContent=group.item_count+' items';
             tile.append(icon,name,count);
