@@ -40,7 +40,7 @@
         const status = statusFilter?.value;
         list.replaceChildren();
         byId('ap-source-context').hidden=!sourceBillId;
-        if(sourceBillId){const source=bills.find(b=>b.id===sourceBillId);byId('ap-source-label').textContent=source?`Supplier invoice ${source.invoice_number||'No reference'} · ${source.vendor}`:'The source supplier bill is unavailable in this shop.';}
+        if(sourceBillId){const source=bills.find(b=>b.id===sourceBillId);byId('ap-source-label').textContent=source?`${source.invoice_number||'No reference'} · ${source.vendor}`:'The source supplier bill is unavailable in this shop.';byId('ap-source-description').textContent=source?'Opened from Receiving · Related supplier invoice':'Choose Show all bills to return to the directory.';}
         bills.forEach(function (bill) {
             const paid = bill.status === "paid"; let display = paid ? "Paid" : "Open";
             if (!paid) { open += 1; payable += Number(bill.total) || 0; }
