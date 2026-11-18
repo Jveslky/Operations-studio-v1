@@ -24,7 +24,7 @@
         const request=++recentGeneration;
         el('receiving-recent-rows').replaceChildren();el('receiving-recent-message').textContent='Loading confirmed receipts…';
         try{
-            const r=await client.rpc('shop_receiving_directory',{p_shop:context.shopId,p_size:5});
+            const r=await client.rpc('shop_receiving_directory',{p_shop:context.shopId,p_size:25});
             if(request!==recentGeneration)return;if(r.error)throw r.error;
             for(const receipt of r.data.rows||[])el('receiving-recent-rows').append(receiptRow(receipt,'home'));
             el('receiving-recent-message').textContent=r.data.rows?.length?'':'No confirmed receipts yet. Receive a delivery to start your history.';
