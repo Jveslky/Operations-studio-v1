@@ -24,6 +24,9 @@
         el(screen==='new'?'receipt-supplier':screen==='history'?'receiving-history-title':screen==='detail'?'receiving-detail-title':'receiving-start').focus();
     }
     if(receivingView){
+        el('receipt-catalog-slot').append(el('inventory-catalog'));
+        el('receipt-empty').innerHTML='No parts added yet. Search the catalog above and choose <strong>Add to receipt</strong>.';
+        el('inventory-search').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();clearTimeout(timer);page=0;load();}});
         window.shopInventoryReceiving={open:screen=>setReceivingScreen(screen)};
         el('receiving-new').addEventListener('click',()=>setReceivingScreen('new'));
         el('receiving-start').addEventListener('click',()=>setReceivingScreen('new'));
@@ -187,7 +190,7 @@
         el('inventory-new').disabled=locked;
         el('inventory-item-fields').disabled=locked||!canManage;
         el('inventory-item-save').disabled=locked||!canManage;
-        el('inventory-receipt-fields').disabled=locked||!canReceive;
+        el('inventory-receipt-fields').disabled=locked||!canReceive;el('receipt-line-fields').disabled=locked||!canReceive;
         el('inventory-receipt-save').disabled=locked||!canReceive||!basket.length;
         el('inventory-adjustment-fields').disabled=locked||!canManage;
         el('inventory-adjustment-save').disabled=locked||!canManage;
@@ -274,6 +277,12 @@
     function addToReceipt(item){
         if(basket.some(line=>line.item.id===item.id)){message('That part is already in the receipt. Edit its received quantity below.');return;}
         basket.push({item,quantity:'1',unit_cost:item.last_unit_cost==null?'':String(item.last_unit_cost)});renderBasket();controls();
+        if(receivingView)el('receipt-lines').querySelector('.receipt-line:last-child input')?.focus();
+    }
+    function resetReceiptForm(){
+        const search=el('inventory-search').value,filter=el('inventory-filter').value;
+        el('inventory-receipt-form').reset();
+        if(receivingView){el('inventory-search').value=search;el('inventory-filter').value=filter;}
     }
     function updateReceiptSummary(){
         el('receipt-empty').hidden=basket.length>0;
@@ -327,7 +336,7 @@
             }
             localStorage.removeItem(action.storageKey);pending=readPending();dirty=false;
             if(action.rpc==='save_shop_inventory_item'){editing=null;el('inventory-editor').hidden=true;}
-            if(action.rpc==='receive_shop_inventory'){basket=[];el('inventory-receipt-form').reset();renderBasket();if(receivingView){setReceivingScreen('home');window.shopReceivingWorkspace?.refresh();}}
+            if(action.rpc==='receive_shop_inventory'){basket=[];resetReceiptForm();renderBasket();if(receivingView){setReceivingScreen('home');window.shopReceivingWorkspace?.refresh();}}
             if(action.rpc==='adjust_shop_inventory'){adjusting=null;el('inventory-adjustment').hidden=true;}
             await load();if(historyItem)await loadHistory();message(loaded?'Inventory change saved and recorded in history.':'Inventory change saved, but stock refresh failed. Refresh stock before making another change.',!loaded);
         }catch(error){message(pending?`Server save not confirmed: ${error.message}. Use Retry same save; do not enter it again.`:error.code==='23505'?'That part or supplier/invoice/delivery already exists. Check its history before receiving again.':error.message,true);}
@@ -339,7 +348,7 @@
     el('inventory-new').addEventListener('click',()=>editItem());el('inventory-item-form').addEventListener('input',()=>{dirty=true;});
     el('inventory-item-cancel').addEventListener('click',()=>{if(!dirty||window.confirm('Discard unsaved part edits?')){dirty=false;editing=null;el('inventory-editor').hidden=true;}});
     el('inventory-adjustment-cancel').addEventListener('click',()=>{adjusting=null;el('inventory-adjustment').hidden=true;});
-    el('inventory-receipt-cancel').addEventListener('click',()=>{if(!basket.length||window.confirm('Clear this unsaved receipt?')){basket=[];el('inventory-receipt-form').reset();renderBasket();controls();}});
+    el('inventory-receipt-cancel').addEventListener('click',()=>{if(!basket.length||window.confirm('Clear this unsaved receipt?')){basket=[];resetReceiptForm();renderBasket();controls();}});
     el('inventory-refresh').addEventListener('click',()=>{clearTimeout(timer);load();if(historyItem)loadHistory();});
     el('inventory-layout-edit').addEventListener('click',()=>{
         editingLayout=!editingLayout;el('inventory-layout-status').textContent='';renderCategories();

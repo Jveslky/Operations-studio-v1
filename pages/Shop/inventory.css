@@ -289,3 +289,13 @@
 }
 .receiving-recent > .receiving-section-heading h2 { color:#294b55; }
 .receiving-vendors .receiving-supplier-icon { background:#344b57; color:#f3f7f8; }
+
+/* Keep part selection and receipt quantities together before confirmation. */
+#receipt-catalog-slot:empty { display:none; }
+#receipt-catalog-slot { margin:12px 0; }
+#receipt-catalog-slot #inventory-rows { max-height:300px; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; }
+#receipt-catalog-slot .inventory-part { grid-template-columns:minmax(0,1.2fr) minmax(220px,1fr) minmax(100px,.6fr) minmax(170px,.8fr); gap:10px; padding:10px 12px; }
+#receipt-catalog-slot .inventory-pager { margin:8px 0; }
+#receipt-line-fields .receipt-empty { margin-top:0; }
+@media(max-width:1000px) { #receipt-catalog-slot .inventory-part { grid-template-columns:minmax(0,1fr) minmax(220px,1fr); } }
+@media(max-width:650px) { #receipt-catalog-slot .inventory-part { grid-template-columns:minmax(0,1fr); } }
