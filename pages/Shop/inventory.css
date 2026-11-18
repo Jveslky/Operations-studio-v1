@@ -182,3 +182,25 @@
 .inventory-stock-help summary { cursor: pointer; }
 .inventory-stock-help p { margin: 6px 0 0; }
 #inventory-category-title, #inventory-icon-picker { margin-block: 8px; }
+
+/* Receiving: a compact delivery workspace, with catalog rows kept intact. */
+.receipt-heading { display:flex; justify-content:space-between; align-items:start; gap:16px; margin-bottom:14px; }
+.receipt-heading h2 { margin:4px 0; font-size:21px; }
+.receipt-heading .inventory-help { margin:0; }
+.receipt-summary { flex:none; display:grid; grid-template-columns:auto auto; gap:2px 16px; text-align:right; padding:10px 14px; background:#eaf2f4; border:1px solid #c4d7dc; border-radius:7px; }
+.receipt-summary strong { font-size:21px; font-variant-numeric:tabular-nums; }
+.receipt-summary span { font-size:12px; color:#526773; }
+.receipt-summary span:first-child { align-self:center; font-weight:700; }
+.receipt-summary span:last-child { grid-column:1/-1; }
+.receipt-details { grid-template-columns:repeat(3,minmax(0,1fr)); padding:12px; background:#f4f6f6; border:1px solid #d4dcdf; border-radius:7px; }
+.receipt-details .receipt-notes { grid-column:1/-1; }
+.receipt-details textarea { min-height:44px; height:44px; resize:vertical; }
+.receipt-help { margin:10px 0; }
+.receipt-empty { margin:10px 0 0; padding:14px; border:1px dashed #c5cfd6; border-radius:7px; color:#657177; font-size:13px; }
+.receipt-line { gap:12px; padding:12px 0; }
+.receipt-line p { font-size:13px; color:#657177; overflow-wrap:anywhere; }
+.inventory-page #inventory-receipt-save { background:#d96326; border-color:#d96326; color:#fff; }
+.inventory-page #inventory-receipt-save:hover:not(:disabled) { background:#bd511f; border-color:#bd511f; }
+.inventory-panel .receipt-footer { margin-top:12px; padding-top:12px; border-top:1px solid #d4dce0; }
+@media(max-width:850px) { .receipt-details { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media(max-width:600px) { .receipt-heading { flex-wrap:wrap; } .receipt-summary { text-align:left; } .receipt-details { grid-template-columns:minmax(0,1fr); } .receipt-footer .inventory-help { flex-basis:100%; order:1; } }

@@ -7,7 +7,7 @@
     let context,page=0,count=0,generation=0,historyGeneration=0,historyPage=0,historyCount=0,historyItem=null,timer;
     let rows=[],basket=[],editing=null,adjusting=null,canReceive=false,canManage=false,loaded=false,busy=false,pending=null,storageKey='',dirty=false;
     const receivingView=new URLSearchParams(window.location.search).get('view')==='receiving';
-    if(receivingView){document.querySelector('.inventory-heading h1').textContent='Receiving';document.title='Receiving | Long Shift';el('inventory-receipt').hidden=false;}
+    if(receivingView){document.querySelector('.inventory-heading h1').textContent='Receiving';document.title='Receiving | Long Shift';document.querySelector('.inventory-heading p:last-child').textContent='Match the delivery, check quantities and costs, then receive stock.';el('inventory-receipt').hidden=false;}
     let responseLossArmed=false,responseLossButton=null,responseLossStatus=null;
     const responseLossEnabled=()=>window.location.hostname==='test-shop-combined.long-shift-test.pages.dev'&&new URLSearchParams(window.location.search).get('btest')==='receipt-response-loss'&&['owner','admin'].includes(context?.role)&&canReceive;
     function setupResponseLoss(){
@@ -253,12 +253,18 @@
         if(basket.some(line=>line.item.id===item.id)){message('That part is already in the receipt. Edit its received quantity below.');return;}
         basket.push({item,quantity:'1',unit_cost:item.last_unit_cost==null?'':String(item.last_unit_cost)});renderBasket();controls();
     }
+    function updateReceiptSummary(){
+        el('receipt-empty').hidden=basket.length>0;
+        el('receipt-line-count').textContent=`${basket.length} ${basket.length===1?'part':'parts'}`;
+        const complete=basket.every(line=>line.quantity!==''&&line.unit_cost!==''&&Number.isFinite(Number(line.quantity))&&Number(line.quantity)>0&&Number.isFinite(Number(line.unit_cost))&&Number(line.unit_cost)>=0);
+        el('receipt-cost').textContent=complete?money(basket.reduce((sum,line)=>sum+Number(line.quantity)*Number(line.unit_cost),0)):'Enter quantities & costs';
+    }
     function renderBasket(){
-        el('inventory-receipt').hidden=!receivingView&&!basket.length;const container=el('receipt-lines');container.replaceChildren();
+        el('inventory-receipt').hidden=!receivingView&&!basket.length;const container=el('receipt-lines');container.replaceChildren();updateReceiptSummary();
         for(const line of basket){
             const row=document.createElement('div');row.className='receipt-line';row.innerHTML=`<div><strong>${escape(line.item.part_number)}</strong><p>${escape(line.item.description)} · ${escape(line.item.stock_unit)}</p></div>`;
             for(const [key,label,step,max] of [['quantity','Received stock units','0.001','99999999999.999'],['unit_cost','Cost / stock unit','0.0001','9999999999.9999']]){
-                const wrapper=document.createElement('label');wrapper.textContent=label;const input=document.createElement('input');input.type='number';input.min=key==='quantity'?'0.001':'0';input.max=max;input.step=step;input.required=true;input.value=line[key];input.addEventListener('input',()=>{line[key]=input.value;});wrapper.append(input);row.append(wrapper);
+                const wrapper=document.createElement('label');wrapper.textContent=label;const input=document.createElement('input');input.type='number';input.min=key==='quantity'?'0.001':'0';input.max=max;input.step=step;input.required=true;input.value=line[key];input.addEventListener('input',()=>{line[key]=input.value;updateReceiptSummary();});wrapper.append(input);row.append(wrapper);
             }
             const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.addEventListener('click',()=>{basket=basket.filter(value=>value!==line);renderBasket();controls();});row.append(remove);container.append(row);
         }
