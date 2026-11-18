@@ -295,8 +295,15 @@
         el('inventory-receipt').hidden=receivingView?receivingScreen!=='new':!basket.length;const container=el('receipt-lines');container.replaceChildren();updateReceiptSummary();
         for(const line of basket){
             const row=document.createElement('div');row.className='receipt-line';row.innerHTML=`<div><strong>${escape(line.item.part_number)}</strong><p>${escape(line.item.description)} · ${escape(line.item.stock_unit)}</p></div>`;
-            for(const [key,label,step,max] of [['quantity','Received quantity','0.001','99999999999.999'],['unit_cost','Unit cost ($ / stock unit)','0.0001','9999999999.9999']]){
-                const wrapper=document.createElement('label');wrapper.textContent=label;const input=document.createElement('input');input.type='number';input.min=key==='quantity'?'0.001':'0';input.max=max;input.step=step;input.required=true;input.value=line[key];input.addEventListener('input',()=>{line[key]=input.value;updateReceiptSummary();});wrapper.append(input);row.append(wrapper);
+            for(const [key,label,digits,decimals] of [['quantity','Received quantity',11,3],['unit_cost','Unit cost ($ / stock unit)',10,4]]){
+                const wrapper=document.createElement('label');wrapper.textContent=label;
+                const input=document.createElement('input');input.type='text';input.inputMode='decimal';
+                input.pattern=`[0-9]{1,${digits}}([.][0-9]{1,${decimals}})?`;input.maxLength=15;
+                input.required=true;input.value=line[key];
+                input.addEventListener('focus',()=>input.select());
+                input.addEventListener('click',()=>input.select());
+                input.addEventListener('input',()=>{line[key]=input.value;updateReceiptSummary();});
+                wrapper.append(input);row.append(wrapper);
             }
             const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.addEventListener('click',()=>{basket=basket.filter(value=>value!==line);renderBasket();controls();});row.append(remove);container.append(row);
         }
