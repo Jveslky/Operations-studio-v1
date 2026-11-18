@@ -83,6 +83,7 @@ begin
       where m.shop_id=p_shop and m.receipt_id=r.id and m.kind='receipt' and (strpos(lower(i.part_number),term)>0 or strpos(lower(i.description),term)>0 or strpos(lower(i.manufacturer),term)>0)))
  ), page_rows as (
   select r.*, (select count(*) from shop_inventory_movements m where m.shop_id=p_shop and m.receipt_id=r.id and m.kind='receipt') as line_count,
+   (select coalesce(sum(m.quantity),0) from shop_inventory_movements m where m.shop_id=p_shop and m.receipt_id=r.id and m.kind='receipt') as quantity_received,
    (select coalesce(sum(m.quantity*m.unit_cost),0) from shop_inventory_movements m where m.shop_id=p_shop and m.receipt_id=r.id and m.kind='receipt') as receipt_cost
   from matches r order by r.recorded_at desc,r.id desc limit size offset offset_rows
  )

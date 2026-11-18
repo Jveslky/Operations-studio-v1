@@ -64,7 +64,7 @@ assert.equal((await directory('%')).count,0,'wildcards are literal');
 assert.equal((await directory('',' SUPPLIER ')).count,2);assert.equal((await directory('','missing')).count,0);
 assert.equal((await directory('','',null,'2000-01-01T00:00:00Z')).count,0);assert.equal((await directory('','','2100-01-01T00:00:00Z')).count,0);
 assert.equal((await directory('', '',null,null,0,1)).rows.length,1);assert.notEqual((await directory('', '',null,null,0,1)).rows[0].id,(await directory('', '',null,null,1,1)).rows[0].id);
-assert.equal(Number(list.rows[0].receipt_cost),8.25);assert.equal(list.rows[0].line_count,1);
+assert.equal(Number(list.rows[0].receipt_cost),8.25);assert.equal(list.rows[0].line_count,1);assert.equal(Number(list.rows[0].quantity_received),2,'received units differ from distinct part lines');
 const d=await detail(first.receipt.id);assert.equal(d.lines[0].part_number,'FILTER-X');assert.equal(Number(d.lines[0].quantity),2);assert.equal(Number(d.lines[0].unit_cost),4.125);
 const bill=await one("insert into shop_accounts_payable(shop_id,vendor,invoice_number,total,created_by) values($1,'Supplier','AP-22',50,$2) returning *",[A,owner]);
 const review={delivery:'AP-DEL',purchase_order:'ACCOUNT-PO',physical_check:true,source_check:true,rows:[{item_id:part.id,action:'receive',received:'1',pack:'2',supplier_cost:'10'}]};

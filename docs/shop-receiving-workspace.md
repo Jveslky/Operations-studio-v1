@@ -21,3 +21,7 @@ Receipt details use Back to Receiving or Back to supplier deliveries, based on t
 ## Receipt-entry placement
 
 In Receiving, the existing catalog is mounted inside the delivery card after delivery details and the selected receipt lines. Results scroll within a 300px area. Add to receipt focuses the added line’s quantity above catalog search; the same catalog item then offers Edit receipt quantity instead of appearing to add another line. The summary counts distinct part lines, not received units; quantity and unit cost remain in the same card above confirmation. Search is outside the locked receipt fieldsets so asynchronous searching does not disable the field. Enter in part search searches instead of submitting a receipt. The Inventory category view retains its original catalog placement.
+
+## Received quantity in history
+
+Apply `supabase/shop-receiving-quantities.sql` to existing Test installs. Receipt rows show the sum of recorded receipt quantities in stock units rather than distinct part-line counts. Fractional quantities remain supported. This is an aggregate display value across the receipt’s stock units; line-level units and quantities are available in receipt details. No ledger entries or stock calculations change.

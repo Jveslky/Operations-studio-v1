@@ -17,7 +17,7 @@
     }
     function receiptRow(receipt,origin){
         const row=document.createElement('button');row.type='button';row.className='receiving-receipt-row';
-        row.innerHTML=`<span><strong>${escape(receipt.supplier)}</strong><small>Invoice ${escape(receipt.invoice_reference)} · Delivery ${escape(receipt.delivery_reference)}${receipt.purchase_order?' · PO '+escape(receipt.purchase_order):''}</small></span><span class="receiving-row-count">${Number(receipt.line_count)} ${Number(receipt.line_count)===1?'part':'parts'}</span><span class="receiving-row-cost">${money(receipt.receipt_cost)}<small>before tax</small></span><span class="receiving-row-date">${date(receipt.recorded_at)}</span><span aria-hidden="true">›</span>`;
+        row.innerHTML=`<span><strong>${escape(receipt.supplier)}</strong><small>Invoice ${escape(receipt.invoice_reference)} · Delivery ${escape(receipt.delivery_reference)}${receipt.purchase_order?' · PO '+escape(receipt.purchase_order):''}</small></span><span class="receiving-row-count">${receipt.quantity_received==null?'Quantity unavailable':number(receipt.quantity_received)+' '+(Number(receipt.quantity_received)===1?'unit received':'units received')}</span><span class="receiving-row-cost">${money(receipt.receipt_cost)}<small>before tax</small></span><span class="receiving-row-date">${date(receipt.recorded_at)}</span><span aria-hidden="true">›</span>`;
         row.addEventListener('click',()=>showReceipt(receipt.id,origin));return row;
     }
     async function loadRecent(){
