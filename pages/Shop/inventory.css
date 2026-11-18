@@ -299,3 +299,7 @@
 #receipt-line-fields .receipt-empty { margin-top:0; }
 @media(max-width:1000px) { #receipt-catalog-slot .inventory-part { grid-template-columns:minmax(0,1fr) minmax(220px,1fr); } }
 @media(max-width:650px) { #receipt-catalog-slot .inventory-part { grid-template-columns:minmax(0,1fr); } }
+
+#receipt-lines-title { margin:14px 0 8px; font-size:16px; }
+#receipt-lines-title small { display:block; margin-top:4px; color:#657177; font-size:12px; font-weight:400; }
+#receipt-lines .receipt-line { padding:12px; margin:8px 0; border:1px solid #c6d9e0; border-radius:8px; background:#f1f6f7; }

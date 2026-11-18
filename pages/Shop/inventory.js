@@ -25,7 +25,7 @@
     }
     if(receivingView){
         el('receipt-catalog-slot').append(el('inventory-catalog'));
-        el('receipt-empty').innerHTML='No parts added yet. Search the catalog above and choose <strong>Add to receipt</strong>.';
+        el('receipt-empty').innerHTML='No parts added yet. Search the catalog below and choose <strong>Add to receipt</strong>.';
         el('inventory-search').addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();clearTimeout(timer);page=0;load();}});
         window.shopInventoryReceiving={open:screen=>setReceivingScreen(screen)};
         el('receiving-new').addEventListener('click',()=>setReceivingScreen('new'));
@@ -228,7 +228,7 @@
             const actions=card.querySelector('.inventory-actions');
             function button(label,action,write=false){const b=document.createElement('button');b.type='button';b.textContent=label;b.disabled=write&&(busy||!!pending||!loaded);b.addEventListener('click',action);actions.append(b);}
             button('History',()=>{historyItem=item;historyPage=0;loadHistory();});
-            if(canReceive&&!item.archived)button('Add to receipt',()=>addToReceipt(item),true);
+            if(canReceive&&!item.archived)button(basket.some(line=>line.item.id===item.id)?'Edit receipt quantity':'Add to receipt',()=>addToReceipt(item),true);
             if(canManage){button('Edit',()=>editItem(item),true);button('Correct count',()=>adjustItem(item),true);}
             container.append(card);
         }
@@ -275,7 +275,8 @@
         el('item-part-number').focus();
     }
     function addToReceipt(item){
-        if(basket.some(line=>line.item.id===item.id)){message('That part is already in the receipt. Edit its received quantity below.');return;}
+        const existing=basket.findIndex(line=>line.item.id===item.id);
+        if(existing>=0){el('receipt-lines').querySelector(`.receipt-line:nth-child(${existing+1}) input`)?.focus();message('Set the received quantity to the number delivered. Each part number appears once per receipt.');return;}
         basket.push({item,quantity:'1',unit_cost:item.last_unit_cost==null?'':String(item.last_unit_cost)});renderBasket();controls();
         if(receivingView)el('receipt-lines').querySelector('.receipt-line:last-child input')?.focus();
     }
@@ -285,8 +286,8 @@
         if(receivingView){el('inventory-search').value=search;el('inventory-filter').value=filter;}
     }
     function updateReceiptSummary(){
-        el('receipt-empty').hidden=basket.length>0;
-        el('receipt-line-count').textContent=`${basket.length} ${basket.length===1?'part':'parts'}`;
+        el('receipt-empty').hidden=basket.length>0;el('receipt-lines-title').hidden=!basket.length;
+        el('receipt-line-count').textContent=`${basket.length} ${basket.length===1?'part line':'part lines'}`;
         const complete=basket.every(line=>line.quantity!==''&&line.unit_cost!==''&&Number.isFinite(Number(line.quantity))&&Number(line.quantity)>0&&Number.isFinite(Number(line.unit_cost))&&Number(line.unit_cost)>=0);
         el('receipt-cost').textContent=complete?money(basket.reduce((sum,line)=>sum+Number(line.quantity)*Number(line.unit_cost),0)):'Enter quantities & costs';
     }
@@ -294,7 +295,7 @@
         el('inventory-receipt').hidden=receivingView?receivingScreen!=='new':!basket.length;const container=el('receipt-lines');container.replaceChildren();updateReceiptSummary();
         for(const line of basket){
             const row=document.createElement('div');row.className='receipt-line';row.innerHTML=`<div><strong>${escape(line.item.part_number)}</strong><p>${escape(line.item.description)} · ${escape(line.item.stock_unit)}</p></div>`;
-            for(const [key,label,step,max] of [['quantity','Received stock units','0.001','99999999999.999'],['unit_cost','Cost / stock unit','0.0001','9999999999.9999']]){
+            for(const [key,label,step,max] of [['quantity','Received quantity','0.001','99999999999.999'],['unit_cost','Unit cost ($ / stock unit)','0.0001','9999999999.9999']]){
                 const wrapper=document.createElement('label');wrapper.textContent=label;const input=document.createElement('input');input.type='number';input.min=key==='quantity'?'0.001':'0';input.max=max;input.step=step;input.required=true;input.value=line[key];input.addEventListener('input',()=>{line[key]=input.value;updateReceiptSummary();});wrapper.append(input);row.append(wrapper);
             }
             const remove=document.createElement('button');remove.type='button';remove.textContent='Remove';remove.addEventListener('click',()=>{basket=basket.filter(value=>value!==line);renderBasket();controls();});row.append(remove);container.append(row);
