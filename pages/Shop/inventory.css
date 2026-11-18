@@ -311,3 +311,6 @@
 #inventory-receipt .receipt-footer > .inventory-help { margin-right:auto; }
 #inventory-receipt .receipt-footer #inventory-receipt-cancel { margin-left:0; }
 @media(max-width:600px) { #inventory-receipt .receipt-footer > .inventory-help { order:0; } }
+
+.receiving-recent-limit { display:flex; align-items:center; gap:8px; }
+.inventory-page .receiving-recent-limit select { width:auto; min-height:36px; margin:0; padding:6px 10px; }

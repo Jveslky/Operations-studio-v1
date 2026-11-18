@@ -20,11 +20,19 @@
         row.innerHTML=`<span><strong>${escape(receipt.supplier)}</strong><small>Invoice ${escape(receipt.invoice_reference)} · Delivery ${escape(receipt.delivery_reference)}${receipt.purchase_order?' · PO '+escape(receipt.purchase_order):''}</small></span><span class="receiving-row-count">${receipt.quantity_received==null?'Quantity unavailable':number(receipt.quantity_received)+' '+(Number(receipt.quantity_received)===1?'unit received':'units received')}</span><span class="receiving-row-cost">${money(receipt.receipt_cost)}<small>before tax</small></span><span class="receiving-row-date">${date(receipt.recorded_at)}</span><span aria-hidden="true">›</span>`;
         row.addEventListener('click',()=>showReceipt(receipt.id,origin));return row;
     }
+    const recentLimits=['10','20','25','30','40','50'];
+    const recentLimitKey=()=>context?.shopId&&context?.user?.id?`long-shift-receiving-limit:${context.shopId}:${context.user.id}`:null;
+    function selectedRecentLimit(){const value=el('receiving-recent-limit').value;return recentLimits.includes(value)?Number(value):25;}
+    el('receiving-recent-limit').addEventListener('change',()=>{
+        el('receiving-recent-limit').value=String(selectedRecentLimit());
+        try{const key=recentLimitKey();if(key)localStorage.setItem(key,el('receiving-recent-limit').value);}catch{}
+        if(context)loadRecent();
+    });
     async function loadRecent(){
         const request=++recentGeneration;
         el('receiving-recent-rows').replaceChildren();el('receiving-recent-message').textContent='Loading confirmed receipts…';
         try{
-            const r=await client.rpc('shop_receiving_directory',{p_shop:context.shopId,p_size:25});
+            const r=await client.rpc('shop_receiving_directory',{p_shop:context.shopId,p_size:selectedRecentLimit()});
             if(request!==recentGeneration)return;if(r.error)throw r.error;
             for(const receipt of r.data.rows||[])el('receiving-recent-rows').append(receiptRow(receipt,'home'));
             el('receiving-recent-message').textContent=r.data.rows?.length?'':'No confirmed receipts yet. Receive a delivery to start your history.';
@@ -88,5 +96,5 @@
     el('receiving-next').addEventListener('click',()=>{page++;loadHistory();});
     el('inventory-refresh').addEventListener('click',()=>{loadRecent();loadHistory();});
     window.shopReceivingWorkspace={refresh:()=>{if(context)loadRecent();}};
-    window.trackRightAuthReady.then(value=>{context=value;if(context?.shopId)loadRecent();else el('receiving-recent-message').textContent='A shop session is required.';}).catch(error=>{el('receiving-recent-message').textContent=error.message;});
+    window.trackRightAuthReady.then(value=>{context=value;el('receiving-recent-limit').value='25';try{const key=recentLimitKey(),saved=key?localStorage.getItem(key):null;if(recentLimits.includes(saved))el('receiving-recent-limit').value=saved;}catch{}if(context?.shopId)loadRecent();else el('receiving-recent-message').textContent='A shop session is required.';}).catch(error=>{el('receiving-recent-message').textContent=error.message;});
 })();
