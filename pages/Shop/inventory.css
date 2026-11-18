@@ -303,3 +303,6 @@
 #receipt-lines-title { margin:14px 0 8px; font-size:16px; }
 #receipt-lines-title small { display:block; margin-top:4px; color:#657177; font-size:12px; font-weight:400; }
 #receipt-lines .receipt-line { padding:12px; margin:8px 0; border:1px solid #c6d9e0; border-radius:8px; background:#f1f6f7; }
+
+#inventory-receipt .receipt-footer { margin-top:10px; padding:12px 0; border-top:1px solid #d4dce0; border-bottom:1px solid #d4dce0; }
+#inventory-receipt #receipt-catalog-slot { margin-top:16px; }
