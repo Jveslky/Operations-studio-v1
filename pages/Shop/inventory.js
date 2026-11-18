@@ -19,13 +19,14 @@
         el('inventory-catalog').hidden=screen!=='new';
         el('receiving-back').hidden=screen==='home';
         el('receiving-detail').hidden=true;
-        el('receiving-new').hidden=screen==='new';
+        el('receiving-new').hidden=screen==='home'||screen==='new';
         el('inventory-new').hidden=!canManage||screen!=='new';
-        el(screen==='new'?'receipt-supplier':screen==='history'?'receiving-history-title':screen==='detail'?'receiving-detail-title':'receiving-browse').focus();
+        el(screen==='new'?'receipt-supplier':screen==='history'?'receiving-history-title':screen==='detail'?'receiving-detail-title':'receiving-start').focus();
     }
     if(receivingView){
         window.shopInventoryReceiving={open:screen=>setReceivingScreen(screen)};
         el('receiving-new').addEventListener('click',()=>setReceivingScreen('new'));
+        el('receiving-start').addEventListener('click',()=>setReceivingScreen('new'));
 
         el('receiving-back').addEventListener('click',()=>setReceivingScreen('home'));
     }
@@ -194,7 +195,7 @@
         el('inventory-retry').disabled=busy||!pending;
         el('inventory-pending').hidden=!pending;
         if(pending)el('inventory-pending-text').textContent=pending.summary+' This request is saved on this browser, but server success is not confirmed. Retry the same save before making another change.';
-        if(receivingView){el('inventory-receipt').hidden=receivingScreen!=='new';el('receiving-new').disabled=locked||!canReceive;}
+        if(receivingView){el('inventory-receipt').hidden=receivingScreen!=='new';el('receiving-new').disabled=locked||!canReceive;el('receiving-start').disabled=locked||!canReceive;}
         pager();render();
     }
     function pager(){el('inventory-previous').disabled=page===0||!loaded;el('inventory-next').disabled=!loaded||(page+1)*25>=count;el('inventory-page-label').textContent=count?`${page*25+1}–${Math.min((page+1)*25,count)} of ${count}`:'0 parts';}
