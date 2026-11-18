@@ -256,6 +256,10 @@ begin
         into identity_predicate from unnest(dataset.identity_keys) as keys(k);
         for item in select value from jsonb_array_elements(cloud->dataset.key)
         loop
+            -- Receipts predating PO references restore with an empty optional PO.
+            if dataset.key = 'inventory_receipts' and not (item ? 'purchase_order') then
+                item := jsonb_set(item, '{purchase_order}', '""'::jsonb);
+            end if;
             execute format(
                 'select to_jsonb(r) from public.%1$I r
                  cross join jsonb_populate_record(null::public.%1$I, $1) incoming

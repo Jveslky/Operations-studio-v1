@@ -12,7 +12,7 @@
     function button(parent,text,action){const b=node('button',text);b.type='button';b.addEventListener('click',()=>Promise.resolve().then(action).catch(e=>message(e.message)));parent.append(b);return b;}
     function makeDialog(){
         dialog=node('dialog');dialog.className='ap-stock-dialog';dialog.setAttribute('aria-labelledby','ap-stock-title');
-        dialog.innerHTML='<h2 id="ap-stock-title">Review parts for receiving</h2><p id="ap-stock-bill"></p><p>Suggestions are incomplete until reviewed. Invoice quantity is not proof of delivery. Match each stocked part, check pack size and enter what physically arrived. Freight, cores, returns, special orders and backorders need a deliberate decision.</p><details><summary>Supplier document text</summary><pre id="ap-stock-source"></pre></details><div id="ap-stock-history"></div><fieldset id="ap-stock-fields"><label>Delivery reference<input id="ap-stock-delivery" maxlength="200"></label><div id="ap-stock-rows"></div><button id="ap-stock-add" type="button">Add missing line</button><label><input id="ap-stock-source-check" type="checkbox"> I checked the original document and accounted for missing lines, fees, cores and backorders.</label><label><input id="ap-stock-physical" type="checkbox"> I verified quantities physically delivered and stock units per supplier unit.</label></fieldset><p id="ap-stock-message" role="status" aria-live="polite"></p><div id="ap-stock-actions"></div>';
+        dialog.innerHTML='<h2 id="ap-stock-title">Review parts for receiving</h2><p id="ap-stock-bill"></p><p>Suggestions are incomplete until reviewed. Invoice quantity is not proof of delivery. Match each stocked part, check pack size and enter what physically arrived. Freight, cores, returns, special orders and backorders need a deliberate decision.</p><details><summary>Supplier document text</summary><pre id="ap-stock-source"></pre></details><div id="ap-stock-history"></div><fieldset id="ap-stock-fields"><label>Delivery reference<input id="ap-stock-delivery" maxlength="200"></label><label>PO number (optional)<input id="ap-stock-po" maxlength="150" placeholder="Customer, account or job reference"></label><div id="ap-stock-rows"></div><button id="ap-stock-add" type="button">Add missing line</button><label><input id="ap-stock-source-check" type="checkbox"> I checked the original document and accounted for missing lines, fees, cores and backorders.</label><label><input id="ap-stock-physical" type="checkbox"> I verified quantities physically delivered and stock units per supplier unit.</label></fieldset><p id="ap-stock-message" role="status" aria-live="polite"></p><div id="ap-stock-actions"></div>';
         document.body.append(dialog);
         by('ap-stock-add').addEventListener('click',()=>{rows.push({source:'Manual review',description:'',action:'',received:'',pack:'',supplier_cost:''});draw();});
         button(by('ap-stock-actions'),'Confirm reviewed receipt',submit).id='ap-stock-save';
@@ -54,7 +54,7 @@
     }
     async function submit(){
         if(busy||pending||!historyReady)return;
-        const review={delivery:by('ap-stock-delivery').value.trim(),source_check:by('ap-stock-source-check').checked,physical_check:by('ap-stock-physical').checked,rows:structuredClone(rows).map(({search,searchGeneration,...row})=>row)};
+        const review={purchase_order:by('ap-stock-po').value.trim(),delivery:by('ap-stock-delivery').value.trim(),source_check:by('ap-stock-source-check').checked,physical_check:by('ap-stock-physical').checked,rows:structuredClone(rows).map(({search,searchGeneration,...row})=>row)};
         if(!review.delivery||!review.source_check||!review.physical_check||!rows.length)throw Error('Review the source and physical delivery, add lines, and enter a delivery reference.');
         const ids=new Set(),summary=[];
         for(const row of review.rows){
@@ -88,7 +88,7 @@
         bill=record;historyReady=false;const session=++generation;key=`long-shift-ap-receipt:${context.shopId}:${context.user.id}:${bill.id}`;
         pending=null;by('ap-stock-save').hidden=false;by('ap-stock-fields').hidden=false;
         by('ap-stock-bill').textContent=`${bill.vendor} · Invoice ${bill.invoice_number||'Missing reference'}`;by('ap-stock-source').textContent=bill.ocr_text||'No extracted text. View the original document and add lines manually.';
-        by('ap-stock-history').textContent='Loading previous receipts…';by('ap-stock-delivery').value='';by('ap-stock-source-check').checked=false;by('ap-stock-physical').checked=false;
+        by('ap-stock-history').textContent='Loading previous receipts…';by('ap-stock-delivery').value='';by('ap-stock-po').value='';by('ap-stock-source-check').checked=false;by('ap-stock-physical').checked=false;
         rows=parts.suggest(bill.ocr_text);draw();message('Review suggestions against View Document. Unread lines can be added manually.');dialog.showModal();
         try{pending=JSON.parse(localStorage.getItem(key)||'null');controls();}catch{by('ap-stock-fields').disabled=true;by('ap-stock-save').disabled=true;message('Cannot read the saved receipt request. Browser storage needs review before receiving.');return;}
         if(pending){

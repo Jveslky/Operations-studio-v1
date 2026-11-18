@@ -6,8 +6,28 @@
     const quantity=value=>Number(value||0).toLocaleString('en-US',{maximumFractionDigits:3});
     let context,page=0,count=0,generation=0,historyGeneration=0,historyPage=0,historyCount=0,historyItem=null,timer;
     let rows=[],basket=[],editing=null,adjusting=null,canReceive=false,canManage=false,loaded=false,busy=false,pending=null,storageKey='',dirty=false;
+    let receivingScreen='home';
     const receivingView=new URLSearchParams(window.location.search).get('view')==='receiving';
-    if(receivingView){document.querySelector('.inventory-heading h1').textContent='Receiving';document.title='Receiving | Long Shift';document.querySelector('.inventory-heading p:last-child').textContent='Match the delivery, check quantities and costs, then receive stock.';el('inventory-receipt').hidden=false;}
+    if(receivingView){document.querySelector('.inventory-heading h1').textContent='Receiving';document.title='Receiving | Long Shift';document.querySelector('.inventory-heading p:last-child').textContent='Process deliveries and trace received stock.';el('receiving-new').hidden=false;setReceivingScreen('home');}
+    function setReceivingScreen(screen){
+        receivingScreen=screen;
+        el('inventory-workspace').setAttribute('data-receiving-screen',screen);
+        el('inventory-refresh').textContent=screen==='new'?'Refresh stock':'Refresh receipts';
+        el('receiving-home').hidden=screen!=='home';
+        el('receiving-history').hidden=screen!=='history';
+        el('inventory-receipt').hidden=screen!=='new';
+        el('inventory-catalog').hidden=screen!=='new';
+        el('receiving-back').hidden=screen==='home';
+        el('receiving-detail').hidden=true;
+        el('inventory-new').hidden=!canManage||screen!=='new';
+        el(screen==='new'?'receipt-supplier':screen==='history'?'receiving-history-title':screen==='detail'?'receiving-detail-title':'receiving-start').focus();
+    }
+    if(receivingView){
+        window.shopInventoryReceiving={open:screen=>setReceivingScreen(screen)};
+        el('receiving-new').addEventListener('click',()=>setReceivingScreen('new'));
+        el('receiving-start').addEventListener('click',()=>setReceivingScreen('new'));
+        el('receiving-back').addEventListener('click',()=>setReceivingScreen('home'));
+    }
     let responseLossArmed=false,responseLossButton=null,responseLossStatus=null;
     const responseLossEnabled=()=>window.location.hostname==='test-shop-combined.long-shift-test.pages.dev'&&new URLSearchParams(window.location.search).get('btest')==='receipt-response-loss'&&['owner','admin'].includes(context?.role)&&canReceive;
     function setupResponseLoss(){
@@ -161,7 +181,7 @@
     }
     function controls(){
         const locked=busy||!!pending||!loaded;
-        el('inventory-new').hidden=!canManage;
+        el('inventory-new').hidden=!canManage||(receivingView&&receivingScreen!=='new');
         el('inventory-new').disabled=locked;
         el('inventory-item-fields').disabled=locked||!canManage;
         el('inventory-item-save').disabled=locked||!canManage;
@@ -173,7 +193,7 @@
         el('inventory-retry').disabled=busy||!pending;
         el('inventory-pending').hidden=!pending;
         if(pending)el('inventory-pending-text').textContent=pending.summary+' This request is saved on this browser, but server success is not confirmed. Retry the same save before making another change.';
-        if(receivingView)el('inventory-receipt').hidden=false;
+        if(receivingView){el('inventory-receipt').hidden=receivingScreen!=='new';el('receiving-new').disabled=locked||!canReceive;el('receiving-start').disabled=locked||!canReceive;}
         pager();render();
     }
     function pager(){el('inventory-previous').disabled=page===0||!loaded;el('inventory-next').disabled=!loaded||(page+1)*25>=count;el('inventory-page-label').textContent=count?`${page*25+1}–${Math.min((page+1)*25,count)} of ${count}`:'0 parts';}
@@ -260,7 +280,7 @@
         el('receipt-cost').textContent=complete?money(basket.reduce((sum,line)=>sum+Number(line.quantity)*Number(line.unit_cost),0)):'Enter quantities & costs';
     }
     function renderBasket(){
-        el('inventory-receipt').hidden=!receivingView&&!basket.length;const container=el('receipt-lines');container.replaceChildren();updateReceiptSummary();
+        el('inventory-receipt').hidden=receivingView?receivingScreen!=='new':!basket.length;const container=el('receipt-lines');container.replaceChildren();updateReceiptSummary();
         for(const line of basket){
             const row=document.createElement('div');row.className='receipt-line';row.innerHTML=`<div><strong>${escape(line.item.part_number)}</strong><p>${escape(line.item.description)} · ${escape(line.item.stock_unit)}</p></div>`;
             for(const [key,label,step,max] of [['quantity','Received stock units','0.001','99999999999.999'],['unit_cost','Cost / stock unit','0.0001','9999999999.9999']]){
@@ -305,14 +325,14 @@
             }
             localStorage.removeItem(action.storageKey);pending=readPending();dirty=false;
             if(action.rpc==='save_shop_inventory_item'){editing=null;el('inventory-editor').hidden=true;}
-            if(action.rpc==='receive_shop_inventory'){basket=[];el('inventory-receipt-form').reset();renderBasket();}
+            if(action.rpc==='receive_shop_inventory'){basket=[];el('inventory-receipt-form').reset();renderBasket();if(receivingView){setReceivingScreen('home');window.shopReceivingWorkspace?.refresh();}}
             if(action.rpc==='adjust_shop_inventory'){adjusting=null;el('inventory-adjustment').hidden=true;}
             await load();if(historyItem)await loadHistory();message(loaded?'Inventory change saved and recorded in history.':'Inventory change saved, but stock refresh failed. Refresh stock before making another change.',!loaded);
         }catch(error){message(pending?`Server save not confirmed: ${error.message}. Use Retry same save; do not enter it again.`:error.code==='23505'?'That part or supplier/invoice/delivery already exists. Check its history before receiving again.':error.message,true);}
         finally{busy=false;controls();}
     }
     el('inventory-item-form').addEventListener('submit',async event=>{event.preventDefault();if(!canManage)return;try{const values={};for(const [key,id] of Object.entries(itemFields)){if(key==='category'&&!categoryAvailable)continue;const n=el(id);values[key]=n.type==='checkbox'?n.checked:n.value.trim();}numeric(values.sale_price,2);numeric(values.reorder_point,3);await mutate('save_shop_inventory_item',{p_id:editing?.id||null,p_expected:editing?.updated_at||null,p_values:values},`Save part ${values.part_number}`);}catch(error){message(error.message,true);}});
-    el('inventory-receipt-form').addEventListener('submit',async event=>{event.preventDefault();if(!canReceive||!basket.length)return;try{const receipt={supplier:el('receipt-supplier').value.trim(),invoice_reference:el('receipt-invoice').value.trim(),delivery_reference:el('receipt-delivery').value.trim(),notes:el('receipt-notes').value.trim()};if(!receipt.supplier||!receipt.invoice_reference||!receipt.delivery_reference)throw Error('Supplier, invoice and delivery references are required.');const lines=basket.map(line=>({item_id:line.item.id,quantity:numeric(line.quantity,3,true),unit_cost:numeric(line.unit_cost,4)}));const summary=`Receive from ${receipt.supplier}\nInvoice ${receipt.invoice_reference} · Delivery ${receipt.delivery_reference}\n`+basket.map(line=>`${line.item.part_number}: +${quantity(line.quantity)} ${line.item.stock_unit} at ${money(line.unit_cost)} each`).join('\n');await mutate('receive_shop_inventory',{p_receipt:receipt,p_lines:lines},summary,true);}catch(error){message(error.message,true);}});
+    el('inventory-receipt-form').addEventListener('submit',async event=>{event.preventDefault();if(!canReceive||!basket.length)return;try{const receipt={supplier:el('receipt-supplier').value.trim(),invoice_reference:el('receipt-invoice').value.trim(),delivery_reference:el('receipt-delivery').value.trim(),purchase_order:el('receipt-po').value.trim(),notes:el('receipt-notes').value.trim()};if(!receipt.supplier||!receipt.invoice_reference||!receipt.delivery_reference)throw Error('Supplier, invoice and delivery references are required.');const lines=basket.map(line=>({item_id:line.item.id,quantity:numeric(line.quantity,3,true),unit_cost:numeric(line.unit_cost,4)}));const summary=`Receive from ${receipt.supplier}\nInvoice ${receipt.invoice_reference} · Delivery ${receipt.delivery_reference}${receipt.purchase_order?' · PO '+receipt.purchase_order:''}\n`+basket.map(line=>`${line.item.part_number}: +${quantity(line.quantity)} ${line.item.stock_unit} at ${money(line.unit_cost)} each`).join('\n');await mutate('receive_shop_inventory',{p_receipt:receipt,p_lines:lines},summary,true);}catch(error){message(error.message,true);}});
     el('inventory-adjustment-form').addEventListener('submit',async event=>{event.preventDefault();if(!canManage||!adjusting)return;try{const raw=el('adjustment-quantity').value.trim(),value=Number(raw),reason=el('adjustment-reason').value.trim();if(!/^-?[0-9]+(?:\.[0-9]{1,3})?$/.test(raw)||!Number.isFinite(value)||value===0||!reason)throw Error('Enter a nonzero correction (up to 3 decimals) and a reason.');const next=Math.round((Number(adjusting.on_hand)+value)*1000)/1000;if(next<0)throw Error('Correction would make stock negative.');await mutate('adjust_shop_inventory',{p_item:adjusting.id,p_quantity:value,p_expected:Number(adjusting.on_hand),p_reason:reason},`${adjusting.part_number}: ${quantity(adjusting.on_hand)} → ${quantity(next)} ${adjusting.stock_unit}\nReason: ${reason}`,true);}catch(error){message(error.message,true);}});
     el('inventory-new').addEventListener('click',()=>editItem());el('inventory-item-form').addEventListener('input',()=>{dirty=true;});
     el('inventory-item-cancel').addEventListener('click',()=>{if(!dirty||window.confirm('Discard unsaved part edits?')){dirty=false;editing=null;el('inventory-editor').hidden=true;}});

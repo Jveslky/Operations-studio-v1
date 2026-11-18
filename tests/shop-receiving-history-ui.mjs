@@ -1,0 +1,24 @@
+import fs from 'node:fs';import vm from 'node:vm';import assert from 'node:assert/strict';
+const source=fs.readFileSync(new URL('../pages/Shop/receiving-workspace.js',import.meta.url),'utf8');
+const nodes=new Map(),calls=[],screens=[],waiting=[];let sequence=0,defer=false,fail=false;
+function node(id){if(!nodes.has(id))nodes.set(id,{value:'',hidden:false,disabled:false,textContent:'',innerHTML:'',children:[],listeners:{},replaceChildren(){this.children=[];this.innerHTML='';},append(n){this.children.push(n);},addEventListener(e,f){this.listeners[e]=f;}});return nodes.get(id);}
+const receipt={id:'r1',supplier:'<Supplier>',invoice_reference:'INV-1',delivery_reference:'D-1',purchase_order:'ACCOUNT-1032',line_count:2,receipt_cost:25,recorded_at:'2026-11-17T12:00:00Z',recorded_by_email:'qa@example.test'};
+const data={count:26,rows:[receipt],vendors:[{supplier:'<Supplier>',receipt_count:26,last_received:receipt.recorded_at}]};
+const window={location:{search:'?view=receiving'},trackRightAuthReady:Promise.resolve({shopId:'shop-a'}),shopInventoryReceiving:{open:screen=>screens.push(screen)},trackRightSupabase:{async rpc(name,args){calls.push({name,args});if(fail)return {error:{message:'Denied'}};if(defer)return new Promise(resolve=>waiting.push(resolve));if(name==='shop_receiving_detail')return {data:{receipt,lines:[{part_number:'<Part>',description:'<img onerror=x>',stock_unit:'each',quantity:2,unit_cost:12.5,line_cost:25}]}};return {data};}}};
+vm.runInNewContext(source,{window,document:{getElementById:node,createElement:()=>node('generated-'+sequence++)},URLSearchParams,setTimeout,clearTimeout,console});
+const settle=()=>new Promise(resolve=>setTimeout(resolve,0));await settle();
+assert.equal(calls[0].args.p_shop,'shop-a');assert.equal(calls[0].args.p_size,5);assert.match(node('receiving-recent-rows').children[0].innerHTML,/&lt;Supplier&gt;/);assert.doesNotMatch(node('receiving-recent-rows').children[0].innerHTML,/<Supplier>/);
+node('receiving-browse').listeners.click();await settle();assert.equal(screens.at(-1),'history');assert.equal(node('receiving-next').disabled,false);
+node('receiving-vendors').children[0].listeners.click();await settle();assert.equal(calls.at(-1).args.p_supplier,'<Supplier>');
+node('receiving-all-suppliers').listeners.click();await settle();assert.equal(calls.at(-1).args.p_supplier,'');
+node('receiving-search').value='ACCOUNT-1032';node('receiving-search').listeners.input();await new Promise(resolve=>setTimeout(resolve,275));assert.equal(calls.at(-1).args.p_search,'ACCOUNT-1032');assert.equal(calls.at(-1).args.p_page,0);
+node('receiving-from').value='2026-11-01';node('receiving-through').value='2026-11-17';node('receiving-through').listeners.change();await settle();assert.ok(calls.at(-1).args.p_from);assert.ok(calls.at(-1).args.p_until);
+node('receiving-next').listeners.click();await settle();assert.equal(calls.at(-1).args.p_page,1);
+node('receiving-history-rows').children[0].listeners.click();await settle();assert.equal(screens.at(-1),'detail');assert.match(node('receiving-detail-body').innerHTML,/&lt;img onerror=x&gt;/);assert.doesNotMatch(node('receiving-detail-body').innerHTML,/<img/);assert.match(node('receiving-detail-body').innerHTML,/ACCOUNT-1032/);
+node('receiving-detail-close').listeners.click();assert.equal(screens.at(-1),'history');
+// Closing a receipt invalidates its in-flight read.
+defer=true;node('receiving-recent-rows').children[0].listeners.click();await settle();node('receiving-detail-close').listeners.click();waiting.shift()({data:{receipt,lines:[]}});await settle();assert.equal(node('receiving-detail-body').textContent,'Loading receipt…');defer=false;
+// Invalid dates do not issue a query; failures clear earlier result rows.
+const before=calls.length;node('receiving-from').value='2026-12-01';node('receiving-from').listeners.change();await settle();assert.equal(calls.length,before);assert.match(node('receiving-history-message').textContent,/end date/);
+node('receiving-from').value='';node('receiving-through').value='';fail=true;node('receiving-through').listeners.change();await settle();assert.equal(node('receiving-history-rows').children.length,0);assert.equal(node('receiving-next').disabled,true);assert.equal(node('receiving-history-message').textContent,'Denied');
+console.log('Receiving UI: bounded shop-scoped reads, supplier/PO/date filters, paging, receipt details, escaped data, closed-detail stale response and failure clearing passed.');

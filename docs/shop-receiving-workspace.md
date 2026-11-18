@@ -1,0 +1,13 @@
+# Receiving workspace (Test)
+
+Receiving now opens an overview with Receive a delivery, Receipt history and five recent confirmed receipts. Inventory keeps its category dashboard. The receipt form and catalog remain within the Receiving workspace, behind New receipt. Navigating to the overview keeps an unsaved form in memory; closing/reloading still uses the existing unload warning for receipt lines. Only unconfirmed submissions use the durable pending-request recovery path.
+
+Apply `supabase/shop-receiving-history.sql` to Test before publishing the frontend. It adds an optional receipt `purchase_order` field, two invoker-rights history RPCs, and receipt lookup indexes. Existing inventory/AP roles, stock writes, duplicate identities and request replay payloads are preserved. AP reviewed receiving captures the same optional PO. Existing PO-less pending payloads replay without modification.
+
+History searches supplier, PO, invoice, delivery reference and catalog part number/description/manufacturer. Supplier cards group trim/case variants only. Date filters use local midnight through the following midnight, end exclusive; displayed dates use browser local time. Read results are paged (25, server max 50). Receipt costs sum recorded quantity × unit cost before tax; catalog descriptions are current, not historical snapshots. Receipts remain immutable. This does not create purchase orders, outstanding-order balances, supplier master records or links to customer accounts.
+
+Backup export includes the added receipt column through existing row serialization. The SQL patches the installed v3 restore function to normalize pre-PO receipt records to an empty optional PO after backup authenticity validation. The release-candidate restore source contains the same normalization.
+
+Targeted checks: `node tests/shop-receiving-history.mjs`, `node tests/shop-receiving-history-ui.mjs`, `node tests/shop-inventory-ui.mjs`, `node tests/shop-inventory.mjs`, `node tests/shop-ap-receiving.mjs`, `node tests/shop-ap-receiving-ui.mjs`.
+
+Rendered full desktop / split-window and deployed end-to-end review still require an authenticated Test browser. No Live changes are part of this pass.
