@@ -260,3 +260,6 @@
 .receiving-supplier-arrow { grid-column:3; grid-row:1; font-size:23px!important; line-height:1; }
 .inventory-page #receiving-all-suppliers { background:#d96326; border-color:#d96326; color:#fff; }
 .inventory-page #receiving-all-suppliers:hover { background:#bd511f; border-color:#bd511f; }
+
+.receiving-source { color:#526773; font-size:14px; }
+.receiving-source a { color:#286777; font-weight:600; text-underline-offset:3px; }

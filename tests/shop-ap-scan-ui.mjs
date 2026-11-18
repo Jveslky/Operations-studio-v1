@@ -5,7 +5,7 @@ let resolveOcr,resolveInsert,inserts=0,removals=0;const records=[];
 const storage=new Map(),localStorage={getItem:k=>storage.get(k)||null,setItem:(k,v)=>storage.set(k,v),removeItem:k=>storage.delete(k)};
 const client={rpc(name,args){assert.equal(name,'create_shop_ap_bill_once');inserts++;records.push(args.p_record);return new Promise(r=>resolveInsert=r);},from(){return {select(){return this;},eq(){return this;},async order(){return {data:[]};},async insert(record){inserts++;records.push(record);return new Promise(r=>resolveInsert=r);}};},storage:{from(){return {async upload(){return {data:{}};},async remove(){removals++;return {data:{}};}};}}};
 const window={trackRightSupabase:client,trackRightAuthReady:Promise.resolve({shopId:'shop',user:{id:'owner'}}),trackRightCan:()=>true};
-vm.runInNewContext(source,{window,document:{getElementById:node,createElement:()=>node(crypto.randomUUID())},crypto,localStorage,Tesseract:{recognize:()=>new Promise(r=>resolveOcr=r)},console,URL,Blob});
+vm.runInNewContext(source,{window,document:{getElementById:node,createElement:()=>node(crypto.randomUUID())},crypto,localStorage,Tesseract:{recognize:()=>new Promise(r=>resolveOcr=r)},console,URL,URLSearchParams,Blob});
 const settle=()=>new Promise(r=>setTimeout(r,0)),event={preventDefault(){}};await settle();
 node('scan-bill-button').listeners.click();node('bill-document').files=[{type:'image/png',size:100,name:'invoice.png'}];const scan=node('bill-document').listeners.change();await settle();
 await node('bill-form').listeners.submit(event);assert.equal(inserts,0);assert.match(node('bill-review-message').textContent,/Wait/);

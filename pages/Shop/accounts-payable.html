@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="../../css/base.css">
     <link rel="stylesheet" href="../../css/layout.css">
     <link rel="stylesheet"
-          href="./accounts-payable.css?v=20261114-4">
+          href="./accounts-payable.css?v=receipt-source-1">
 
 <link rel="manifest" href="./manifest.webmanifest?v=2">
 <link rel="icon" type="image/png" sizes="32x32" href="./icons/shop-v2-32.png">
@@ -179,6 +179,7 @@
                 </div>
             </div>
 
+            <div id="ap-source-context" class="bill-source-context" hidden><span id="ap-source-label"></span><button id="ap-source-clear" type="button">Show all bills</button></div>
             <div class="bill-filters" role="search" aria-label="Vendor bills">
                 <input id="bill-search" type="search" aria-label="Search vendor bills"
                        placeholder="Search vendor or invoice reference">
@@ -301,7 +302,7 @@
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="./ap-parts-review.js"></script>
     <script src="./ap-receiving.js?v=receiving-po-1"></script>
-    <script src="./accounts-payable.js?v=20261114-2"></script>
+    <script src="./accounts-payable.js?v=receipt-source-1"></script>
 
 </body>
 </html>

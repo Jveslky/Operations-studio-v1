@@ -6,8 +6,12 @@
     const list = byId("bill-list");
     const search = byId("bill-search");
     const statusFilter = byId("bill-status-filter");
-    search?.addEventListener("input", renderBills);
-    statusFilter?.addEventListener("change", renderBills);
+    const sourceParameter=new URLSearchParams(window.location?.search||'').get('bill');
+    let sourceBillId=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(sourceParameter||'')?sourceParameter:null;
+    function clearSource(){sourceBillId=null;renderBills();}
+    byId('ap-source-clear')?.addEventListener('click',clearSource);
+    search?.addEventListener("input", clearSource);
+    statusFilter?.addEventListener("change", clearSource);
     const message = byId("bill-review-message");
     const warning = byId("bill-duplicate-warning");
     const fileField = byId("bill-document-field");
@@ -35,6 +39,8 @@
         const query = search?.value.trim().toLowerCase();
         const status = statusFilter?.value;
         list.replaceChildren();
+        byId('ap-source-context').hidden=!sourceBillId;
+        if(sourceBillId){const source=bills.find(b=>b.id===sourceBillId);byId('ap-source-label').textContent=source?`Supplier invoice ${source.invoice_number||'No reference'} · ${source.vendor}`:'The source supplier bill is unavailable in this shop.';}
         bills.forEach(function (bill) {
             const paid = bill.status === "paid"; let display = paid ? "Paid" : "Open";
             if (!paid) { open += 1; payable += Number(bill.total) || 0; }
@@ -42,6 +48,7 @@
                 const days = Math.ceil((new Date(`${bill.due_date}T00:00:00`) - today) / 86400000);
                 if (days < 0) { display = "Overdue"; overdue += 1; } else if (days <= 7) { display = "Due Soon"; soon += 1; }
             }
+            if(sourceBillId&&bill.id!==sourceBillId)return;
             if (status && status !== display) return;
             if (query && ![bill.vendor, bill.invoice_number].some(value => String(value ?? "").toLowerCase().includes(query))) return;
 

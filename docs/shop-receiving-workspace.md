@@ -11,3 +11,9 @@ Backup export includes the added receipt column through existing row serializati
 Targeted checks: `node tests/shop-receiving-history.mjs`, `node tests/shop-receiving-history-ui.mjs`, `node tests/shop-inventory-ui.mjs`, `node tests/shop-inventory.mjs`, `node tests/shop-ap-receiving.mjs`, `node tests/shop-ap-receiving-ui.mjs`.
 
 Rendered full desktop / split-window and deployed end-to-end review still require an authenticated Test browser. No Live changes are part of this pass.
+
+## Source navigation
+
+Apply `supabase/shop-receiving-source.sql` on existing Test installs. Receipt detail now includes an optional AP source only when the caller can read both the AP link and source bill under existing RLS. The original immutable receipt note stays unchanged; the exact generated `Reviewed AP bill <UUID>` note is replaced in presentation with a readable AP source label. User-authored notes remain visible. The source link opens `accounts-payable.html?bill=<id>` with that exact shop-scoped bill selected. Show all bills or changing AP search/status exits that selection. Missing/unavailable bills show a readable message. Full-shop overview metrics retain their meaning.
+
+Receipt details use Back to Receiving or Back to supplier deliveries, based on the view that opened them. The source bill link is a separate action.

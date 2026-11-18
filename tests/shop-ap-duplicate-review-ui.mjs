@@ -6,7 +6,7 @@ const nodes=new Map();let seq=0;function node(id){if(!nodes.has(id))nodes.set(id
 const client={from(){return {select(){return this},eq(){return this},async order(){return {data:bills}}}},storage:{from(){return {async remove(){return {}}}}},async rpc(name,args){calls.push(structuredClone(args));return serverRace?{error:{message:'AP_DUPLICATE_REVIEW_REQUIRED'}}:{data:{id:'new'}}}};
 const window={location:{hostname:'example.invalid',search:''},trackRightSupabase:client,trackRightAuthReady:Promise.resolve({shopId:'shop',user:{id:'writer'},role:'service_writer'}),trackRightCan:()=>true,confirm:()=>confirmAnswer};
 const localStorage={getItem:k=>saved.get(k)||null,setItem:(k,v)=>saved.set(k,v),removeItem:k=>saved.delete(k)};
-vm.runInNewContext(src,{window,localStorage,document:{getElementById:node,createElement:()=>node(`generated-${++seq}`)},crypto:{randomUUID:()=>`request-${++seq}`},console,URL,Blob});await new Promise(r=>setImmediate(r));
+vm.runInNewContext(src,{window,localStorage,document:{getElementById:node,createElement:()=>node(`generated-${++seq}`)},crypto:{randomUUID:()=>`request-${++seq}`},console,URL,URLSearchParams,Blob});await new Promise(r=>setImmediate(r));
 node('add-bill-button').listeners.click();node('bill-vendor').value=' Test Vendor ';node('bill-reference').value='inv-1';node('bill-amount').value='10';node('bill-invoice-date').value='2026-10-25';
 await node('bill-form').listeners.submit({preventDefault(){}});assert.equal(calls.length,0,'cancel override must not save');assert.equal(node('bill-duplicate-warning').hidden,false);
 confirmAnswer=true;await node('bill-form').listeners.submit({preventDefault(){}});assert.deepEqual(calls[0].p_record.duplicate_override_ids,['old']);assert.equal(saved.size,0);

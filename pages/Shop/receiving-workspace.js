@@ -3,7 +3,7 @@
     if(new URLSearchParams(window.location.search).get('view')!=='receiving')return;
     const el=id=>document.getElementById(id),client=window.trackRightSupabase;
     const escape=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-    const money=value=>Number(value||0).toLocaleString('en-US',{style:'currency',currency:'USD'});
+    const money=(value,precision=2)=>Number(value||0).toLocaleString('en-US',{style:'currency',currency:'USD',minimumFractionDigits:2,maximumFractionDigits:precision});
     const number=value=>Number(value||0).toLocaleString('en-US',{maximumFractionDigits:4});
     const date=value=>new Date(value).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
     let context,page=0,total=0,supplier='',generation=0,recentGeneration=0,detailGeneration=0,timer,detailOrigin='home';
@@ -62,13 +62,15 @@
         }catch(error){if(request===generation){el('receiving-vendors').replaceChildren();el('receiving-history-message').textContent=error.message;pager(true);}}
     }
     async function showReceipt(id,origin){
-        open('detail');detailOrigin=origin;el('receiving-detail').hidden=false;
+        open('detail');detailOrigin=origin;el('receiving-detail-close').textContent=origin==='home'?'Back to Receiving':'Back to supplier deliveries';el('receiving-detail').hidden=false;
         const request=++detailGeneration;el('receiving-detail-body').textContent='Loading receipt…';
         try{
             const r=await client.rpc('shop_receiving_detail',{p_shop:context.shopId,p_receipt:id});
             if(request!==detailGeneration)return;if(r.error)throw r.error;
-            const receipt=r.data.receipt,lines=r.data.lines||[],total=lines.reduce((sum,line)=>sum+Number(line.line_cost),0);
-            el('receiving-detail-body').innerHTML=`<div class="receiving-receipt-meta"><strong>${escape(receipt.supplier)}</strong><span>${date(receipt.recorded_at)}</span><span>Invoice ${escape(receipt.invoice_reference)}</span><span>Delivery ${escape(receipt.delivery_reference)}</span><span>PO ${escape(receipt.purchase_order||'Not provided')}</span></div>${receipt.notes?`<p class="receiving-receipt-notes">${escape(receipt.notes)}</p>`:''}<div class="receiving-table-scroll"><table><caption>Parts received · catalog descriptions shown</caption><thead><tr><th>Part</th><th>Received</th><th>Unit cost</th><th>Line cost</th></tr></thead><tbody>${lines.map(line=>`<tr><td><strong>${escape(line.part_number)}</strong><small>${escape(line.description)}${line.manufacturer?' · '+escape(line.manufacturer):''}</small></td><td>${number(line.quantity)} ${escape(line.stock_unit)}</td><td>$${number(line.unit_cost)}</td><td>${money(line.line_cost)}</td></tr>`).join('')}</tbody><tfoot><tr><th colspan="3">Receipt cost · before tax</th><td>${money(total)}</td></tr></tfoot></table></div><p class="inventory-help">Recorded by ${escape(receipt.recorded_by_email)} · ${escape(new Date(receipt.recorded_at).toLocaleString())}</p>`;
+            const receipt=r.data.receipt,lines=r.data.lines||[],source=r.data.source,total=lines.reduce((sum,line)=>sum+Number(line.line_cost),0);
+            const automaticNote=/^Reviewed AP bill [0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test((receipt.notes||'').trim());
+            const sourceLink=source?.kind==='ap'&&/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(source.bill_id)?`<p class="receiving-source">Received through Accounts Payable · <a href="accounts-payable.html?bill=${encodeURIComponent(source.bill_id)}">Open supplier invoice ${escape(source.invoice_reference||receipt.invoice_reference)}</a></p>`:automaticNote?'<p class="inventory-help">Received through Accounts Payable</p>':'';
+            el('receiving-detail-body').innerHTML=`<div class="receiving-receipt-meta"><strong>${escape(receipt.supplier)}</strong><span>${date(receipt.recorded_at)}</span><span>Invoice ${escape(receipt.invoice_reference)}</span><span>Delivery ${escape(receipt.delivery_reference)}</span><span>PO ${escape(receipt.purchase_order||'Not provided')}</span></div>${sourceLink}${receipt.notes&&!automaticNote?`<p class="receiving-receipt-notes">${escape(receipt.notes)}</p>`:''}<div class="receiving-table-scroll"><table><caption>Parts received · catalog descriptions shown</caption><thead><tr><th>Part</th><th>Received</th><th>Unit cost</th><th>Line cost</th></tr></thead><tbody>${lines.map(line=>`<tr><td><strong>${escape(line.part_number)}</strong><small>${escape(line.description)}${line.manufacturer?' · '+escape(line.manufacturer):''}</small></td><td>${number(line.quantity)} ${escape(line.stock_unit)}</td><td>${money(line.unit_cost,4)}</td><td>${money(line.line_cost)}</td></tr>`).join('')}</tbody><tfoot><tr><th colspan="3">Receipt cost · before tax</th><td>${money(total)}</td></tr></tfoot></table></div><p class="inventory-help">Recorded by ${escape(receipt.recorded_by_email)} · ${escape(new Date(receipt.recorded_at).toLocaleString())}</p>`;
         }catch(error){if(request===detailGeneration)el('receiving-detail-body').textContent=error.message;}
     }
     function browseSuppliers(){

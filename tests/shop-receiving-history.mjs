@@ -69,12 +69,12 @@ const d=await detail(first.receipt.id);assert.equal(d.lines[0].part_number,'FILT
 const bill=await one("insert into shop_accounts_payable(shop_id,vendor,invoice_number,total,created_by) values($1,'Supplier','AP-22',50,$2) returning *",[A,owner]);
 const review={delivery:'AP-DEL',purchase_order:'ACCOUNT-PO',physical_check:true,source_check:true,rows:[{item_id:part.id,action:'receive',received:'1',pack:'2',supplier_cost:'10'}]};
 const apKey=uuid();const apReceive=async()=>(await one('select receive_shop_ap_stock($1,$2,$3,$4,$5) data',[A,apKey,bill.id,bill.updated_at,JSON.stringify(review)])).data;
-const apReceipt=await apReceive();assert.equal((await detail(apReceipt.receipt_id)).receipt.purchase_order,'ACCOUNT-PO');assert.equal((await apReceive()).receipt_id,apReceipt.receipt_id);assert.equal((await directory('account-po')).count,1);
+const apReceipt=await apReceive();assert.equal((await detail(apReceipt.receipt_id)).receipt.purchase_order,'ACCOUNT-PO');assert.equal((await detail(apReceipt.receipt_id)).source.bill_id,bill.id);assert.equal((await detail(first.receipt.id)).source,null);assert.equal((await apReceive()).receipt_id,apReceipt.receipt_id);assert.equal((await directory('account-po')).count,1);
 assert.equal(Number((await one('select sum(quantity) n from shop_inventory_movements where item_id=$1',[part.id])).n),6);
 await as(other);await assert.rejects(directory('','',null,null,0,25,A),/access/);await assert.rejects(detail(first.receipt.id,A),/access/);await assert.rejects(detail(first.receipt.id,B),/unavailable/);
 await as(tech);await assert.rejects(directory(),/access/);await assert.rejects(detail(first.receipt.id),/access/);
-await as(writer);assert.equal((await directory()).count,3);
+await as(writer);assert.equal((await directory()).count,3);assert.equal((await detail(apReceipt.receipt_id)).source,null,'inventory-only staff do not get an AP link');
 await db.exec('reset role');await db.query("update shop_members set permission_overrides='{\"inventory.read\":false}' where user_id=$1",[writer]);await as(writer);await assert.rejects(directory(),/access/);
-await db.exec('reset role');await db.query("update shop_members set permission_overrides='{\"expenses.read\":true}' where user_id=$1",[writer]);await as(writer);assert.equal((await directory()).count,3);
+await db.exec('reset role');await db.query("update shop_members set permission_overrides='{\"expenses.read\":true}' where user_id=$1",[writer]);await as(writer);assert.equal((await directory()).count,3);assert.equal((await detail(apReceipt.receipt_id)).source.bill_id,bill.id,'AP-approved staff can follow the source bill');
 await db.exec('reset role');await db.exec('set role anon');await assert.rejects(directory(),/permission denied/);
 await db.close();console.log('Receiving history: PO capture in direct/AP paths, legacy retries, duplicate identity, supplier grouping, literal search, date bounds, paging, exact line costs and role/tenant isolation passed.');
