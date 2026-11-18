@@ -247,3 +247,16 @@
 #inventory-workspace[data-receiving-screen]:not([data-receiving-screen="new"]) :is(#inventory-editor,#inventory-adjustment,#inventory-history) { display:none; }
 @media(max-width:1000px) { .receipt-details { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:600px) { .receipt-details { grid-template-columns:minmax(0,1fr); } }
+
+/* Supplier folders mirror Inventory's compact category navigation. */
+#receiving-history > h2 { margin:6px 0; font-size:22px; }
+#receiving-history > .inventory-help { margin:0 0 14px; }
+.receiving-vendors { grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr)); gap:12px; }
+.inventory-page .receiving-supplier-tile { display:grid; grid-template-columns:32px minmax(0,1fr) 14px; gap:5px 12px; padding:14px 16px; border-radius:8px; border:1px solid #bccbd3; border-left:3px solid #9cb8c6; background:#fff; box-shadow:0 3px 10px #252a3008; overflow-wrap:anywhere; }
+.receiving-supplier-tile > strong { grid-column:2; grid-row:1; align-self:center; font-size:16px; }
+.receiving-supplier-tile > span:not(.receiving-supplier-icon):not(.receiving-supplier-arrow),.receiving-supplier-tile > small { grid-column:2; }
+.receiving-supplier-icon { grid-column:1; grid-row:1 / span 3; display:grid; place-items:center; align-self:start; width:32px; height:32px; border-radius:6px; background:#e7eff3; color:#466c7c; }
+.receiving-supplier-icon svg { width:22px; height:22px; }
+.receiving-supplier-arrow { grid-column:3; grid-row:1; font-size:23px!important; line-height:1; }
+.inventory-page #receiving-all-suppliers { background:#d96326; border-color:#d96326; color:#fff; }
+.inventory-page #receiving-all-suppliers:hover { background:#bd511f; border-color:#bd511f; }

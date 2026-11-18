@@ -30,30 +30,34 @@
             el('receiving-recent-message').textContent=r.data.rows?.length?'':'No confirmed receipts yet. Receive a delivery to start your history.';
         }catch(error){if(request===recentGeneration)el('receiving-recent-message').textContent='Receipt history unavailable. '+error.message;}
     }
+    const hasFilters=()=>!!el('receiving-search').value.trim()||!!el('receiving-from').value||!!el('receiving-through').value;
     function vendors(groups){
         const container=el('receiving-vendors');container.replaceChildren();
-        const filtering=!!el('receiving-search').value.trim()||!!el('receiving-from').value||!!el('receiving-through').value;
+        const filtering=hasFilters();
         container.hidden=filtering||!!supplier;
-        el('receiving-vendor-heading').textContent=supplier?'Supplier: '+supplier:filtering?'Matching receipts':'Suppliers';
+        el('receiving-vendor-heading').textContent=supplier?supplier:filtering?'Matching receipts':'Suppliers';
         el('receiving-all-suppliers').hidden=!supplier;
         if(container.hidden)return;
         for(const group of groups){
             const button=document.createElement('button');button.type='button';
-            button.innerHTML=`<strong>${escape(group.supplier)}</strong><span>${Number(group.receipt_count)} ${Number(group.receipt_count)===1?'receipt':'receipts'}</span><small>Last received ${date(group.last_received)}</small>`;
+            button.className='receiving-supplier-tile';
+            button.innerHTML=`<span class="receiving-supplier-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 21V8l9-5 9 5v13M2 21h20M8 21v-8h8v8M7 9h2m2 0h2m2 0h2"/></svg></span><span class="receiving-supplier-arrow" aria-hidden="true">›</span><strong>${escape(group.supplier)}</strong><span>${Number(group.receipt_count)} ${Number(group.receipt_count)===1?'receipt':'receipts'}</span><small>Last received ${date(group.last_received)}</small>`;
             button.addEventListener('click',()=>{supplier=group.supplier;page=0;loadHistory();});container.append(button);
         }
     }
     function pager(loading=false){el('receiving-previous').disabled=loading||page===0;el('receiving-next').disabled=loading||(page+1)*25>=total;el('receiving-page-label').textContent=total?`${page*25+1}–${Math.min((page+1)*25,total)} of ${total} receipts`:'0 receipts';}
     async function loadHistory(){
         const request=++generation;
-        el('receiving-history-rows').replaceChildren();el('receiving-history-message').textContent='Loading receipts…';total=0;pager(true);
+        el('receiving-history-rows').replaceChildren();el('receiving-vendors').replaceChildren();el('receiving-history-message').textContent='Loading history…';el('receiving-history-pager').hidden=true;total=0;pager(true);
         try{
             const bounds=dateBounds();
             const r=await client.rpc('shop_receiving_directory',{p_shop:context.shopId,p_search:el('receiving-search').value.trim(),p_supplier:supplier,...bounds,p_page:page,p_size:25});
             if(request!==generation)return;if(r.error)throw r.error;
             total=Number(r.data.count)||0;vendors(r.data.vendors||[]);
-            for(const receipt of r.data.rows||[])el('receiving-history-rows').append(receiptRow(receipt,'history'));
-            el('receiving-history-message').textContent=total?'':'No receipts match these filters.';
+            const overview=!supplier&&!hasFilters();
+            el('receiving-history-pager').hidden=overview;
+            if(!overview)for(const receipt of r.data.rows||[])el('receiving-history-rows').append(receiptRow(receipt,'history'));
+            el('receiving-history-message').textContent=overview?(r.data.vendors?.length?'':'No suppliers yet. Confirm a receipt to start your history.'):(total?'':'No receipts match these filters.');
             pager();
         }catch(error){if(request===generation){el('receiving-vendors').replaceChildren();el('receiving-history-message').textContent=error.message;pager(true);}}
     }
@@ -67,11 +71,16 @@
             el('receiving-detail-body').innerHTML=`<div class="receiving-receipt-meta"><strong>${escape(receipt.supplier)}</strong><span>${date(receipt.recorded_at)}</span><span>Invoice ${escape(receipt.invoice_reference)}</span><span>Delivery ${escape(receipt.delivery_reference)}</span><span>PO ${escape(receipt.purchase_order||'Not provided')}</span></div>${receipt.notes?`<p class="receiving-receipt-notes">${escape(receipt.notes)}</p>`:''}<div class="receiving-table-scroll"><table><caption>Parts received · catalog descriptions shown</caption><thead><tr><th>Part</th><th>Received</th><th>Unit cost</th><th>Line cost</th></tr></thead><tbody>${lines.map(line=>`<tr><td><strong>${escape(line.part_number)}</strong><small>${escape(line.description)}${line.manufacturer?' · '+escape(line.manufacturer):''}</small></td><td>${number(line.quantity)} ${escape(line.stock_unit)}</td><td>$${number(line.unit_cost)}</td><td>${money(line.line_cost)}</td></tr>`).join('')}</tbody><tfoot><tr><th colspan="3">Receipt cost · before tax</th><td>${money(total)}</td></tr></tfoot></table></div><p class="inventory-help">Recorded by ${escape(receipt.recorded_by_email)} · ${escape(new Date(receipt.recorded_at).toLocaleString())}</p>`;
         }catch(error){if(request===detailGeneration)el('receiving-detail-body').textContent=error.message;}
     }
-    for(const id of ['receiving-browse','receiving-view-all'])el(id).addEventListener('click',()=>{open('history');loadHistory();});
+    function browseSuppliers(){
+        clearTimeout(timer);supplier='';page=0;
+        for(const id of ['receiving-search','receiving-from','receiving-through'])el(id).value='';
+        open('history');loadHistory();
+    }
+    el('receiving-browse').addEventListener('click',browseSuppliers);
     el('receiving-detail-close').addEventListener('click',()=>open(detailOrigin));
     el('receiving-back').addEventListener('click',()=>{++detailGeneration;loadRecent();});
-    el('receiving-all-suppliers').addEventListener('click',()=>{supplier='';page=0;loadHistory();});
-    el('receiving-search').addEventListener('input',()=>{clearTimeout(timer);++generation;el('receiving-history-rows').replaceChildren();el('receiving-history-message').textContent='Searching…';pager(true);timer=setTimeout(()=>{page=0;loadHistory();},250);});
+    el('receiving-all-suppliers').addEventListener('click',browseSuppliers);
+    el('receiving-search').addEventListener('input',()=>{clearTimeout(timer);supplier='';++generation;el('receiving-vendors').replaceChildren();el('receiving-history-rows').replaceChildren();el('receiving-history-message').textContent='Searching…';pager(true);timer=setTimeout(()=>{page=0;loadHistory();},250);});
     for(const id of ['receiving-from','receiving-through'])el(id).addEventListener('change',()=>{clearTimeout(timer);page=0;loadHistory();});
     el('receiving-previous').addEventListener('click',()=>{page=Math.max(0,page-1);loadHistory();});
     el('receiving-next').addEventListener('click',()=>{page++;loadHistory();});
